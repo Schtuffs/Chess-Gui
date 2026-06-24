@@ -1,5 +1,5 @@
-# Chess-Engine
- Simple engine to play chess.
+# Chess-GUI
+ GUI to to play my chess engine (or any other that supports UCI).
 
 ## Features
 
