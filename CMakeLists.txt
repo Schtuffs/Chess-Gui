@@ -4,9 +4,10 @@ project(ChessGui C CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(SRC ${CMAKE_CURRENT_LIST_DIR}/src)
-set(INCLUDE ${CMAKE_CURRENT_LIST_DIR}/include)
-set(LIB ${CMAKE_CURRENT_LIST_DIR}/lib)
+set(INCLUDE     ${CMAKE_CURRENT_LIST_DIR}/include)
+set(LIB         ${CMAKE_CURRENT_LIST_DIR}/lib)
+set(SRC         ${CMAKE_CURRENT_LIST_DIR}/src)
+set(THIRD_PARTY ${CMAKE_CURRENT_LIST_DIR}/third_party)
 
 include(FetchContent)
 
@@ -22,12 +23,20 @@ add_executable(${PROJECT_NAME}
     ${SRC}/Board.cpp
     ${SRC}/Button.cpp
     ${SRC}/main.cpp
+    ${SRC}/Menus.cpp
     ${SRC}/Piece.cpp
     ${SRC}/Renderer.cpp
     ${SRC}/Utils.cpp
+    ${THIRD_PARTY}/raygui.c
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE})
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${THIRD_PARTY})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    WIN32_EXECUTABLE $<CONFIG:Release>
+)
+
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR
     ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"
 )

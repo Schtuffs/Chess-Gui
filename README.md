@@ -1,9 +1,7 @@
 # Chess-GUI
- GUI to to play my chess engine (or any other that supports UCI).
+ A GUI for my chess engine. Can use another engine as backend as long as it
+ uses UCI protocol.
 
-## Features
-
-### Piece art
- Hand-made by me in microsoft paint, which is part of the 
- reason im doing this project. That part was easy. Rendering these textures onto
- squares is a lot harder.
+## Connecting to engine
+ Hopefully the settings in app to allow for using different engines, maybe
+ swapping mid-game even.

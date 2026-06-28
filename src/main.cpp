@@ -22,55 +22,25 @@ Board:
 #include "Constants.h"
 #include "Renderer.h"
 #include "Utils.h"
+#include "Menus.h"
 
 constexpr Color BOARD_SQUARE_LIGHT      = {175, 150, 120, 255};
 constexpr Color BOARD_SQUARE_DARK       = {100, 75, 60, 255};
+bool inDebugMode = false;
 
 void RenderMainMenu(Enums::Screen& screen)
 {
-    constexpr Color DEFAULT_COLOUR          = WHITE;
-    constexpr Color DEFAULT_COLOUR_HOVER    = GRAY;
-    static Renderer board;
-    static Button btnNewGame("Start new game", {GetFontDefault(), BLACK, Utils::Max(GetScreenWidth() / 100, 10)}, SCREEN_PERCENTAGES_4(0.1, 0.1375, 0.8, 0.1), DEFAULT_COLOUR);
-    if (IsWindowResized()) {
-        btnNewGame
-            .Dimension(SCREEN_PERCENTAGES_4(0.1, 0.1375, 0.8, 0.1))
-            .Thickness(3.f)
-            .Font({GetFontDefault(), BLACK, Utils::Max(GetScreenWidth() / 100, 10)});
-    }
-    if (btnNewGame.IsHovered()) {
-        btnNewGame.ColourInside(DEFAULT_COLOUR_HOVER);
-    } else {
-        btnNewGame.ColourInside(DEFAULT_COLOUR);
-    }
-    if (btnNewGame.IsClicked()) {
-        screen = Enums::Screen::NewGame;
-    }
-
-    board.RenderBoard(BOARD_SQUARE_DARK, BOARD_SQUARE_LIGHT);
-    btnNewGame.Render();
+    Menu::Main(screen);
 }
 
 void RenderNewGameMenu(Enums::Screen& screen)
 {
-    constexpr Color DEFAULT_COLOUR          = WHITE;
-    constexpr Color DEFAULT_COLOUR_HOVER    = GRAY;
-    static Button btnNewGame("Start new game", {GetFontDefault(), BLACK, Utils::Max(GetScreenWidth() / 100, 10)}, SCREEN_PERCENTAGES_4(0.1, 0.1375, 0.8, 0.1), DEFAULT_COLOUR);
-    if (IsWindowResized()) {
-        btnNewGame
-            .Dimension(SCREEN_PERCENTAGES_4(0.1, 0.1375, 0.8, 0.1))
-            .Thickness(3.f)
-            .Font({GetFontDefault(), BLACK, Utils::Max(GetScreenWidth() / 100, 10)});
-    }
-    if (btnNewGame.IsHovered()) {
-        btnNewGame.ColourInside(DEFAULT_COLOUR_HOVER);
-    } else {
-        btnNewGame.ColourInside(DEFAULT_COLOUR);
-    }
-    if (btnNewGame.IsClicked()) {
-        screen = Enums::Screen::Game;
-    }
-    btnNewGame.Render();
+    Menu::NewGame(screen);
+}
+
+void RenderSettings(Enums::Screen& screen)
+{
+    Menu::Settings(screen);
 }
 
 void RenderGame(Enums::Screen& screen)
@@ -140,11 +110,6 @@ void RenderGame(Enums::Screen& screen)
     }
 }
 
-void RenderSettings(Enums::Screen& screen)
-{
-    (void)screen;
-}
-
 int main(void)
 {
     // Prepare window
@@ -152,12 +117,11 @@ int main(void)
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(120, 120, "Chess Engine");
     SetWindowMinSize(200, 200);
-    // ToggleBorderlessWindowed();
     SetTargetFPS(60);
 
     // Main loop
     Enums::Screen currentScreen = Enums::Screen::Menu;
-    bool shouldExitGame = false, inDebugMode = false;
+    bool shouldExitGame = false;
     while (!WindowShouldClose() && !shouldExitGame) {
         // Drawing
         BeginDrawing();
@@ -168,6 +132,10 @@ int main(void)
         }
         
         switch(currentScreen) {
+            case Enums::Screen::Quit: {
+                shouldExitGame = true;
+                break;
+            }
             case Enums::Screen::Menu: {
                 RenderMainMenu(currentScreen);
                 break;
@@ -191,11 +159,6 @@ int main(void)
 
                 Font font = GetFontDefault();
                 Vector2 pos = Utils::CenterText(text, font, fontSize, {GetScreenWidth() / 2.f, GetScreenHeight() / 2.f});
-
-                // Calculate horizontal center
-                // int textWidth = MeasureText(text, fontSize);
-                // int posX = (GetScreenWidth() / 2) - (textWidth / 2);
-                // int posY = GetScreenHeight() / 2;
 
                 DrawText(text, pos.x, pos.y, fontSize, WHITE);
                 break;

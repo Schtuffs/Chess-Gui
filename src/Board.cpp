@@ -4,7 +4,7 @@
 
 // ----- Creation ----- Destruction -----
 
-Board::Board(const std::string& fen)
+Board::Board(std::string_view fen)
     : m_fen(fen)
 {}
 
@@ -17,7 +17,7 @@ Board::~Board()
 
 // ----- Read -----
 
-std::string Board::Fen()
+std::string_view Board::Fen()
 {
     return m_fen;
 }

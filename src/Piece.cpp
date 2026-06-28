@@ -2,6 +2,11 @@
 
 #include "Utils.h"
 
+Piece::Piece()
+{
+    
+}
+
 Piece::Piece(Enums::Colour colour, Enums::Type type)
     : m_colour(colour), m_type(type), m_isSetup(false)
 {}
