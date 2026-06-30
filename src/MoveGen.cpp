@@ -165,7 +165,7 @@ u64 MoveGen::Generate(const Board& board, const Piece& piece)
     u64 bb = 0;
     if (!piece.IsValid()) {
         WarningPrintln("MoveGen::Generate: Invalid piece.");
-        return bb;
+        return 0;
     }
 
     switch (piece.Type()) {

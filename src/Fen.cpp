@@ -190,3 +190,13 @@ bool Fen::IsValidFen(const char* data)
     return true;
 }
 
+std::string Fen::IndexToMove(u8 index)
+{
+    return ((char)((index % GRID_SIZE) + 'a') + std::to_string((index / GRID_SIZE) + 1));
+}
+
+u8 Fen::MoveToIndex(std::string_view move)
+{
+    return (u8)((move[0] - 'a') * GRID_SIZE) + (move[1] - '0');
+}
+

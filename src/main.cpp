@@ -21,6 +21,7 @@ Board:
 #include "Board.h"
 #include "Button.h"
 #include "Constants.h"
+#include "Fen.h"
 #include "Menus.h"
 #include "MoveGen.h"
 #include "Renderer.h"
@@ -105,11 +106,10 @@ static void RenderGame(Enums::Screen& screen)
     
     // Check buttons
     static std::string move = "";
-    // static bool pieceSelected = false;
-    u64 moves = 0;
+    static u64 moves = 0;
     for (size_t i = 0; i < buttons.size(); i++) {
         Button& button = buttons[i];
-
+        
         // Fix sizing on window change
         if (IsWindowResized()) {
             buttons = SetupGameSquares();
@@ -122,8 +122,8 @@ static void RenderGame(Enums::Screen& screen)
 
         // Player is making moves
         if (button.IsClicked()) {
-            move += (char)((i % GRID_SIZE) + 'a') + std::to_string((i / GRID_SIZE) + 1);
-            // if (!pieceSelected) {
+            move += Fen::IndexToMove(i);
+            if (moves == 0) {
                 moves = MoveGen::Generate(board, board.Pieces()[i]);
                 if (moves != 0) {
                     UpdateButtonsWithMove(buttons, moves);
@@ -131,21 +131,19 @@ static void RenderGame(Enums::Screen& screen)
                 else {
                     move.clear();
                 }
-            // }
-            // else {
-            //     buttons = SetupGameSquares();
-            // }
-
-            // if (move.length() == 4) {
-            //     board.MakeMove(move);
-            //     move = "";
-            //     pieceSelected = false;
-            // }
+            }
+            else {
+                move += Fen::IndexToMove(i);
+                board.MakeMove(move);
+                move.clear();
+                moves = 0;
+                UpdateButtonsWithMove(buttons, 0);
+            }
         }
     }
     renderer.RenderPieces(board.Fen(), isWhitePerspective);
 }
-#define heh(...) /* __VA_ARGS__ */ do {} while (false)
+
 int main(void)
 {
     Utils::SetLogLevel(Utils::LogLevel::DEBUG);

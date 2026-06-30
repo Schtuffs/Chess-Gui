@@ -32,7 +32,7 @@ constexpr std::string_view DEFAULT_FEN  = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RN
  * @brief Grid size in files and ranks.
  * @date 2026-06-11
  */
-constexpr u64 GRID_SIZE             = 8;
+constexpr u64 GRID_SIZE = 8;
 
 /**
  * @brief Resource path for piece textures.

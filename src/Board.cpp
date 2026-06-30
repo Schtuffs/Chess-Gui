@@ -98,7 +98,7 @@ const Piece* Board::Pieces() const noexcept
 bool Board::MakeMove(std::string_view move)
 {
 
-    u8 pos = ((move[0] - 'a') * GRID_SIZE) + (move[1] - '0');
+    u8 pos = Fen::MoveToIndex(move);
     u64 spots = MoveGen::Generate(*this, m_pieces[pos]);
     if (!spots) {
         return false;
