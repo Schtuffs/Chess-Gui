@@ -23,6 +23,7 @@ static void PushDefaultGuiStyle()
     for (size_t i = 0; i < defaultGuiStyle.size(); i++) {
         std::get<2>(defaultGuiStyle[i]) = GuiGetStyle(std::get<0>(defaultGuiStyle[i]), std::get<1>(defaultGuiStyle[i]));
     }
+    GuiSetStyle(DEFAULT, TEXT_SIZE, Utils::Max(GetScreenWidth() / 100, 10));
 }
 
 static void PopDefaultGuiStyle()
@@ -46,7 +47,6 @@ void Menu::Main(Enums::Screen& screen)
     
     PushDefaultGuiStyle();
     
-    GuiSetStyle(DEFAULT, TEXT_SIZE, Utils::Max(GetScreenWidth() / 100, 10));
     if (Utils::ClickableButton(startPos, "Start new game", 1)) { screen = Enums::Screen::NewGame; }
     if (Utils::ClickableButton(MoveDown(startPos, 4), "Settings", 2)) { screen = Enums::Screen::Settings; }
     if (Utils::ClickableButton(MoveDown(startPos, 1), "Quit", 3)) { screen = Enums::Screen::Quit; }
@@ -61,7 +61,6 @@ void Menu::Settings(Enums::Screen& screen)
     
     PushDefaultGuiStyle();
     
-    GuiSetStyle(DEFAULT, TEXT_SIZE, Utils::Max(GetScreenWidth() / 100, 10));
     if (Utils::ClickableButton(startPos, "Return", 1)) { screen = Enums::Screen::Menu; }
     
     PopDefaultGuiStyle();
@@ -74,7 +73,6 @@ void Menu::NewGame(Enums::Screen& screen)
     
     PushDefaultGuiStyle();
     
-    GuiSetStyle(DEFAULT, TEXT_SIZE, Utils::Max(GetScreenWidth() / 100, 10));
     if (Utils::ClickableButton(startPos, "New game", 1)) { screen = Enums::Screen::Game; }
     if (Utils::ClickableButton(MoveDown(startPos, 5), "Return", 2)) { screen = Enums::Screen::Menu; }
     

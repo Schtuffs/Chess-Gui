@@ -38,6 +38,8 @@ typedef struct FontData {
 class Button {
 public:
     // ----- Creation / Destruction -----
+
+    Button();
     
     /**
      * @brief Prepares `Button` for rendering.
@@ -140,5 +142,6 @@ private:
     Rectangle m_rect;
     Color m_colour, m_colourBorder;
     float m_borderThickness;
+    bool m_isValid;
 };
 

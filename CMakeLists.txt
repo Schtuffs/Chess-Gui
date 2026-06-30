@@ -22,7 +22,9 @@ FetchContent_MakeAvailable(raylib)
 add_executable(${PROJECT_NAME}
     ${SRC}/Board.cpp
     ${SRC}/Button.cpp
+    ${SRC}/Fen.cpp
     ${SRC}/main.cpp
+    ${SRC}/MoveGen.cpp
     ${SRC}/Menus.cpp
     ${SRC}/Piece.cpp
     ${SRC}/Renderer.cpp

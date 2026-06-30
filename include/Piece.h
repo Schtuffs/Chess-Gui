@@ -25,7 +25,7 @@ public:
      * @param `Type` The `Type` of the piece.
      * @date 2026-06-08
      */
-    Piece(Enums::Colour colour, Enums::Type type);
+    Piece(Enums::Colour colour, Enums::Type type, u8 pos);
     
     /**
      * @brief Frees any allocated memory associated with the piece.
@@ -33,9 +33,15 @@ public:
      */
     ~Piece();
 
+    Enums::Colour Colour() const noexcept;
+    Enums::Type Type() const noexcept;
+    u64 Position() const noexcept;
+    bool IsValid() const noexcept;
+
 private:
     Enums::Colour m_colour; 
     Enums::Type m_type;
-    bool m_isSetup;
+    u8 m_pos;
+    bool m_isValid;
 };
 

@@ -32,7 +32,7 @@ constexpr std::string_view DEFAULT_FEN  = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RN
  * @brief Grid size in files and ranks.
  * @date 2026-06-11
  */
-constexpr int GRID_SIZE             = 8;
+constexpr u64 GRID_SIZE             = 8;
 
 /**
  * @brief Resource path for piece textures.
@@ -52,8 +52,9 @@ namespace Enums {
      * @date 2026-06-08
      */
     enum Colour {
-        Black,  /**< Piece colour black */
-        White,  /**< Piece colour white */
+        Black,      /**< Piece colour black */
+        White,      /**< Piece colour white */
+        Invalid,    /**< Invalid piece. */
     };
     
     /**
@@ -61,7 +62,7 @@ namespace Enums {
      * @enum Screen
      * @date 2026-06-08
      */
-    enum Screen {
+    enum class Screen {
         Quit,           /**< Quitting the game. */
         Menu,           /**< Main menu screen. */
         NewGame,        /**< New game options screen. */
@@ -75,13 +76,14 @@ namespace Enums {
      * @enum Type
      * @date 2026-06-08
      */
-    enum Type {
-        Bishop, /**< Bishop type. */
-        King,   /**< King type. */
-        Knight, /**< Knight type. */
-        Pawn,   /**< Pawn type. */
-        Queen,  /**< Queen type. */
-        Rook,   /**< Rook type. */
+    enum class Type {
+        Bishop,     /**< Bishop type. */
+        King,       /**< King type. */
+        Knight,     /**< Knight type. */
+        Pawn,       /**< Pawn type. */
+        Queen,      /**< Queen type. */
+        Rook,       /**< Rook type. */
+        Invalid,    /**< Invalid piece. */
     };
     
     /**
@@ -97,6 +99,7 @@ namespace Enums {
         constexpr const char* Type[] = {
             "bishop", "king", "knight",
             "pawn", "queen", "rook",
+            "invalid",
         };
     
         /**
@@ -104,7 +107,7 @@ namespace Enums {
          * @date 2026-06-08
          */
         constexpr const char* Colour[] = {
-            "black", "white",
+            "black", "white", "invalid",
         };
     }
 }

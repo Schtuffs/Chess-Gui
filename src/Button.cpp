@@ -6,8 +6,12 @@
 
 // ----- Creation ----- Destruction -----
 
+Button::Button()
+    : m_isValid(false)
+{}
+
 Button::Button(const std::string& text, FontData font, Rectangle dimensions, Color colour)
-    : m_textPos({}), m_text(text), m_font(font), m_rect(dimensions), m_colour(colour), m_colourBorder(BLACK), m_borderThickness(1.f)
+    : m_textPos({}), m_text(text), m_font(font), m_rect(dimensions), m_colour(colour), m_colourBorder(BLACK), m_borderThickness(1.f), m_isValid(true)
 {
     m_textPos = Utils::CenterText(m_text.c_str(), m_font.font, m_font.fontSize, {m_rect.x + m_rect.width / 2, m_rect.y + m_rect.height / 2});
 }
@@ -31,6 +35,10 @@ bool Button::IsHovered() const noexcept
 
 void Button::Render() const noexcept
 {
+    if (!m_isValid) {
+        return;
+    }
+    
     DrawRectangleRec(m_rect, m_colour);
     DrawRectangleLinesEx(m_rect, m_borderThickness, m_colourBorder);
 

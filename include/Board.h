@@ -34,7 +34,7 @@ public:
      * @return The current game fen.
      * @date 2026-06-14
      */
-    std::string_view Fen();
+    std::string_view Fen() const noexcept;
 
     // ----- Update -----
     
@@ -45,6 +45,8 @@ public:
      * @date 2026-06-14
      */
     bool MakeMove(std::string_view move);
+
+    const Piece* Pieces() const noexcept;
     
 private:
     std::string m_fen;

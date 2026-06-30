@@ -1,6 +1,7 @@
 #include "Renderer.h"
 
 #include <cctype>
+#include <print>
 
 #include "Utils.h"
 
@@ -26,7 +27,7 @@ Renderer::Renderer()
                 m_textures[index] = texture;
             }
             else {
-                TraceLog(LOG_ERROR, "Could not create texture: %s %s", Enums::ToString::Colour[col], Enums::ToString::Type[type]);
+                ErrorPrintln("Renderer::Renderer: Could not create texture: {} {}", Enums::ToString::Colour[col], Enums::ToString::Type[type]);
             }
         }
     }

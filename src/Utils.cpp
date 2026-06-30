@@ -1,6 +1,9 @@
 #include "Utils.h"
 
+#include <atomic>
 #include <cstdio>
+#include <mutex>
+#include <print>
 
 #include "raygui.h"
 
@@ -38,7 +41,7 @@ bool Utils::ClickableButton(Rectangle rect, const char* text, u8 id)
 
 int CalculateIndex(Enums::Colour colour, Enums::Type type)
 {
-    return type * 2 + colour;
+    return (int)type * 2 + (int)colour;
 }
 
 Vector2 Utils::CenterText(const char* text, Font font, int fontSize, Vector2 centerPoint)
@@ -84,7 +87,7 @@ Texture2D Utils::LoadTexture(Enums::Colour colour, Enums::Type type, int size)
 {
     // Check size
     if (size < 1) {
-        TraceLog(LOG_ERROR, "Utils::LoadTexture received invalid size: %d", size);
+        ErrorPrintln("Utils::LoadTexture received invalid size: {}", size);
         return Texture2D{};
     }
     
@@ -96,10 +99,10 @@ Texture2D Utils::LoadTexture(Enums::Colour colour, Enums::Type type, int size)
     if (pair.count == 0) {
         // Load and check image
         char path[50];
-        snprintf(path, sizeof(path), "%s/%s_%s.png", PATH_PIECES.data(), Enums::ToString::Type[type], Enums::ToString::Colour[colour]);
+        snprintf(path, sizeof(path), "%s/%s_%s.png", PATH_PIECES.data(), Enums::ToString::Type[(int)type], Enums::ToString::Colour[(int)colour]);
         Image image = LoadImage(path);
         if (!IsImageValid(image)) {
-            TraceLog(LOG_ERROR, "Utils::LoadTexture Failed to load image.");
+            ErrorPrintln("Utils::LoadTexture Failed to load image.");
             return Texture2D{};
         }
         
@@ -107,7 +110,7 @@ Texture2D Utils::LoadTexture(Enums::Colour colour, Enums::Type type, int size)
         ImageResizeNN(&image, size, size);
         Texture2D texture = LoadTextureFromImage(image);
         if (!IsTextureValid(texture)) {
-            TraceLog(LOG_ERROR, "Utils::LoadTexture Failed to convert image to texture.");
+            ErrorPrintln("Utils::LoadTexture Failed to convert image to texture.");
             return Texture2D{};
         }
 
@@ -128,5 +131,75 @@ void Utils::UnloadTexture(Texture2D& texture, Enums::Colour colour, Enums::Type 
         texture.id = 0;
         s_textureValuePairs[CalculateIndex(colour, type)].count--;
     }
+}
+
+static std::mutex mtxPrint, mtxDebug, mtxError, mtxInfo, mtxWarning;
+static std::atomic<Utils::LogLevel> s_logLevel = Utils::LogLevel::ERROR;
+
+bool Utils::Detail::LockPrint(Utils::LogLevel ll)
+{
+    if (ll < s_logLevel) {
+        return false;
+    }
+
+#ifdef FILES_ALL_CONSOLE
+    mtxPrint.lock();
+    return true;
+#else
+    switch (ll) {
+    case Utils::LogLevel::INFO:
+        mtxInfo.lock();
+        return true;
+    case Utils::LogLevel::DEBUG:
+        mtxDebug.lock();
+        return true;
+    case Utils::LogLevel::WARNING:
+        mtxWarning.lock();
+        return true;
+    case Utils::LogLevel::ERROR:
+        mtxError.lock();
+        return true;
+    case Utils::LogLevel::PRINT:
+        mtxPrint.lock();
+        return true;
+    default:
+        ErrorPrintln("Invalid filetype lock: {}", (int)ll);
+        return false;
+    }
+#endif
+}
+
+void Utils::Detail::UnlockPrint(Utils::LogLevel ll)
+{
+#ifdef FILES_ALL_CONSOLE
+    (void)ll;
+    mtxPrint.unlock();
+#else
+    switch (ll) {
+    case Utils::LogLevel::DEBUG:
+        mtxDebug.unlock();
+        break;
+    case Utils::LogLevel::ERROR:
+        mtxError.unlock();
+        break;
+    case Utils::LogLevel::INFO:
+        mtxInfo.unlock();
+        break;
+    case Utils::LogLevel::PRINT:
+        mtxPrint.unlock();
+        break;
+    case Utils::LogLevel::WARNING:
+        mtxWarning.unlock();
+        break;
+    default:
+        ErrorPrintln("Invalid filetype unlock: {}", (int)ll);
+        break;
+    }
+#endif
+}
+
+void Utils::SetLogLevel(Utils::LogLevel ll)
+{
+    s_logLevel = ll;
 }
 
