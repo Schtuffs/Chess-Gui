@@ -13,139 +13,21 @@ Board:
 ------------------------------*/
 
 #include <cstdio>
+#include <cstring>
 #include <print>
 #include <vector>
 
 #include "raylib.h"
 
-#include "Board.h"
-#include "Button.h"
-#include "Constants.h"
-#include "Fen.h"
 #include "Menus.h"
-#include "MoveGen.h"
-#include "Renderer.h"
+#include "Settings.h"
 #include "Utils.h"
 
-constexpr Color BOARD_SQUARE_LIGHT          = {175, 150, 120, 255};
-constexpr Color BOARD_SQUARE_DARK           = {100, 75, 60, 255};
-constexpr Color BOARD_SQUARE_LIGHT_ALPHA    = {175, 150, 120, 75};
-constexpr Color BOARD_SQUARE_DARK_ALPHA     = {100, 75, 60, 75};
 bool inDebugMode = false;
-
-static void RenderMainMenu(Enums::Screen& screen)
-{
-    Menu::Main(screen);
-}
-
-static void RenderNewGameMenu(Enums::Screen& screen)
-{
-    Menu::NewGame(screen);
-}
-
-static void RenderSettings(Enums::Screen& screen)
-{
-    Menu::Settings(screen);
-}
-
-static std::vector<Button> SetupGameSquares()
-{
-    Vector3 grid = Utils::GridPositioning();
-    std::vector<Button> buttons;
-    buttons.reserve(GRID_SIZE * GRID_SIZE);
-
-    for (u64 rank = 0; rank < GRID_SIZE; rank++) {
-        for (u64 file = 0; file < GRID_SIZE; file++) {
-            Color col = (((rank + file) % 2) == 0 ? BOARD_SQUARE_DARK_ALPHA : BOARD_SQUARE_LIGHT_ALPHA);
-            buttons.emplace_back("", FontData{}, Rectangle{grid.x + grid.z * file, grid.y + grid.z * (GRID_SIZE - rank - 1), grid.z, grid.z}, col);
-            buttons.back().Thickness(Utils::Max(Utils::Min(GetScreenWidth(), GetScreenHeight()) / 300.f, 2.f));
-        }
-    }
-
-    return buttons;
-}
-
-static void UpdateButtonsWithMove(std::vector<Button>& buttons, u64 moves)
-{
-    for (int i = 0; i < 64; i++) {
-        u64 move = (moves >> i) & 1;
-        if (move) {
-            buttons[i].ColourInside({255, 0, 0, 255});
-        }
-        else {
-            buttons[i].ColourInside((i + (i / GRID_SIZE)) % 2 == 1 ? BOARD_SQUARE_DARK_ALPHA : BOARD_SQUARE_LIGHT_ALPHA);
-        }
-    }
-}
-
-static void RenderGame(Enums::Screen& screen)
-{
-    (void)screen;
-
-    // Prepare states
-    static Renderer renderer;
-    static Board board(DEFAULT_FEN);
-    static bool isWhitePerspective = true;
-    static bool buttonsInitialized = false;
-    static std::vector<Button> buttons;
-
-    // Initialize the buttons only once
-    if (!buttonsInitialized) {
-        buttonsInitialized = true;
-        buttons = SetupGameSquares();
-    }
-
-    // Main render logic
-    
-    if (IsKeyPressed(KEY_F)) {
-        isWhitePerspective = !isWhitePerspective;
-    }
-    
-    renderer.RenderBoard(BOARD_SQUARE_DARK, BOARD_SQUARE_LIGHT);
-    
-    
-    // Check buttons
-    static std::string move = "";
-    static u64 moves = 0;
-    for (size_t i = 0; i < buttons.size(); i++) {
-        Button& button = buttons[i];
-        
-        // Fix sizing on window change
-        if (IsWindowResized()) {
-            buttons = SetupGameSquares();
-            UpdateButtonsWithMove(buttons, moves);
-        }
-
-        if (button.IsHovered() || ((moves >> i) & 1)) {
-            button.Render();
-        }
-
-        // Player is making moves
-        if (button.IsClicked()) {
-            move += Fen::IndexToMove(i);
-            if (moves == 0) {
-                moves = MoveGen::Generate(board, board.Pieces()[i]);
-                if (moves != 0) {
-                    UpdateButtonsWithMove(buttons, moves);
-                }
-                else {
-                    move.clear();
-                }
-            }
-            else {
-                move += Fen::IndexToMove(i);
-                board.MakeMove(move);
-                move.clear();
-                moves = 0;
-                UpdateButtonsWithMove(buttons, 0);
-            }
-        }
-    }
-    renderer.RenderPieces(board.Fen(), isWhitePerspective);
-}
 
 int main(void)
 {
+    Settings::LoadSettings();
     Utils::SetLogLevel(Utils::LogLevel::DEBUG);
 
     // Prepare window
@@ -173,19 +55,19 @@ int main(void)
                 break;
             }
             case Enums::Screen::Menu: {
-                RenderMainMenu(currentScreen);
+                Menu::Main(currentScreen);
                 break;
             }
             case Enums::Screen::NewGame: {
-                RenderNewGameMenu(currentScreen);
+                Menu::NewGame(currentScreen);
                 break;
             }
             case Enums::Screen::Game: {
-                RenderGame(currentScreen);
+                Menu::InGame(currentScreen);
                 break;
             }
             case Enums::Screen::Settings: {
-                RenderSettings(currentScreen);
+                Menu::Settings(currentScreen);
                 break;
             }
             default: {
@@ -210,6 +92,8 @@ int main(void)
     
     // Cleanup
     CloseWindow();
+    
+    Settings::SaveSettings();
     
     return 0;
 }

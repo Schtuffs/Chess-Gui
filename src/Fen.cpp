@@ -197,6 +197,6 @@ std::string Fen::IndexToMove(u8 index)
 
 u8 Fen::MoveToIndex(std::string_view move)
 {
-    return (u8)((move[0] - 'a') * GRID_SIZE) + (move[1] - '0');
+    return (u8)((move[1] - '1') * GRID_SIZE) + (move[0] - 'a');
 }
 

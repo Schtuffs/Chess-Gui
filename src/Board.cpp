@@ -97,13 +97,70 @@ const Piece* Board::Pieces() const noexcept
 
 bool Board::MakeMove(std::string_view move)
 {
+    u8 startPos = Fen::MoveToIndex(move);
+    u8 endPos = Fen::MoveToIndex(move.substr(2));
 
-    u8 pos = Fen::MoveToIndex(move);
-    u64 spots = MoveGen::Generate(*this, m_pieces[pos]);
-    if (!spots) {
+    if (startPos == endPos) {
         return false;
     }
+
+    DebugPrintln("Start: {}, end: {}", startPos, endPos);
+    u64 spots = MoveGen::Generate(*this, m_pieces[startPos]);
+    if (!spots) {
+        WarningPrintln("Board::MakeMove: Invalid piece at startpos");
+        return false;
+    }
+
+    u64 index = (u64)1 << endPos;
+    if ((index & spots) == 0) {
+        return false;
+    }
+
+    Piece p = m_pieces[startPos];
+    p.Position(endPos);
+    m_pieces[endPos] = p;
+    m_pieces[startPos] = Piece();
+
+    RecalculateFen();
     
     return true;
+}
+
+// ----- Hidden -----
+
+void Board::RecalculateFen()
+{
+    std::string fen;
+    u8 extra = 0;
+    for (u64 rank = GRID_SIZE - 1; rank < GRID_SIZE; rank--) {
+        if (extra > 0) {
+            fen += std::to_string(extra);
+            extra = 0;
+        }
+
+        if (rank != GRID_SIZE - 1) {
+            fen += "/";
+        }
+
+        for (u64 file = 0; file < GRID_SIZE; file++) {
+            u64 i = rank * GRID_SIZE + file;
+            
+            Piece& piece = m_pieces[i];
+            char p = piece.AsChar();
+            if (!p) {
+                extra++;
+                continue;
+            }
+
+            if (extra > 0) {
+                fen += std::to_string(extra);
+                extra = 0;
+            }
+
+            fen += p;
+        }
+    }
+
+    m_fen = fen;
 }
 

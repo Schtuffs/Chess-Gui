@@ -93,6 +93,14 @@ namespace Enums {
      */
     namespace ToString {
         /**
+         * @brief Convert `Enums::Colour` to string.
+         * @date 2026-06-08
+         */
+        constexpr const char* Colour[] = {
+            "black", "white", "invalid",
+        };
+        
+        /**
          * @brief Convert `Enums::Type` to string.
          * @date 2026-06-08
          */
@@ -101,13 +109,15 @@ namespace Enums {
             "pawn", "queen", "rook",
             "invalid",
         };
-    
+        
         /**
-         * @brief Convert `Enums::Colour` to string.
+         * @brief Convert `Enums::Type` to string.
          * @date 2026-06-08
          */
-        constexpr const char* Colour[] = {
-            "black", "white", "invalid",
+        constexpr const char* Setting[] = {
+            "SAVE_GAME_STATE", "GAME_STATE",
+            "BOARD_TILE_DARK", "BOARD_TILE_LIGHT",
+            "TOTAL_SETTINGS",
         };
     }
 }

@@ -6,6 +6,11 @@
 
 #include "Constants.h"
 
+constexpr Color BOARD_SQUARE_LIGHT          = {175, 150, 120, 255};
+constexpr Color BOARD_SQUARE_DARK           = {100, 75, 60, 255};
+constexpr Color BOARD_SQUARE_LIGHT_ALPHA    = {175, 150, 120, 75};
+constexpr Color BOARD_SQUARE_DARK_ALPHA     = {100, 75, 60, 75};
+
 #define UTILS_LOG_CONSOLE
 
 /**
@@ -22,7 +27,7 @@ namespace Utils {
      * @date 2026-06-06
      */
     template <typename T>
-    T Min(T a, T b) {
+    constexpr T Min(T a, T b) {
         return (b < a) ? b : a;
     }
     /**
@@ -33,7 +38,7 @@ namespace Utils {
      * @date 2026-06-06
      */
     template <typename T>
-    T Max(T a, T b) {
+    constexpr T Max(T a, T b) {
         return (b > a) ? b : a;
     }
 

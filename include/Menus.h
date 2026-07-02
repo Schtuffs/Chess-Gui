@@ -5,8 +5,9 @@
 namespace Menu
 {
     void Main(Enums::Screen& screen);
-    void Settings(Enums::Screen& screen);
     void NewGame(Enums::Screen& screen);
+    void Settings(Enums::Screen& screen);
+    void InGame(Enums::Screen& screen);
 }
 
 

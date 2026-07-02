@@ -23,11 +23,13 @@ add_executable(${PROJECT_NAME}
     ${SRC}/Board.cpp
     ${SRC}/Button.cpp
     ${SRC}/Fen.cpp
+    ${SRC}/GameManager.cpp
     ${SRC}/main.cpp
-    ${SRC}/MoveGen.cpp
     ${SRC}/Menus.cpp
+    ${SRC}/MoveGen.cpp
     ${SRC}/Piece.cpp
     ${SRC}/Renderer.cpp
+    ${SRC}/Settings.cpp
     ${SRC}/Utils.cpp
     ${THIRD_PARTY}/raygui.c
 )

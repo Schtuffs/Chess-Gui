@@ -51,5 +51,7 @@ public:
 private:
     std::string m_fen;
     Piece m_pieces[64];
+
+    void RecalculateFen();
 };
 

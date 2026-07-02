@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "raylib.h"
 
 #include "Constants.h"
@@ -33,10 +35,15 @@ public:
      */
     ~Piece();
 
+    void Position(u8);
+
     Enums::Colour Colour() const noexcept;
     Enums::Type Type() const noexcept;
     u64 Position() const noexcept;
     bool IsValid() const noexcept;
+
+    std::string ToString() const noexcept;
+    char AsChar() const noexcept;
 
 private:
     Enums::Colour m_colour; 
