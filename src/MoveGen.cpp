@@ -7,6 +7,30 @@
 
 
 
+std::string u64ToString(u64 val, char on = '1', char off = '0')
+{
+    const std::string VERT_SPACE = "\n +---+---+---+---+---+---+---+---+\n";
+    const std::string HORZ_SPACE = " | ";
+    std::string ret = "\n", line = HORZ_SPACE;
+    
+    for (int i = 0; i < 64; i++) {
+        if ((val & ((u64)1 << i)) > 0) {
+            line += on + HORZ_SPACE;
+        }
+        else {
+            line += off + HORZ_SPACE;
+        }
+
+        if (i != 0 && i % 8 == 7) {
+            ret = line + VERT_SPACE + ret;
+            line = HORZ_SPACE;
+        }
+    }
+
+    ret = VERT_SPACE + ret;
+    return ret;
+}
+
 /**
  * @return -1 on one piece is invalid. 0 on same colour. 1 on different colours.
  */
@@ -93,14 +117,57 @@ static u64 GenSliding(const Board& board, const Piece& piece, bool isRook)
 static u64 GenKnight(const Board& board, const Piece& piece)
 {
     (void)board;
-    u64 bb = piece.Position();
-    return bb;
+    constexpr u64 assumedStart = 18;
+    u64 movebb = 0x00'00'00'0a'11'00'11'0a;
+    
+    u64 logpos = (u64)std::log2(piece.Position());
+    if (logpos % GRID_SIZE == 1) {
+        movebb &= 0x00'00'00'0a'10'00'10'0a;
+    }
+    else if (logpos % GRID_SIZE == 0) {
+        movebb &= 0x00'00'00'08'10'00'10'08;
+    }
+    else if (logpos % GRID_SIZE == GRID_SIZE - 2) {
+        movebb &= 0x00'00'00'0a'01'00'01'0a;
+    }
+    else if (logpos % GRID_SIZE == GRID_SIZE - 1) {
+        movebb &= 0x00'00'00'02'01'00'01'02;
+    }
+    
+    int shift = logpos - assumedStart;
+    if (shift > 0) {
+        movebb = (movebb << shift);
+    }
+    else {
+        movebb = (movebb >> (std::abs(shift)));
+    }
+    
+    return movebb;
 }
 
 static u64 GenKing(const Board& board, const Piece& piece)
 {
     (void)board;
-    return piece.Position();
+    constexpr u64 assumedStart = 9;
+    u64 movebb = 0x00'00'00'00'00'07'07'07;
+    
+    u64 logpos = (u64)std::log2(piece.Position());
+    if (logpos % GRID_SIZE == 0) {
+        movebb &= 0x00'00'00'00'00'06'06'06;
+    }
+    else if (logpos % GRID_SIZE == GRID_SIZE - 1) {
+        movebb &= 0x00'00'00'00'00'03'03'03;
+    }
+
+    int shift = logpos - assumedStart;
+    if (shift > 0) {
+        movebb = (movebb << shift);
+    }
+    else {
+        movebb = (movebb >> (std::abs(shift)));
+    }
+
+    return movebb;
 }
 
 static u64 GenPawn(const Board& board, const Piece& piece)
@@ -134,30 +201,6 @@ static u64 GenPawn(const Board& board, const Piece& piece)
     }
 
     return pos;
-}
-
-std::string u64ToString(u64 val, char on = '1', char off = '0')
-{
-    const std::string VERT_SPACE = "\n +---+---+---+---+---+---+---+---+\n";
-    const std::string HORZ_SPACE = " | ";
-    std::string ret = "\n", line = HORZ_SPACE;
-    
-    for (int i = 0; i < 64; i++) {
-        if ((val & ((u64)1 << i)) > 0) {
-            line += on + HORZ_SPACE;
-        }
-        else {
-            line += off + HORZ_SPACE;
-        }
-
-        if (i != 0 && i % 8 == 7) {
-            ret = line + VERT_SPACE + ret;
-            line = HORZ_SPACE;
-        }
-    }
-
-    ret = VERT_SPACE + ret;
-    return ret;
 }
 
 u64 MoveGen::Generate(const Board& board, const Piece& piece)
