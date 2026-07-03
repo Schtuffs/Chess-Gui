@@ -32,7 +32,7 @@ std::string u64ToString(u64 val, char on = '1', char off = '0')
 }
 
 /**
- * @return -1 on one piece is invalid. 0 on same colour. 1 on different colours.
+ * @return <0 on one piece is invalid. =0 on same colour. >0 on different colours.
  */
 static int CheckPiece(const Piece& lhs, const Piece& rhs)
 {
@@ -54,26 +54,55 @@ static int CheckPiece(const Piece& lhs, const Piece& rhs)
     return 1;
 }
 
-static u64 GenDiag(const Board& board, const Piece& piece, int offset, u64 mod, bool shiftLeft)
+static u64 GenMove(const Board& board, const Piece& piece, i32 offset, u64 mod, bool shiftLeft)
 {
-    (void)board;
     u64 bb = 0;
-    for (u64 i = 0; i < GRID_SIZE; i++) {
+    for (u64 i = 1; i < GRID_SIZE; i++) {
         u64 pos = piece.Position();
         u64 tmp;
 
         if (shiftLeft) {
-            tmp = (pos << (i * offset));
+            tmp = (pos << (u64)(i * offset));
         } else {
-            tmp = (pos >> (i * offset));
+            tmp = (pos >> (u64)(i * offset));
         }
 
-        if ((u64)std::round(std::log2(tmp)) % GRID_SIZE == mod) {
+        u64 index = (u64)std::log2(tmp);
+        const Piece& other = board.Pieces()[index];
+        int check = CheckPiece(piece, other);
+
+        bool lastCheck = false;
+        if (check == 0) {
+            DebugPrintln("Same");
+            break;
+        }
+        else if (check > 0) {
+            DebugPrintln("Opposite");
+            lastCheck = true;
+        }
+
+        if ((index % GRID_SIZE) == mod) {
             break;
         }
 
         bb |= tmp;
+
+        if (lastCheck) {
+            break;
+        }
     }
+
+    return bb;
+}
+
+static u64 GenCardinal(const Board& board, const Piece& piece)
+{
+    u64 bb = piece.Position();
+
+    bb |= GenMove(board, piece, GRID_SIZE,    0xffffffff, false);
+    bb |= GenMove(board, piece,         1, GRID_SIZE - 1, false);
+    bb |= GenMove(board, piece, GRID_SIZE,     GRID_SIZE,  true);
+    bb |= GenMove(board, piece,         1,    0xffffffff,  true);
 
     return bb;
 }
@@ -82,36 +111,23 @@ static u64 GenDiag(const Board& board, const Piece& piece)
 {
     u64 bb = piece.Position();
 
-    bb |= GenDiag(board, piece, 7, 7, true);
-    bb |= GenDiag(board, piece, 9, 0, true);
-    bb |= GenDiag(board, piece, 7, 0, false);
-    bb |= GenDiag(board, piece, 9, 7, false);
+    bb |= GenMove(board, piece, 7, 7, true);
+    bb |= GenMove(board, piece, 9, 0, true);
+    bb |= GenMove(board, piece, 7, 0, false);
+    bb |= GenMove(board, piece, 9, 7, false);
 
     return bb;
 }
 
 static u64 GenSliding(const Board& board, const Piece& piece, bool isRook)
 {
-    if (!isRook) {
+    if (isRook) {
+        return GenCardinal(board, piece);
+    }
+    else {
         return GenDiag(board, piece);
     }
 
-    u64 pos = piece.Position();
-    u64 bb = pos;
-    for (u64 i = 0; i < GRID_SIZE; i++) {
-        if ((pos & ((u64)0xff << (i * 8))) > 0) {
-            bb |= ((u64)0xff << (i * 8));
-            break;
-        }
-    }
-
-    u64 i = (u64)std::log2(pos);
-    i = ((u64)1 << (i % 8));
-    for (u64 j = 0; j < GRID_SIZE; j++) {
-        bb |= (i << (j * GRID_SIZE));
-    }
-
-    return bb;
 }
 
 static u64 GenKnight(const Board& board, const Piece& piece)
