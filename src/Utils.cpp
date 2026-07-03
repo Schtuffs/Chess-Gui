@@ -15,6 +15,20 @@ typedef struct TextureValuePair {
 static TextureValuePair s_textureValuePairs[12];
 static u8 s_clickedButton = 0;
 
+int CalculateIndex(Enums::Colour colour, Enums::Type type)
+{
+    return (int)type * 2 + (int)colour;
+}
+
+Vector2 Utils::CenterText(const char* text, Font font, int fontSize, Vector2 centerPoint)
+{
+    Vector2 textSize = MeasureTextEx(font, text, fontSize, 1.f);
+    centerPoint.x = centerPoint.x - (textSize.x / 2);
+    centerPoint.y = centerPoint.y - (textSize.y / 2);
+
+    return centerPoint;
+}
+
 bool Utils::ClickableButton(Rectangle rect, const char* text, u8 id)
 {
     Vector2 mousePos = GetMousePosition();
@@ -39,18 +53,19 @@ bool Utils::ClickableButton(Rectangle rect, const char* text, u8 id)
     return false;
 }
 
-int CalculateIndex(Enums::Colour colour, Enums::Type type)
+u32 Utils::ColorToU32(Color col)
 {
-    return (int)type * 2 + (int)colour;
+    return (col.a << 24) | (col.b << 16) | (col.g << 8) | col.r;
 }
 
-Vector2 Utils::CenterText(const char* text, Font font, int fontSize, Vector2 centerPoint)
+Color Utils::U32ToColor(u32 val)
 {
-    Vector2 textSize = MeasureTextEx(font, text, fontSize, 1.f);
-    centerPoint.x = centerPoint.x - (textSize.x / 2);
-    centerPoint.y = centerPoint.y - (textSize.y / 2);
-
-    return centerPoint;
+    Color col;
+    col.a = val >> 24;
+    col.b = val >> 16;
+    col.g = val >>  8;
+    col.r = val >>  0;
+    return col;
 }
 
 Vector3 Utils::GridPositioning()

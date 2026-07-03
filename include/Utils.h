@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdio>
+#include <print>
 
 #include "raylib.h"
 
@@ -51,6 +52,9 @@ namespace Utils {
      * @date 2026-06-15
      */
     bool ClickableButton(Rectangle rect, const char* text, u8 id);
+
+    u32 ColorToU32(Color col);
+    Color U32ToColor(u32 val);
 
     /**
      * @brief Centers given text.

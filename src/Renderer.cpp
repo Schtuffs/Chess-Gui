@@ -1,7 +1,6 @@
 #include "Renderer.h"
 
 #include <cctype>
-#include <print>
 
 #include "Utils.h"
 
@@ -13,14 +12,14 @@ Renderer::Renderer()
     m_textureSize = Utils::Min(width, height) / GRID_SIZE;
 
     // Calculate start position
-    uint32_t sizeX  = width  - m_textureSize * GRID_SIZE;
-    uint32_t sizeY  = height - m_textureSize * GRID_SIZE;
+    u32 sizeX  = width  - m_textureSize * GRID_SIZE;
+    u32 sizeY  = height - m_textureSize * GRID_SIZE;
     m_startX = sizeX / 2;
     m_startY = sizeY / 2;
 
     // Loop through all piece combinations and ensure texture validity
-    for (uint64_t col = 0; col < 2; col++) {
-        for (uint64_t type = 0; type < 6; type++) {
+    for (u64 col = 0; col < 2; col++) {
+        for (u64 type = 0; type < 6; type++) {
             Texture2D texture = Utils::LoadTexture(static_cast<Enums::Colour>(col), static_cast<Enums::Type>(type), m_textureSize);
             if (IsTextureValid(texture)) {
                 int index = type * 2 + col;
@@ -71,14 +70,16 @@ void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective)
     FixSize();
     
     // Prepares to render top to bottom or bottom to top
-    int rank, rankInc, file = 0;
+    int file, rank, inc;
     if (isWhitePerspective) {
+        file = 0;
         rank = 0;
-        rankInc = 1;
+        inc = 1;
     }
     else {
+        file = GRID_SIZE - 1;
         rank = GRID_SIZE - 1;
-        rankInc = -1;
+        inc = -1;
     }
 
     // Loop through fen
@@ -95,21 +96,20 @@ void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective)
             int type = CheckType(cur);
             int colour = CheckColour(cur);
             RenderPiece(m_textures[type * 2 + colour], {file * m_textureSize + m_startX, rank * m_textureSize + m_startY});
-            // std::printf("Piece: {}, {}, {}\n", );
-            file++;
+            file += inc;
             continue;
         }
 
         // Number means increase file
         if (isdigit(cur)) {
-            file += cur - '0';
+            file += (cur - '0') * inc;
             continue;
         }
 
         // Change rank
         if (cur == '/') {
-            file = 0;
-            rank += rankInc;
+            file = (isWhitePerspective ? 0 : (GRID_SIZE - 1));
+            rank += inc;
             continue;
         }
 
