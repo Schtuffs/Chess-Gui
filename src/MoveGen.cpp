@@ -73,11 +73,9 @@ static u64 GenMove(const Board& board, const Piece& piece, i32 offset, u64 mod, 
 
         bool lastCheck = false;
         if (check == 0) {
-            DebugPrintln("Same");
             break;
         }
         else if (check > 0) {
-            DebugPrintln("Opposite");
             lastCheck = true;
         }
 
@@ -132,58 +130,90 @@ static u64 GenSliding(const Board& board, const Piece& piece, bool isRook)
 
 static u64 GenKnight(const Board& board, const Piece& piece)
 {
-    (void)board;
     constexpr u64 assumedStart = 18;
-    u64 movebb = 0x00'00'00'0a'11'00'11'0a;
+    u64 bb = 0x00'00'00'0a'11'00'11'0a;
     
     u64 logpos = (u64)std::log2(piece.Position());
     if (logpos % GRID_SIZE == 1) {
-        movebb &= 0x00'00'00'0a'10'00'10'0a;
+        bb &= 0x00'00'00'0a'10'00'10'0a;
     }
     else if (logpos % GRID_SIZE == 0) {
-        movebb &= 0x00'00'00'08'10'00'10'08;
+        bb &= 0x00'00'00'08'10'00'10'08;
     }
     else if (logpos % GRID_SIZE == GRID_SIZE - 2) {
-        movebb &= 0x00'00'00'0a'01'00'01'0a;
+        bb &= 0x00'00'00'0a'01'00'01'0a;
     }
     else if (logpos % GRID_SIZE == GRID_SIZE - 1) {
-        movebb &= 0x00'00'00'02'01'00'01'02;
+        bb &= 0x00'00'00'02'01'00'01'02;
     }
     
     int shift = logpos - assumedStart;
     if (shift > 0) {
-        movebb = (movebb << shift);
+        bb = (bb << shift);
     }
     else {
-        movebb = (movebb >> (std::abs(shift)));
+        bb = (bb >> (std::abs(shift)));
+    }
+
+    u64 index = 0;
+    u64 pos = bb >> index;
+    while (pos) {
+        if (pos & 1) {
+            const Piece& other = board.Pieces()[index];
+            int check = CheckPiece(piece, other);
+            if (check == 0) {
+                bb &= ~((u64)1 << index);
+            }
+        }
+
+        index++;
+        pos = bb >> index;
     }
     
-    return movebb;
+    return (bb | piece.Position());
+}
+
+static u64 GenCastling(const Board& board, const Piece& piece)
+{
+    (void)board;
+    (void)piece;
+    return (u64)0;
 }
 
 static u64 GenKing(const Board& board, const Piece& piece)
 {
-    (void)board;
-    constexpr u64 assumedStart = 9;
-    u64 movebb = 0x00'00'00'00'00'07'07'07;
+    u64 bb = piece.Position();
+    u64 pos = std::log2(piece.Position());
+    for (int rank = -1; rank < 2; rank++) {
+        if (rank == -1 && (pos / GRID_SIZE) == 0) {
+            continue;
+        }
+
+        if (rank == 1 && (pos / GRID_SIZE) == GRID_SIZE) {
+            continue;
+        }
+        
+        for (int file = -1; file < 2; file++) {
+            if (file == -1 && (pos % GRID_SIZE) == 0) {
+                continue;
+            }
     
-    u64 logpos = (u64)std::log2(piece.Position());
-    if (logpos % GRID_SIZE == 0) {
-        movebb &= 0x00'00'00'00'00'06'06'06;
-    }
-    else if (logpos % GRID_SIZE == GRID_SIZE - 1) {
-        movebb &= 0x00'00'00'00'00'03'03'03;
-    }
+            if (file == 1 && (pos % GRID_SIZE) == GRID_SIZE - 1) {
+                continue;
+            }
 
-    int shift = logpos - assumedStart;
-    if (shift > 0) {
-        movebb = (movebb << shift);
-    }
-    else {
-        movebb = (movebb >> (std::abs(shift)));
-    }
+            u64 index = (u64)((i64)pos + (rank * (i64)GRID_SIZE) + file);
+            const Piece& other = board.Pieces()[index];
+            int check = CheckPiece(piece, other);
+            if (check == 0) {
+                continue;
+            }
 
-    return movebb;
+            bb |= ((u64)1 << index);
+        }
+    }
+    
+    return bb | GenCastling(board, piece);
 }
 
 static u64 GenPawn(const Board& board, const Piece& piece)
