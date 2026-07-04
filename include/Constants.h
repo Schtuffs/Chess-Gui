@@ -51,6 +51,18 @@ namespace Enums {
      * @enum Colour
      * @date 2026-06-08
      */
+    enum Castling {
+        Black_King  = 1,    /**< Black castling kingside */
+        Black_Queen = 2,    /**< Black castling queenside */
+        White_King  = 4,    /**< White castling kingside */
+        White_Queen = 8,    /**< White castling queenside */
+    };
+
+    /**
+     * @brief Holds information for the colour of the piece.
+     * @enum Colour
+     * @date 2026-06-08
+     */
     enum Colour {
         Black,      /**< Piece colour black */
         White,      /**< Piece colour white */

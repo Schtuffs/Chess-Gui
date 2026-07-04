@@ -11,7 +11,7 @@
 // ----- Creation ----- Destruction -----
 
 Board::Board(std::string_view fen)
-    : m_fen(fen)
+    : m_fen(fen), m_castling(0), m_playerColour(Enums::Colour::White)
 {
     if (!Fen::IsValidFen(m_fen.c_str())) {
         ErrorPrintln("Invalid fen: {}", m_fen);
@@ -27,13 +27,11 @@ Board::Board(std::string_view fen)
 
             if (isdigit(c)) {
                 file += c - '0' - 1;
-                DebugPrintln("Board: continue. {}: {}", i, c);
                 continue;
             }
             
             if (c == '/') {
                 rank++;
-                DebugPrintln("Board: break. {}: {}", i, c);
                 break;
             }
 
@@ -70,6 +68,27 @@ Board::Board(std::string_view fen)
             }
         }
     }
+
+    m_playerColour = (fen[index + 1] == 'w' ? Enums::Colour::White : Enums::Colour::Black);
+    std::string_view castling = fen.substr(index + 3);
+    index = 0;
+    char c;
+    while ((c = castling[index++]) != ' ') {
+        switch(c) {
+        case 'K':
+            m_castling |= Enums::Castling::White_King;
+            break;
+        case 'Q':
+            m_castling |= Enums::Castling::White_Queen;
+            break;
+        case 'k':
+            m_castling |= Enums::Castling::Black_King;
+            break;
+        case 'q':
+            m_castling |= Enums::Castling::Black_Queen;
+            break;
+        }
+    }
 }
 
 Board::~Board()
@@ -81,6 +100,19 @@ Board::~Board()
 
 // ----- Read -----
 
+u8 Board::Castling(Enums::Colour colour) const noexcept
+{
+    if (colour == Enums::Colour::White) {
+        return m_castling & (Enums::Castling::White_King | Enums::Castling::White_Queen);
+    }
+    else if (colour == Enums::Colour::Black) {
+        return m_castling & (Enums::Castling::Black_King | Enums::Castling::Black_Queen);
+    }
+    else {
+        return 0;
+    }
+}
+
 std::string_view Board::Fen() const noexcept
 {
     return m_fen;
@@ -89,6 +121,11 @@ std::string_view Board::Fen() const noexcept
 const Piece* Board::Pieces() const noexcept
 {
     return m_pieces;
+}
+
+Enums::Colour Board::Player() const noexcept
+{
+    return m_playerColour;
 }
 
 
@@ -121,12 +158,22 @@ bool Board::MakeMove(std::string_view move)
     m_pieces[endPos] = p;
     m_pieces[startPos] = Piece();
 
+    m_playerColour = (
+        m_playerColour == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White
+    );
+
+    RecalculateCastling();
     RecalculateFen();
     
     return true;
 }
 
 // ----- Hidden -----
+
+void Board::RecalculateCastling()
+{
+
+}
 
 void Board::RecalculateFen()
 {
@@ -160,6 +207,23 @@ void Board::RecalculateFen()
             fen += p;
         }
     }
+
+    fen += ' ' + (m_playerColour == Enums::Colour::White ? 'w' : 'b');
+
+    if (m_castling & Enums::Castling::White_King) {
+        fen += 'K';
+    }
+    if (m_castling & Enums::Castling::White_Queen) {
+        fen += 'Q';
+    }
+    if (m_castling & Enums::Castling::Black_King) {
+        fen += 'k';
+    }
+    if (m_castling & Enums::Castling::Black_Queen) {
+        fen += 'q';
+    }
+
+    
 
     m_fen = fen;
 }

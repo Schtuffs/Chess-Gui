@@ -125,7 +125,6 @@ static u64 GenSliding(const Board& board, const Piece& piece, bool isRook)
     else {
         return GenDiag(board, piece);
     }
-
 }
 
 static u64 GenKnight(const Board& board, const Piece& piece)
@@ -173,11 +172,52 @@ static u64 GenKnight(const Board& board, const Piece& piece)
     return (bb | piece.Position());
 }
 
-static u64 GenCastling(const Board& board, const Piece& piece)
+static u64 GenCastling(const Board& board)
 {
-    (void)board;
-    (void)piece;
-    return (u64)0;
+    u8 castling = board.Castling(board.Player());
+    u64 bb = 0;
+    if (board.Player() == Enums::Colour::White) {
+        if (castling & Enums::Castling::White_King) {
+            const Piece& bishop = board.Pieces()[5];
+            const Piece& knight = board.Pieces()[6];
+
+            if (!bishop.IsValid() && !knight.IsValid()) {
+                bb |= 0x00'00'00'00'00'00'00'40;
+            }
+        }
+        
+        if (castling & Enums::Castling::White_Queen) {
+            const Piece& queen  = board.Pieces()[3];
+            const Piece& bishop = board.Pieces()[2];
+            const Piece& knight = board.Pieces()[1];
+    
+            if (!bishop.IsValid() && !knight.IsValid() && !queen.IsValid()) {
+                bb |= 0x00'00'00'00'00'00'00'04;
+            }
+        }
+    }
+    else if (board.Player() == Enums::Colour::Black) {
+        if (castling & Enums::Castling::Black_King) {
+            const Piece& bishop = board.Pieces()[61];
+            const Piece& knight = board.Pieces()[62];
+
+            if (!bishop.IsValid() && !knight.IsValid()) {
+                bb |= 0x40'00'00'00'00'00'00'00;
+            }
+        }
+        
+        if (castling & Enums::Castling::Black_Queen) {
+            const Piece& queen  = board.Pieces()[59];
+            const Piece& bishop = board.Pieces()[58];
+            const Piece& knight = board.Pieces()[57];
+    
+            if (!bishop.IsValid() && !knight.IsValid() && !queen.IsValid()) {
+                bb |= 0x04'00'00'00'00'00'00'00;
+            }
+        }
+    }
+
+    return bb;
 }
 
 static u64 GenKing(const Board& board, const Piece& piece)
@@ -189,7 +229,7 @@ static u64 GenKing(const Board& board, const Piece& piece)
             continue;
         }
 
-        if (rank == 1 && (pos / GRID_SIZE) == GRID_SIZE) {
+        if (rank == 1 && (pos / GRID_SIZE) == GRID_SIZE - 1) {
             continue;
         }
         
@@ -213,7 +253,7 @@ static u64 GenKing(const Board& board, const Piece& piece)
         }
     }
     
-    return bb | GenCastling(board, piece);
+    return bb | GenCastling(board);
 }
 
 static u64 GenPawn(const Board& board, const Piece& piece)
