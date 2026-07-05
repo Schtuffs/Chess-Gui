@@ -208,7 +208,8 @@ void Board::RecalculateFen()
         }
     }
 
-    fen += ' ' + (m_playerColour == Enums::Colour::White ? 'w' : 'b');
+    fen += ' ';
+    fen += (m_playerColour == Enums::Colour::White ? 'w' : 'b');
 
     if (m_castling & Enums::Castling::White_King) {
         fen += 'K';

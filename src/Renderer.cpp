@@ -113,7 +113,7 @@ void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective)
             continue;
         }
 
-        throw 1;
+        throw Renderer();
     }
 }
 
