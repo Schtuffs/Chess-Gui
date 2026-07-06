@@ -9,6 +9,7 @@
 
 #include "GameManager.h"
 #include "Renderer.h"
+#include "Settings.h"
 #include "Utils.h"
 
 static Renderer board;
@@ -42,7 +43,10 @@ static Rectangle& MoveDown(Rectangle& rect, u8 squares)
 
 void Menu::Main(Enums::Screen& screen)
 {
-    board.RenderBoard(BOARD_SQUARE_DARK, BOARD_SQUARE_LIGHT);
+    Color dark = Utils::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
+    Color light = Utils::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
+    
+    board.RenderBoard(dark, light);
     Rectangle startPos = Utils::StartButtonPos(1, 1, 6, 1);
     
     PushDefaultGuiStyle();
@@ -56,7 +60,10 @@ void Menu::Main(Enums::Screen& screen)
 
 void Menu::NewGame(Enums::Screen& screen)
 {
-    board.RenderBoard(BOARD_SQUARE_DARK, BOARD_SQUARE_LIGHT);
+    Color dark = Utils::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
+    Color light = Utils::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
+
+    board.RenderBoard(dark, light);
     Rectangle startPos = Utils::StartButtonPos(1, 1, 6, 1);
     
     PushDefaultGuiStyle();
@@ -69,7 +76,10 @@ void Menu::NewGame(Enums::Screen& screen)
 
 void Menu::Settings(Enums::Screen& screen)
 {
-    board.RenderBoard(BOARD_SQUARE_DARK, BOARD_SQUARE_LIGHT);
+    Color dark = Utils::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
+    Color light = Utils::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
+    
+    board.RenderBoard(dark, light);
     Rectangle startPos = Utils::StartButtonPos(1, 6, 6, 1);
     
     PushDefaultGuiStyle();
@@ -82,7 +92,18 @@ void Menu::Settings(Enums::Screen& screen)
 void Menu::InGame(Enums::Screen& screen)
 {
     (void)screen;
+    static bool isWhitePerspective = true;
     static GameManager gameManager;
-    gameManager.Render();
+    
+    if (IsKeyPressed(KEY_F)) {
+        isWhitePerspective = !isWhitePerspective;
+    }
+    
+    Color dark = Utils::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
+    Color light = Utils::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
+    
+    board.RenderBoard(dark, light);
+    gameManager.Update(isWhitePerspective);
+    board.RenderPieces(gameManager.Fen(), isWhitePerspective);
 }
 

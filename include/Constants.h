@@ -47,11 +47,11 @@ constexpr std::string_view PATH_PIECES  = "../resources/pieces";
  */
 namespace Enums {
     /**
-     * @brief Holds information for the colour of the piece.
-     * @enum Colour
-     * @date 2026-06-08
+     * @brief Holds information for castling rights.
+     * @enum Castling
+     * @date 2026-07-03
      */
-    enum Castling {
+    enum class Castling {
         Black_King  = 1,    /**< Black castling kingside */
         Black_Queen = 2,    /**< Black castling queenside */
         White_King  = 4,    /**< White castling kingside */
@@ -63,7 +63,7 @@ namespace Enums {
      * @enum Colour
      * @date 2026-06-08
      */
-    enum Colour {
+    enum class Colour {
         Black,      /**< Piece colour black */
         White,      /**< Piece colour white */
         Invalid,    /**< Invalid piece. */
@@ -123,8 +123,8 @@ namespace Enums {
         };
         
         /**
-         * @brief Convert `Enums::Type` to string.
-         * @date 2026-06-08
+         * @brief Convert `Utils::Setting` to string.
+         * @date 2026-07-01
          */
         constexpr const char* Setting[] = {
             "SAVE_GAME_STATE", "GAME_STATE",

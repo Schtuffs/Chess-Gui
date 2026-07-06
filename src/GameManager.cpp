@@ -35,7 +35,7 @@ static void UpdateButtonWithMove(Button& button, u64 moves, u64 index)
 }
 
 GameManager::GameManager()
-    : m_board(Settings::s(Setting::GAME_STATE)), m_isWhiteTurn(true), m_isWhitePerspective(true)
+    : m_board(Settings::s(Setting::GAME_STATE)), m_isWhiteTurn(true)
 {
     std::string_view fen = m_board.Fen();
     u64 index = fen.find(' ');
@@ -68,22 +68,17 @@ std::string_view GameManager::Fen() const noexcept
     return m_board.Fen();
 }
 
-void GameManager::Render()
+
+void GameManager::Update(bool isWhitePerspective)
 {
     // Fix sizing on window change
     if (IsWindowResized()) {
         UpdateButtons(m_buttons);
     }
 
-    if (IsKeyPressed(KEY_F)) {
-        m_isWhitePerspective = !m_isWhitePerspective;
-    }
-
-    m_renderer.RenderBoard(BOARD_SQUARE_DARK, BOARD_SQUARE_LIGHT);
-
     static std::string move = "";
     for (size_t i = 0; i < m_buttons.size(); i++) {
-        u8 index = (u8)(m_isWhitePerspective ? i : 63 - i);
+        u8 index = (u8)(isWhitePerspective ? i : 63 - i);
 
         Button& button = m_buttons[i];
         UpdateButtonWithMove(button, m_possibleMoves, index);
@@ -100,7 +95,6 @@ void GameManager::Render()
         // Player is making moves
         if (button.IsClicked()) {
             move += Fen::IndexToMove(index);
-            DebugPrintln("Move: {}", move);
             if (m_possibleMoves == 0) {
                 Enums::Colour col = m_board.Pieces()[index].Colour();
                 if (
@@ -126,8 +120,6 @@ void GameManager::Render()
             }
         }
     }
-
-    m_renderer.RenderPieces(m_board.Fen(), m_isWhitePerspective);
 }
 
 

@@ -8,7 +8,7 @@
 #include "raygui.h"
 
 typedef struct TextureValuePair {
-    char count = 0;
+    u8 count = 0;
     Texture2D texture {};
 } TextureValuePair;
 
@@ -17,7 +17,7 @@ static u8 s_clickedButton = 0;
 
 int CalculateIndex(Enums::Colour colour, Enums::Type type)
 {
-    return (int)type * 2 + (int)colour;
+    return ((int)type * 2) + (int)colour;
 }
 
 Vector2 Utils::CenterText(const char* text, Font font, int fontSize, Vector2 centerPoint)
@@ -102,7 +102,7 @@ Texture2D Utils::LoadTexture(Enums::Colour colour, Enums::Type type, int size)
 {
     // Check size
     if (size < 1) {
-        ErrorPrintln("Utils::LoadTexture received invalid size: {}", size);
+        ErrorPrintln("Utils::LoadTexture: Received invalid size: {}", size);
         return Texture2D{};
     }
     
@@ -115,9 +115,10 @@ Texture2D Utils::LoadTexture(Enums::Colour colour, Enums::Type type, int size)
         // Load and check image
         char path[50];
         snprintf(path, sizeof(path), "%s/%s_%s.png", PATH_PIECES.data(), Enums::ToString::Type[(int)type], Enums::ToString::Colour[(int)colour]);
+        DebugPrintln("Utils::LoadTexture: Path: {}", path);
         Image image = LoadImage(path);
         if (!IsImageValid(image)) {
-            ErrorPrintln("Utils::LoadTexture Failed to load image.");
+            ErrorPrintln("Utils::LoadTexture: Failed to load image.");
             return Texture2D{};
         }
         
@@ -142,9 +143,14 @@ Texture2D Utils::LoadTexture(Enums::Colour colour, Enums::Type type, int size)
 void Utils::UnloadTexture(Texture2D& texture, Enums::Colour colour, Enums::Type type)
 {
     if (IsTextureValid(texture)) {
-        ::UnloadTexture(texture);
-        texture.id = 0;
-        s_textureValuePairs[CalculateIndex(colour, type)].count--;
+        int index = CalculateIndex(colour, type);
+        TextureValuePair& pair = s_textureValuePairs[index];
+        pair.count--;
+        
+        if (pair.count == 0) {
+            ::UnloadTexture(texture);
+            texture.id = 0;
+        }
     }
 }
 

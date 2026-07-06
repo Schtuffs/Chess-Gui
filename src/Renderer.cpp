@@ -169,10 +169,36 @@ void Renderer::FixSize()
     if (!IsWindowResized()) {
         return;
     }
+    DebugPrintln("Fixing");
 
     Vector3 grid = Utils::GridPositioning();
     m_startX = grid.x;
     m_startY = grid.y;
     m_textureSize = grid.z;
+    
+    DebugPrintln("Unloading");
+    for (uint64_t col = 0; col < 2; col++) {
+        for (uint64_t type = 0; type < 6; type++) {
+            int i = type * 2 + col;
+            if (IsTextureValid(m_textures[i])) {
+                Utils::UnloadTexture(m_textures[i], static_cast<Enums::Colour>(col), static_cast<Enums::Type>(type));
+            }
+        }
+    }
+
+    DebugPrintln("Reloading");
+    for (u64 col = 0; col < 2; col++) {
+        for (u64 type = 0; type < 6; type++) {
+            Texture2D texture = Utils::LoadTexture(static_cast<Enums::Colour>(col), static_cast<Enums::Type>(type), m_textureSize);
+            if (IsTextureValid(texture)) {
+                int index = type * 2 + col;
+                m_textures[index] = texture;
+            }
+            else {
+                ErrorPrintln("Renderer::Renderer: Could not create texture: {} {}", Enums::ToString::Colour[col], Enums::ToString::Type[type]);
+            }
+        }
+    }
+    DebugPrintln("Reloaded");
 }
 

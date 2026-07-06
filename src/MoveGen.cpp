@@ -177,7 +177,7 @@ static u64 GenCastling(const Board& board)
     u8 castling = board.Castling(board.Player());
     u64 bb = 0;
     if (board.Player() == Enums::Colour::White) {
-        if (castling & Enums::Castling::White_King) {
+        if (castling & (u8)Enums::Castling::White_King) {
             const Piece& bishop = board.Pieces()[5];
             const Piece& knight = board.Pieces()[6];
 
@@ -186,7 +186,7 @@ static u64 GenCastling(const Board& board)
             }
         }
         
-        if (castling & Enums::Castling::White_Queen) {
+        if (castling & (u8)Enums::Castling::White_Queen) {
             const Piece& queen  = board.Pieces()[3];
             const Piece& bishop = board.Pieces()[2];
             const Piece& knight = board.Pieces()[1];
@@ -197,7 +197,7 @@ static u64 GenCastling(const Board& board)
         }
     }
     else if (board.Player() == Enums::Colour::Black) {
-        if (castling & Enums::Castling::Black_King) {
+        if (castling & (u8)Enums::Castling::Black_King) {
             const Piece& bishop = board.Pieces()[61];
             const Piece& knight = board.Pieces()[62];
 
@@ -206,7 +206,7 @@ static u64 GenCastling(const Board& board)
             }
         }
         
-        if (castling & Enums::Castling::Black_Queen) {
+        if (castling & (u8)Enums::Castling::Black_Queen) {
             const Piece& queen  = board.Pieces()[59];
             const Piece& bishop = board.Pieces()[58];
             const Piece& knight = board.Pieces()[57];

@@ -39,6 +39,10 @@ class Button {
 public:
     // ----- Creation / Destruction -----
 
+    /**
+     * @brief Prepares default `Button` for rendering.
+     * @date 2026-06-13
+     */
     Button();
     
     /**

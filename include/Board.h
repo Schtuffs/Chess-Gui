@@ -70,10 +70,10 @@ public:
 private:
     std::string m_fen;
     Piece m_pieces[64];
-    u8 m_castling;
+    u8 m_castling, m_enPassant;
     Enums::Colour m_playerColour;
 
     void RecalculateCastling();
-    void RecalculateFen();
+    void RecalculateFen(bool isCaptureOrPawn, u8 index);
 };
 

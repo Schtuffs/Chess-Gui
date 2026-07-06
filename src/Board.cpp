@@ -76,16 +76,16 @@ Board::Board(std::string_view fen)
     while ((c = castling[index++]) != ' ') {
         switch(c) {
         case 'K':
-            m_castling |= Enums::Castling::White_King;
+            m_castling |= (u8)Enums::Castling::White_King;
             break;
         case 'Q':
-            m_castling |= Enums::Castling::White_Queen;
+            m_castling |= (u8)Enums::Castling::White_Queen;
             break;
         case 'k':
-            m_castling |= Enums::Castling::Black_King;
+            m_castling |= (u8)Enums::Castling::Black_King;
             break;
         case 'q':
-            m_castling |= Enums::Castling::Black_Queen;
+            m_castling |= (u8)Enums::Castling::Black_Queen;
             break;
         }
     }
@@ -103,10 +103,10 @@ Board::~Board()
 u8 Board::Castling(Enums::Colour colour) const noexcept
 {
     if (colour == Enums::Colour::White) {
-        return m_castling & (Enums::Castling::White_King | Enums::Castling::White_Queen);
+        return m_castling & ((u8)Enums::Castling::White_King | (u8)Enums::Castling::White_Queen);
     }
     else if (colour == Enums::Colour::Black) {
-        return m_castling & (Enums::Castling::Black_King | Enums::Castling::Black_Queen);
+        return m_castling & ((u8)Enums::Castling::Black_King | (u8)Enums::Castling::Black_Queen);
     }
     else {
         return 0;
@@ -141,7 +141,6 @@ bool Board::MakeMove(std::string_view move)
         return false;
     }
 
-    DebugPrintln("Start: {}, end: {}", startPos, endPos);
     u64 spots = MoveGen::Generate(*this, m_pieces[startPos]);
     if (!spots) {
         WarningPrintln("Board::MakeMove: Invalid piece at startpos");
@@ -153,7 +152,41 @@ bool Board::MakeMove(std::string_view move)
         return false;
     }
 
-    Piece p = m_pieces[startPos];
+    Piece& p = m_pieces[startPos];
+    const Piece& other = m_pieces[endPos];
+    bool captureOrPawn = other.IsValid();
+    u8 enPassant = UINT8_MAX;
+    if (p.Type() == Enums::Type::Pawn) {
+        if (p.Colour() == Enums::Colour::White) {
+            if (startPos + (2 * GRID_SIZE) == endPos) {
+                captureOrPawn = startPos + GRID_SIZE;
+            }
+        }
+        else if (p.Colour() == Enums::Colour::Black) {
+            if (startPos - (2 * GRID_SIZE) == endPos) {
+                captureOrPawn = startPos - GRID_SIZE;
+            }
+        }
+    }
+
+    DebugPrintln("Type: {}", Enums::ToString::Type[(u32)p.Type()]);
+    if (p.Type() == Enums::Type::King) {
+        DebugPrintln("King");
+        DebugPrintln("Start: {}, End: {}", startPos, endPos);
+        if (startPos + 2 == endPos) {
+            Piece& rook = m_pieces[startPos + 3];
+            rook.Position(endPos - 1);
+            m_pieces[endPos - 1] = rook;
+            m_pieces[startPos + 3] = Piece();
+        }
+        else if (startPos - 2 == endPos) {
+            Piece& rook = m_pieces[startPos - 4];
+            rook.Position(endPos + 1);
+            m_pieces[endPos + 1] = rook;
+            m_pieces[startPos - 4] = Piece();
+        }
+    }
+
     p.Position(endPos);
     m_pieces[endPos] = p;
     m_pieces[startPos] = Piece();
@@ -163,7 +196,7 @@ bool Board::MakeMove(std::string_view move)
     );
 
     RecalculateCastling();
-    RecalculateFen();
+    RecalculateFen(captureOrPawn, enPassant);
     
     return true;
 }
@@ -172,10 +205,28 @@ bool Board::MakeMove(std::string_view move)
 
 void Board::RecalculateCastling()
 {
-
+    if (m_pieces[4].Type() != Enums::Type::King) {
+        m_castling &= ~((u8)Enums::Castling::White_King | (u8)Enums::Castling::White_Queen);
+    }
+    if (m_pieces[60].Type() != Enums::Type::King) {
+        m_castling &= ~((u8)Enums::Castling::Black_King | (u8)Enums::Castling::Black_Queen);
+    }
+    
+    if (m_pieces[0].Type() != Enums::Type::Rook) {
+        m_castling &= ~((u8)Enums::Castling::White_Queen);
+    }
+    if (m_pieces[7].Type() != Enums::Type::Rook) {
+        m_castling &= ~((u8)Enums::Castling::White_King);
+    }
+    if (m_pieces[56].Type() != Enums::Type::Rook) {
+        m_castling &= ~((u8)Enums::Castling::Black_Queen);
+    }
+    if (m_pieces[63].Type() != Enums::Type::Rook) {
+        m_castling &= ~((u8)Enums::Castling::Black_King);
+    }
 }
 
-void Board::RecalculateFen()
+static std::string CalculateFenPiece(Piece* pieces)
 {
     std::string fen;
     u8 extra = 0;
@@ -192,7 +243,7 @@ void Board::RecalculateFen()
         for (u64 file = 0; file < GRID_SIZE; file++) {
             u64 i = rank * GRID_SIZE + file;
             
-            Piece& piece = m_pieces[i];
+            Piece& piece = pieces[i];
             char p = piece.AsChar();
             if (!p) {
                 extra++;
@@ -208,24 +259,69 @@ void Board::RecalculateFen()
         }
     }
 
+    return fen;
+}
+
+void Board::RecalculateFen(bool isCaptureOrPawn, u8 index)
+{
+    std::string fen = CalculateFenPiece(m_pieces);
+
+    // Player to move
     fen += ' ';
     fen += (m_playerColour == Enums::Colour::White ? 'w' : 'b');
 
-    if (m_castling & Enums::Castling::White_King) {
+    // Castling rights
+    fen += ' ';
+    bool hasCastling = false;
+    if (m_castling & (u8)Enums::Castling::White_King) {
         fen += 'K';
+        hasCastling = true;
     }
-    if (m_castling & Enums::Castling::White_Queen) {
+    if (m_castling & (u8)Enums::Castling::White_Queen) {
         fen += 'Q';
+        hasCastling = true;
     }
-    if (m_castling & Enums::Castling::Black_King) {
+    if (m_castling & (u8)Enums::Castling::Black_King) {
         fen += 'k';
+        hasCastling = true;
     }
-    if (m_castling & Enums::Castling::Black_Queen) {
+    if (m_castling & (u8)Enums::Castling::Black_Queen) {
         fen += 'q';
+        hasCastling = true;
     }
 
+    if (!hasCastling) {
+        fen += '-';
+    }
+
+    // En passant
+    fen += ' ';
+    if (isCaptureOrPawn && index != UINT8_MAX) {
+        m_enPassant = index;
+        fen += Fen::IndexToMove(m_enPassant);
+    }
+    else {
+        fen += '-';
+    }
+
+    // Half moves
+    fen += ' ';
+    std::string_view strHalfMoves = m_fen.substr(m_fen.find(' ') + 1);
+    strHalfMoves = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
+    strHalfMoves = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
+    strHalfMoves = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
+    u32 halfMoves = std::stoul(strHalfMoves.data());
+    halfMoves = (isCaptureOrPawn ? 0 : halfMoves + 1);
+    fen += std::to_string(halfMoves);
     
+    // Whole moves
+    fen += ' ';
+    strHalfMoves = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
+    u32 moves = std::stoul(strHalfMoves.data());
+    moves++;
+    fen += std::to_string(moves);
 
     m_fen = fen;
+    DebugPrintln("{}", m_fen);
 }
 

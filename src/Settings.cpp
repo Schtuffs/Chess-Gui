@@ -52,16 +52,16 @@ static void DefaultSettings()
             s_settingData[i] = std::tuple<ManyType, ActualType>{{.s = DEFAULT_FEN.data()}, ActualType::STRING};
             break;
         case Setting::BOARD_TILE_DARK: {
-            Color dark = {175, 150, 120, 255};
+            Color dark = {100, 75, 60, 255};
             u32 val;
-            std::memcpy(&val, &dark, Utils::Min(sizeof(val), sizeof(dark)));
+            val = Utils::ColorToU32(dark);
             s_settingData[i] = std::tuple<ManyType, ActualType>{{.i = val}, ActualType::U32};
             break;
         }
         case Setting::BOARD_TILE_LIGHT: {
-            Color light = {100, 75, 60, 255};
+            Color light = {175, 150, 120, 255};
             u32 val;
-            std::memcpy(&val, &light, Utils::Min(sizeof(val), sizeof(light)));
+            val = Utils::ColorToU32(light);
             s_settingData[i] = std::tuple<ManyType, ActualType>{{.i = val}, ActualType::U32};
             break;
         }
