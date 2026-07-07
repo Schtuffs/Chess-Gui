@@ -97,10 +97,14 @@ static u64 GenCardinal(const Board& board, const Piece& piece)
 {
     u64 bb = piece.Position();
 
+    // Up
     bb |= GenMove(board, piece, GRID_SIZE,    0xffffffff, false);
+    // Right
+    bb |= GenMove(board, piece,         1,             0,  true);
+    // Down
+    bb |= GenMove(board, piece, GRID_SIZE,    0xffffffff,  true);
+    // Left
     bb |= GenMove(board, piece,         1, GRID_SIZE - 1, false);
-    bb |= GenMove(board, piece, GRID_SIZE,     GRID_SIZE,  true);
-    bb |= GenMove(board, piece,         1,    0xffffffff,  true);
 
     return bb;
 }
@@ -263,26 +267,50 @@ static u64 GenPawn(const Board& board, const Piece& piece)
     u64 bb = pos;
 
     if (piece.Colour() == Enums::Colour::White) {
+        // Move forward
         if (CheckPiece(piece, board.Pieces()[logPos + GRID_SIZE]) < 0) {
             bb |= pos << GRID_SIZE;
             if (logPos / GRID_SIZE == 1) {
+                // Double move
                 if (CheckPiece(piece, board.Pieces()[logPos + (GRID_SIZE * 2)]) < 0) {
                     bb |= pos << (GRID_SIZE * 2);
                 }
             }
         }
+
+        // Left attack
+        if (CheckPiece(piece, board.Pieces()[logPos + GRID_SIZE - 1]) > 0) {
+            bb |= (pos << (GRID_SIZE - 1));
+        }
+        // Right attack
+        if (CheckPiece(piece, board.Pieces()[logPos + GRID_SIZE + 1]) > 0) {
+            bb |= (pos << (GRID_SIZE + 1));
+        }
+        
         return bb;
     }
-
+    
     if (piece.Colour() == Enums::Colour::Black) {
+        // Move forward
         if (CheckPiece(piece, board.Pieces()[logPos - GRID_SIZE]) < 0) {
             bb |= pos >> GRID_SIZE;
             if (logPos / GRID_SIZE == 6) {
+                // Double move
                 if (CheckPiece(piece, board.Pieces()[logPos - (GRID_SIZE * 2)]) < 0) {
                     bb |= pos >> (GRID_SIZE * 2);
                 }
             }
         }
+
+        // Left attack
+        if (CheckPiece(piece, board.Pieces()[logPos - (GRID_SIZE - 1)]) > 0) {
+            bb |= (pos >> (GRID_SIZE - 1));
+        }
+        // Right attack
+        if (CheckPiece(piece, board.Pieces()[logPos - (GRID_SIZE + 1)]) > 0) {
+            bb |= (pos >> (GRID_SIZE + 1));
+        }
+
         return bb;
     }
 

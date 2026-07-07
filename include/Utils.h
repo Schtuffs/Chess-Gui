@@ -165,18 +165,17 @@ namespace Utils {
             Utils::Detail::UnlockPrint(whichType);  \
         } do {} while (false)
 #ifdef UTILS_LOG_NONE
-    #define    SyncPrintln(...) /* __VA_ARGS__ */ do {} while (false)
     #define   DebugPrintln(...) /* __VA_ARGS__ */ do {} while (false)
     #define   ErrorPrintln(...) /* __VA_ARGS__ */ do {} while (false)
     #define    InfoPrintln(...) /* __VA_ARGS__ */ do {} while (false)
     #define WarningPrintln(...) /* __VA_ARGS__ */ do {} while (false)
 #else
-    #define    SyncPrintln(...) FilePrintln(Utils::LogLevel::PRINT,     stdout,                     "",             __VA_ARGS__)
     #define   DebugPrintln(...) FilePrintln(Utils::LogLevel::DEBUG,     Utils::Detail::debugFile,   "DEBUG:   ",    __VA_ARGS__)
     #define   ErrorPrintln(...) FilePrintln(Utils::LogLevel::ERROR,     Utils::Detail::errorFile,   "ERROR:   ",    __VA_ARGS__)
     #define    InfoPrintln(...) FilePrintln(Utils::LogLevel::INFO,      Utils::Detail::infoFile,    "INFO:    ",    __VA_ARGS__)
     #define WarningPrintln(...) FilePrintln(Utils::LogLevel::WARNING,   Utils::Detail::warningFile, "WARNING: ",    __VA_ARGS__)
 #endif
+    #define    SyncPrintln(...) FilePrintln(Utils::LogLevel::PRINT,     stdout,                     "",             __VA_ARGS__)
 
     /**
      * @brief Sets the `Utils::LogLevel` for the program.

@@ -11,7 +11,7 @@
 // ----- Creation ----- Destruction -----
 
 Board::Board(std::string_view fen)
-    : m_fen(fen), m_castling(0), m_playerColour(Enums::Colour::White)
+    : m_fen(fen), m_castling(0), m_enPassant(UINT8_MAX), m_playerColour(Enums::Colour::White)
 {
     if (!Fen::IsValidFen(m_fen.c_str())) {
         ErrorPrintln("Invalid fen: {}", m_fen);
@@ -152,6 +152,13 @@ bool Board::MakeMove(std::string_view move)
         return false;
     }
 
+    // Remove old en passant
+    if (m_enPassant != UINT8_MAX) {
+        m_pieces[m_enPassant] = Piece();
+        m_enPassant = UINT8_MAX;
+    }
+
+    // Check new en passant
     Piece& p = m_pieces[startPos];
     const Piece& other = m_pieces[endPos];
     bool captureOrPawn = other.IsValid();
@@ -159,20 +166,19 @@ bool Board::MakeMove(std::string_view move)
     if (p.Type() == Enums::Type::Pawn) {
         if (p.Colour() == Enums::Colour::White) {
             if (startPos + (2 * GRID_SIZE) == endPos) {
-                captureOrPawn = startPos + GRID_SIZE;
+                enPassant = startPos + GRID_SIZE;
+                m_pieces[enPassant] = Piece(Enums::Colour::Invalid, Enums::Type::Invalid, enPassant);
             }
         }
         else if (p.Colour() == Enums::Colour::Black) {
             if (startPos - (2 * GRID_SIZE) == endPos) {
-                captureOrPawn = startPos - GRID_SIZE;
+                enPassant = startPos - GRID_SIZE;
+                m_pieces[enPassant] = Piece(Enums::Colour::Invalid, Enums::Type::Invalid, enPassant);
             }
         }
     }
 
-    DebugPrintln("Type: {}", Enums::ToString::Type[(u32)p.Type()]);
     if (p.Type() == Enums::Type::King) {
-        DebugPrintln("King");
-        DebugPrintln("Start: {}, End: {}", startPos, endPos);
         if (startPos + 2 == endPos) {
             Piece& rook = m_pieces[startPos + 3];
             rook.Position(endPos - 1);
@@ -296,7 +302,7 @@ void Board::RecalculateFen(bool isCaptureOrPawn, u8 index)
 
     // En passant
     fen += ' ';
-    if (isCaptureOrPawn && index != UINT8_MAX) {
+    if (index != UINT8_MAX) {
         m_enPassant = index;
         fen += Fen::IndexToMove(m_enPassant);
     }

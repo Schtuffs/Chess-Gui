@@ -115,7 +115,6 @@ Texture2D Utils::LoadTexture(Enums::Colour colour, Enums::Type type, int size)
         // Load and check image
         char path[50];
         snprintf(path, sizeof(path), "%s/%s_%s.png", PATH_PIECES.data(), Enums::ToString::Type[(int)type], Enums::ToString::Colour[(int)colour]);
-        DebugPrintln("Utils::LoadTexture: Path: {}", path);
         Image image = LoadImage(path);
         if (!IsImageValid(image)) {
             ErrorPrintln("Utils::LoadTexture: Failed to load image.");
