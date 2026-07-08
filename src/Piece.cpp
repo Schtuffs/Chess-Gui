@@ -41,6 +41,11 @@ Index Piece::Position() const noexcept
     return m_pos;
 }
 
+bool Piece::IsEnPassant() const noexcept
+{
+    return ((!m_isValid) && (m_pos < (GRID_SIZE * GRID_SIZE)));
+}
+
 bool Piece::IsValid() const noexcept
 {
     return m_isValid;

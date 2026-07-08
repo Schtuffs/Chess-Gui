@@ -8,30 +8,6 @@
 
 
 
-std::string u64ToString(BitBoard val, char on = '1', char off = '0')
-{
-    const std::string VERT_SPACE = "\n +---+---+---+---+---+---+---+---+\n";
-    const std::string HORZ_SPACE = " | ";
-    std::string ret = "\n", line = HORZ_SPACE;
-    
-    for (int i = 0; i < 64; i++) {
-        if ((val & ((BitBoard)1 << i)) > 0) {
-            line += on + HORZ_SPACE;
-        }
-        else {
-            line += off + HORZ_SPACE;
-        }
-
-        if (i != 0 && i % 8 == 7) {
-            ret = line + VERT_SPACE + ret;
-            line = HORZ_SPACE;
-        }
-    }
-
-    ret = VERT_SPACE + ret;
-    return ret;
-}
-
 /**
  * @return <0 on at least one piece is invalid. =0 on same colour. >0 on different colours.
  */
@@ -259,61 +235,60 @@ static BitBoard GenKing(const Board& board, const Piece& piece)
     return bb | GenCastling(board);
 }
 
-static BitBoard GenPawn(const Board& board, const Piece& piece)
+static BitBoard GenPawnAttack(const Piece& piece, const Piece& other, Index index)
 {
-    BitBoard logPos = piece.Position();
-    BitBoard pos = Convert::IndexToBitBoard(logPos);
-    BitBoard bb = pos;
+    BitBoard bb = 0;
 
-    if (piece.Colour() == Enums::Colour::White) {
-        // Move forward
-        if (PieceCompare(piece, board.Pieces()[logPos + GRID_SIZE]) < 0) {
-            bb |= pos << GRID_SIZE;
-            if (logPos / GRID_SIZE == 1) {
-                // Double move
-                if (PieceCompare(piece, board.Pieces()[logPos + (GRID_SIZE * 2)]) < 0) {
-                    bb |= pos << (GRID_SIZE * 2);
-                }
+    if (PieceCompare(piece, other) > 0 || other.IsEnPassant()) {
+        bb |= Convert::IndexToBitBoard(index);
+    }
+
+    return bb;
+}
+
+static BitBoard GenPawn(const Board& board, const Piece& piece, i64 offset, Index mod)
+{
+    BitBoard bb = 0;
+    Index pos = piece.Position();
+
+    // Forward moves
+    Index checkIndex = pos + offset;
+    if (PieceCompare(piece, board.Pieces()[checkIndex]) < 0) {
+        bb |= Convert::IndexToBitBoard(checkIndex);
+        if ((pos / GRID_SIZE) == mod) {
+            // Double move
+            checkIndex = pos + (offset * 2);
+            if (PieceCompare(piece, board.Pieces()[checkIndex]) < 0) {
+                bb |= Convert::IndexToBitBoard(checkIndex);
             }
         }
+    }
 
-        // Left attack
-        if (PieceCompare(piece, board.Pieces()[logPos + GRID_SIZE - 1]) > 0) {
-            bb |= (pos << (GRID_SIZE - 1));
-        }
-        // Right attack
-        if (PieceCompare(piece, board.Pieces()[logPos + GRID_SIZE + 1]) > 0) {
-            bb |= (pos << (GRID_SIZE + 1));
-        }
-        
-        return bb;
+    // Left attack
+    checkIndex = pos + (offset - 1);
+    bb |= GenPawnAttack(piece, board.Pieces()[checkIndex], checkIndex);
+
+    // Right attack
+    checkIndex = pos + (offset + 1);
+    bb |= GenPawnAttack(piece, board.Pieces()[checkIndex], checkIndex);
+
+    return bb;
+}
+
+static BitBoard GenPawn(const Board& board, const Piece& piece)
+{
+    Index pos = piece.Position();
+    BitBoard bb = Convert::IndexToBitBoard(pos);
+
+    if (piece.Colour() == Enums::Colour::White) {
+        bb |= GenPawn(board, piece,  (i64)GRID_SIZE, 1);
     }
     
     if (piece.Colour() == Enums::Colour::Black) {
-        // Move forward
-        if (PieceCompare(piece, board.Pieces()[logPos - GRID_SIZE]) < 0) {
-            bb |= pos >> GRID_SIZE;
-            if (logPos / GRID_SIZE == 6) {
-                // Double move
-                if (PieceCompare(piece, board.Pieces()[logPos - (GRID_SIZE * 2)]) < 0) {
-                    bb |= pos >> (GRID_SIZE * 2);
-                }
-            }
-        }
-
-        // Left attack
-        if (PieceCompare(piece, board.Pieces()[logPos - (GRID_SIZE - 1)]) > 0) {
-            bb |= (pos >> (GRID_SIZE - 1));
-        }
-        // Right attack
-        if (PieceCompare(piece, board.Pieces()[logPos - (GRID_SIZE + 1)]) > 0) {
-            bb |= (pos >> (GRID_SIZE + 1));
-        }
-
-        return bb;
+        bb |= GenPawn(board, piece, -(i64)GRID_SIZE, 6);
     }
 
-    return pos;
+    return bb;
 }
 
 BitBoard MoveGen::Generate(const Board& board, const Piece& piece)
@@ -349,7 +324,7 @@ BitBoard MoveGen::Generate(const Board& board, const Piece& piece)
         break;
     }
 
-    DebugPrintln("{}", u64ToString(bb, 'X', ' '));
+    DebugPrintln("{}", Convert::BitBoardToString(bb));
     
     return bb;
 }

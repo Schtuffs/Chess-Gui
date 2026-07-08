@@ -6,6 +6,7 @@
 #include "raylib.h"
 
 #include "Constants.h"
+#include "Piece.h"
 
 namespace Convert {
     /**
@@ -55,5 +56,19 @@ namespace Convert {
      * @date 2026-07-07
      */
     Index BitBoardToIndex(BitBoard b);
+    
+    /**
+     * @brief Changes a bitboard to a printable string.
+     * @param bb The bitboard to convert.
+     * @date 2026-07-07
+     */
+    std::string BitBoardToString(BitBoard b, char on = 'X', char off = ' ');
+    
+    /**
+     * @brief Changes a bitboard to a printable string.
+     * @param bb The bitboard to convert.
+     * @date 2026-07-07
+     */
+    std::string PiecesToString(const Piece* pieces);
 }
 

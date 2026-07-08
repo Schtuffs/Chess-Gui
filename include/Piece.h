@@ -58,6 +58,13 @@ public:
     Enums::Colour Colour() const noexcept;
 
     /**
+     * @brief Check if `Piece` is an en passant placeholder.
+     * @return `true` on en passant `Piece`.
+     * @date 2026-07-08
+     */
+    bool IsEnPassant() const noexcept;
+
+    /**
      * @brief Check if `Piece` is valid.
      * @return `true` on valid `Piece`.
      * @date 2026-06-29

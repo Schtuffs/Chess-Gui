@@ -47,9 +47,10 @@ public:
     
     /**
      * @brief Prepares `Button` for rendering.
+     * @param text The text to display.
+     * @param font The `FontData` to use for the text.
      * @param dimensions The position and size of the `Button`.
      * @param colour The `Color` to render the `Button` with.
-     * @param thickness The border thickness.
      * @date 2026-06-13
      */
     Button(const std::string& text, FontData font, Rectangle dimensions, Color colour);

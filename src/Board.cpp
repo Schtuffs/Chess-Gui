@@ -7,12 +7,14 @@
 #include "MoveGen.h"
 #include "Utils.h"
 
+constexpr Index INVALID_ENPASSANT   = UINT8_MAX;
+
 
 
 // ----- Creation ----- Destruction -----
 
 Board::Board(std::string_view fen)
-    : m_fen(fen), m_castling(0), m_enPassant(UINT8_MAX), m_playerColour(Enums::Colour::White)
+    : m_fen(fen), m_castling(0), m_enPassant(INVALID_ENPASSANT), m_playerColour(Enums::Colour::White)
 {
     if (!Fen::IsValidFen(m_fen.c_str())) {
         ErrorPrintln("Invalid fen: {}", m_fen);
@@ -24,7 +26,7 @@ Board::Board(std::string_view fen)
     for (u64 rank = GRID_SIZE - 1; rank < GRID_SIZE; rank--) {
         for (u64 file = 0; file < GRID_SIZE; file++) {
             u64 i = rank * GRID_SIZE + file;
-            char c = fen[index++];
+            char c = m_fen[index++];
 
             if (isdigit(c)) {
                 file += c - '0' - 1;
@@ -70,8 +72,8 @@ Board::Board(std::string_view fen)
         }
     }
 
-    m_playerColour = (fen[index + 1] == 'w' ? Enums::Colour::White : Enums::Colour::Black);
-    std::string_view castling = fen.substr(index + 3);
+    m_playerColour = (m_fen[index + 1] == 'w' ? Enums::Colour::White : Enums::Colour::Black);
+    std::string_view castling = m_fen.substr(index + 3);
     index = 0;
     char c;
     while ((c = castling[index++]) != ' ') {
@@ -91,9 +93,8 @@ Board::Board(std::string_view fen)
         }
     }
 
-    std::string_view enPassant = fen.substr(index + 1);
+    std::string_view enPassant = castling.substr(index);
     if (enPassant[0] != '-') {
-        enPassant = enPassant.substr(0, 2);
         m_enPassant = Convert::MoveToIndex(enPassant);
         m_pieces[m_enPassant] = Piece(m_enPassant);
     }
@@ -142,83 +143,77 @@ Enums::Colour Board::Player() const noexcept
 
 bool Board::MakeMove(std::string_view move)
 {
-    u8 startPos = Convert::MoveToIndex(move);
-    u8 endPos = Convert::MoveToIndex(move.substr(2));
+    Index startPos = Convert::MoveToIndex(move);
+    Index endPos = Convert::MoveToIndex(move.substr(2));
+
+    if (startPos >= GRID_SIZE * GRID_SIZE || endPos >= GRID_SIZE * GRID_SIZE) {
+        ErrorPrintln("Board::MakeMove: Invalid start or end pos: {}, {}", startPos, endPos);
+        return false;
+    }
 
     if (startPos == endPos) {
+        InfoPrintln("Board::MakeMove: Piece returned to starting position.");
         return false;
     }
 
-    u64 spots = MoveGen::Generate(*this, m_pieces[startPos]);
-    if (!spots) {
-        WarningPrintln("Board::MakeMove: Invalid piece at startpos");
+    BitBoard movesBB = MoveGen::Generate(*this, m_pieces[startPos]);
+    if (!movesBB) {
+        WarningPrintln("Board::MakeMove: Invalid piece at startpos.");
         return false;
     }
 
-    u64 index = (u64)1 << endPos;
-    if ((index & spots) == 0) {
+    BitBoard indexBB = Convert::IndexToBitBoard(endPos);
+    if ((indexBB & movesBB) == 0) {
+        InfoPrintln("Board::MakeMove: End position was invalid.");
         return false;
     }
-
-    // Remove old en passant
-    if (m_enPassant != UINT8_MAX) {
-        m_pieces[m_enPassant] = Piece();
-        m_enPassant = UINT8_MAX;
-    }
-
-    // Check new en passant
-    Piece& p = m_pieces[startPos];
-    const Piece& other = m_pieces[endPos];
-    bool captureOrPawn = other.IsValid();
-    u8 enPassant = UINT8_MAX;
-    if (p.Type() == Enums::Type::Pawn) {
-        if (p.Colour() == Enums::Colour::White) {
-            if (startPos + (2 * GRID_SIZE) == endPos) {
-                m_enPassant = startPos + GRID_SIZE;
-                m_pieces[m_enPassant] = Piece(m_enPassant);
-            }
-        }
-        else if (p.Colour() == Enums::Colour::Black) {
-            if (startPos - (2 * GRID_SIZE) == endPos) {
-                m_enPassant = startPos - GRID_SIZE;
-                m_pieces[m_enPassant] = Piece(m_enPassant);
-            }
-        }
-    }
-
-    if (p.Type() == Enums::Type::King) {
-        if (startPos + 2 == endPos) {
-            Piece& rook = m_pieces[startPos + 3];
-            rook.Position(endPos - 1);
-            m_pieces[endPos - 1] = rook;
-            m_pieces[startPos + 3] = Piece();
-        }
-        else if (startPos - 2 == endPos) {
-            Piece& rook = m_pieces[startPos - 4];
-            rook.Position(endPos + 1);
-            m_pieces[endPos + 1] = rook;
-            m_pieces[startPos - 4] = Piece();
-        }
-    }
-
-    p.Position(endPos);
-    m_pieces[endPos] = p;
-    m_pieces[startPos] = Piece();
 
     m_playerColour = (
         m_playerColour == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White
     );
 
-    RecalculateCastling();
-    RecalculateFen(captureOrPawn, enPassant);
+    Piece& piece = m_pieces[startPos];
+    Piece other = MovePiece(startPos, endPos);
+    RecalculateEnPassant(startPos, endPos);
+    RecalculateCastling(startPos, endPos);
+    RecalculateFen((piece.Type() == Enums::Type::Pawn) | (other.IsValid()));
     
     return true;
 }
 
 // ----- Hidden -----
 
-void Board::RecalculateCastling()
+Piece Board::MovePiece(Index start, Index end)
 {
+    Piece p = m_pieces[start];
+    p.Position(end);
+    Piece toRet = m_pieces[end];
+    m_pieces[end] = p;
+    m_pieces[start] = Piece();
+    return toRet;
+}
+
+void Board::RecalculateCastling(Index start, Index end)
+{
+    Piece& piece = m_pieces[start];
+    if (piece.Type() == Enums::Type::King) {
+        // Short castle
+        if (start + 2 == end) {
+            Piece& rook = m_pieces[start + 3];
+            rook.Position(end - 1);
+            m_pieces[end - 1] = rook;
+            m_pieces[start + 3] = Piece();
+        }
+        // Long castle
+        else if (start - 2 == end) {
+            Piece& rook = m_pieces[start - 4];
+            rook.Position(end + 1);
+            m_pieces[end + 1] = rook;
+            m_pieces[start - 4] = Piece();
+        }
+    }
+
+    // Remove all castling if king moved
     if (m_pieces[4].Type() != Enums::Type::King) {
         m_castling &= ~((u8)Enums::Castling::White_King | (u8)Enums::Castling::White_Queen);
     }
@@ -226,6 +221,7 @@ void Board::RecalculateCastling()
         m_castling &= ~((u8)Enums::Castling::Black_King | (u8)Enums::Castling::Black_Queen);
     }
     
+    // Individual castling checks
     if (m_pieces[0].Type() != Enums::Type::Rook) {
         m_castling &= ~((u8)Enums::Castling::White_Queen);
     }
@@ -237,6 +233,36 @@ void Board::RecalculateCastling()
     }
     if (m_pieces[63].Type() != Enums::Type::Rook) {
         m_castling &= ~((u8)Enums::Castling::Black_King);
+    }
+}
+
+void Board::RecalculateEnPassant(Index start, Index end)
+{
+    // Remove old en passant
+    if (m_enPassant != INVALID_ENPASSANT) {
+        if (!m_pieces[m_enPassant].IsValid()) {
+            m_pieces[m_enPassant] = Piece();
+        }
+        m_enPassant = INVALID_ENPASSANT;
+    }
+
+    // Check new en passant
+    Piece& piece = m_pieces[end];
+    if (piece.Type() != Enums::Type::Pawn) {
+        return;
+    }
+
+    if (piece.Colour() == Enums::Colour::White) {
+        if (start + (2 * GRID_SIZE) == end) {
+            m_enPassant = start + GRID_SIZE;
+            m_pieces[m_enPassant] = Piece(m_enPassant);
+        }
+    }
+    else if (piece.Colour() == Enums::Colour::Black) {
+        if (start - (2 * GRID_SIZE) == end) {
+            m_enPassant = start - GRID_SIZE;
+            m_pieces[m_enPassant] = Piece(m_enPassant);
+        }
     }
 }
 
@@ -276,7 +302,7 @@ static std::string CalculateFenPiece(Piece* pieces)
     return fen;
 }
 
-void Board::RecalculateFen(bool isCaptureOrPawn, u8 index)
+void Board::RecalculateFen(bool isCaptureOrPawn)
 {
     std::string fen = CalculateFenPiece(m_pieces);
 
@@ -310,8 +336,7 @@ void Board::RecalculateFen(bool isCaptureOrPawn, u8 index)
 
     // En passant
     fen += ' ';
-    if (index != UINT8_MAX) {
-        m_enPassant = index;
+    if (m_enPassant != INVALID_ENPASSANT) {
         fen += Convert::IndexToMove(m_enPassant);
     }
     else {
@@ -338,6 +363,10 @@ void Board::RecalculateFen(bool isCaptureOrPawn, u8 index)
     fen += std::to_string(moves);
 
     m_fen = fen;
+    if (!Fen::IsValidFen(m_fen.c_str())) {
+        ErrorPrintln("Board::RecalculateFen: Produced an invalid fen!");
+    }
+    
     DebugPrintln("{}", m_fen);
 }
 

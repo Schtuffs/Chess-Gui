@@ -31,7 +31,8 @@ public:
     
     /**
      * @brief Get the castling rights for specified `Enums::Colour`.
-     * @return The current castling rights for the king.
+     * @param colour The `Enums::Colour` castling rights to get.
+     * @return The current castling rights for the king masked with `Enums::Castling`.
      * @date 2026-07-03
      */
     u8 Castling(Enums::Colour colour) const noexcept;
@@ -44,15 +45,15 @@ public:
     std::string_view Fen() const noexcept;
     
     /**
-     * @brief Get the current fen gamestate.
-     * @return The current game fen.
+     * @brief Get the boards `Piece` list, including invalid.
+     * @return The `Piece` list.
      * @date 2026-06-14
      */
     const Piece* Pieces() const noexcept;
     
     /**
      * @brief Get the current player to move.
-     * @return The current player `Enums::Colour`.
+     * @return The current players `Enums::Colour`.
      * @date 2026-07-03
      */
     Enums::Colour Player() const noexcept;
@@ -73,7 +74,9 @@ private:
     u8 m_castling, m_enPassant;
     Enums::Colour m_playerColour;
 
-    void RecalculateCastling();
-    void RecalculateFen(bool isCaptureOrPawn, Index index);
+    Piece MovePiece(Index start, Index end);
+    void RecalculateCastling(Index start, Index end);
+    void RecalculateEnPassant(Index start, Index end);
+    void RecalculateFen(bool isCaptureOrPawn);
 };
 
