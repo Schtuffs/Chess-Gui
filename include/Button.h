@@ -85,7 +85,7 @@ public:
     
     /**
      * @brief Get the text of this `Button`.
-     * @return The text
+     * @return The text.
      * @date 2026-06-13
      */
     std::string Text() const noexcept;
@@ -94,15 +94,15 @@ public:
     
     /**
      * @brief Changes the `Color` of the `Button`.
-     * @param newColour The `Color` to change the button to.
+     * @param newColour The `Color` to change the `Button` to.
      * @return This `Button` for further updating.
      * @date 2026-06-13
      */
     Button& ColourInside(Color newColour);
     
     /**
-     * @brief Changes the `Color` of the `Button`.
-     * @param newColour The `Color` to change the `Button` to.
+     * @brief Changes the `Color` of the `Button` border.
+     * @param newColour The `Color` to change the `Button` border to.
      * @return This `Button` for further updating.
      * @date 2026-06-13
      */
@@ -110,7 +110,7 @@ public:
     
     /**
      * @brief Changes the dimensions of the `Button`.
-     * @param newDimensions The new diments for the `Button`.
+     * @param newDimensions The new dimensions for the `Button`.
      * @return This `Button` for further updating.
      * @date 2026-06-13
      */

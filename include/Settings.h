@@ -29,13 +29,13 @@ namespace Settings {
     // ----- Creation / Destruction -----
 
     /**
-     * @brief Saves settings to a file.
+     * @brief Saves `Settings` to a file.
      * @date 2026-07-01
      */
     bool SaveSettings();
 
     /**
-     * @brief Load settings from a file.
+     * @brief Load `Settings` from a file.
      * @date 2026-07-01
      */
     bool LoadSettings();
@@ -43,49 +43,49 @@ namespace Settings {
     // ----- Read -----
 
     /**
-     * @brief Get a u8 setting.
+     * @brief Get a u8/bool `Setting`.
      * @param setting The `Setting` value to get.
-     * @return The setting value, or UINT32_MAX on fail.
+     * @return The `Setting` value, or UINT32_MAX on fail.
      * @date 2026-07-01
      */
     u8 b(Setting setting);
 
     /**
-     * @brief Get a u32 setting.
+     * @brief Get a u32 `Setting`.
      * @param setting The `Setting` value to get.
-     * @return The setting value, or UINT32_MAX on fail.
+     * @return The `Setting` value, or UINT32_MAX on fail.
      * @date 2026-07-01
      */
     u32 i(Setting setting);
     
     /**
-     * @brief Get a u64 setting.
+     * @brief Get a u64 `Setting`.
      * @param setting The `Setting` value to get.
-     * @return The setting value, or UINT64_MAX on fail.
+     * @return The `Setting` value, or UINT64_MAX on fail.
      * @date 2026-07-01
      */
     u64 l(Setting setting);
     
     /**
-     * @brief Get a float setting.
+     * @brief Get a float `Setting`.
      * @param setting The `Setting` value to get.
-     * @return The setting value, or FLT_MAX on fail.
+     * @return The `Setting` value, or FLT_MAX on fail.
      * @date 2026-07-01
      */
     float f(Setting setting);
 
     /**
-     * @brief Get a double setting.
+     * @brief Get a double `Setting`.
      * @param setting The `Setting` value to get.
-     * @return The setting value, or DLB_MAX on fail.
+     * @return The `Setting` value, or DLB_MAX on fail.
      * @date 2026-07-01
      */
     double d(Setting setting);
 
     /**
-     * @brief Get a string setting.
+     * @brief Get a string `Setting`.
      * @param setting The `Setting` value to get.
-     * @return The setting value, or empty string on fail.
+     * @return The `Setting` value, or empty string on fail.
      * @date 2026-07-01
      */
     std::string s(Setting setting);
@@ -93,54 +93,54 @@ namespace Settings {
     // ----- Update -----    
 
     /**
-     * @brief Set a u8 setting.
+     * @brief Set a u8 `Setting`.
      * @param setting The `Setting` value to set.
-     * @param value The value to put into the setting.
+     * @param value The value to put into the `Setting`.
      * @return `true` on success and valid type.
      * @date 2026-07-01
      */
     bool b(Setting setting, u8 value);
 
     /**
-     * @brief Set a u32 setting.
+     * @brief Set a u32 `Setting`.
      * @param setting The `Setting` value to set.
-     * @param value The value to put into the setting.
+     * @param value The value to put into the `Setting`.
      * @return `true` on success and valid type.
      * @date 2026-07-01
      */
     bool i(Setting setting, u32 value);
     
     /**
-     * @brief Set a u64 setting.
+     * @brief Set a u64 `Setting`.
      * @param setting The `Setting` value to set.
-     * @param value The value to put into the setting.
+     * @param value The value to put into the `Setting`.
      * @return `true` on success and valid type.
      * @date 2026-07-01
      */
     bool l(Setting setting, u64 value);
     
     /**
-     * @brief Set a float setting.
+     * @brief Set a float `Setting`.
      * @param setting The `Setting` value to set.
-     * @param value The value to put into the setting.
+     * @param value The value to put into the `Setting`.
      * @return `true` on success and valid type.
      * @date 2026-07-01
      */
     bool f(Setting setting, float value);
     
     /**
-     * @brief Set a double setting.
+     * @brief Set a double `Setting`.
      * @param setting The `Setting` value to set.
-     * @param value The value to put into the setting.
+     * @param value The value to put into the `Setting`.
      * @return `true` on success and valid type.
      * @date 2026-07-01
      */
     bool d(Setting setting, double value);
     
     /**
-     * @brief Set a string setting.
+     * @brief Set a string `Setting`.
      * @param setting The `Setting` value to set.
-     * @param value The value to put into the setting.
+     * @param value The value to put into the `Setting`.
      * @return `true` on success and valid type.
      * @date 2026-07-01
      */

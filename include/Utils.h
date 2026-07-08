@@ -44,7 +44,7 @@ namespace Utils {
     }
 
     /**
-     * @brief Creates a clickable button that only gets clicked on press and release hovering.
+     * @brief Creates a clickable button that only gets clicked on both press and release hovering.
      * @param rect The area to render the button.
      * @param text The text to center.
      * @param id The ID of the button to determine clicking status.
@@ -57,21 +57,27 @@ namespace Utils {
      * @brief Centers given text.
      * @param text The text to center.
      * @param font The text `Font`.
+     * @param fontSize The size of the `Font`.
+     * @param centerPoint The desired center point for the text.
      * @return The position to draw the text at for it to be centered.
      * @date 2026-06-15
      */
     Vector2 CenterText(const char* text, Font font, int fontSize, Vector2 centerPoint);
 
     /**
-     * @brief Centers given text.
+     * @brief Get the position of the first square in the rendered grid.
      * @return The position of the first square with {x, y, size}.
      * @date 2026-06-15
      */
     Vector3 GridPositioning();
 
     /**
-     * @brief Calculates the start position for a button within the grid on screen.
-     * @return The position of the first square with {x, y, size}.
+     * @brief Calculates `Rectangle` data for given indexes.
+     * @param x The x value between 0..(GRID_SIZE - 1)
+     * @param y The y value between 0..(GRID_SIZE - 1)
+     * @param width How many grid tiles the `Rectangle` should cover horizontally.
+     * @param height How many grid tiles the `Rectangle` should cover vertically.
+     * @return The position of the `Rectangle`.
      * @date 2026-06-15
      */
     Rectangle StartButtonPos(u8 x, u8 y, u8 width, u8 height);
@@ -80,6 +86,7 @@ namespace Utils {
      * @brief Loads a `Texture2D` to the GPU.
      * @param `Enums::Colour` The `Piece` colour.
      * @param `Enums::Type` The `Piece` type.
+     * @param size The size of the `Texture2D`.
      * @return The loaded `Texture2D`. Check with `IsTextureValid(Texture2D)`.
      * @date 2026-06-06
      */
@@ -128,7 +135,6 @@ namespace Utils {
          * @brief Locks printing to prevent races.
          * @param ll The desired output stream to write to.
          * @return `true` on valid to write in this thread.
-         * @author Kyle Wagler
          * @date 2026-06-20
          */
         bool LockPrint(Utils::LogLevel ll);
@@ -136,7 +142,6 @@ namespace Utils {
         /**
          * @brief Unlocks printing to allow another thread to print.
          * @param ll The desired output stream to stop writing to.
-         * @author Kyle Wagler
          * @date 2026-06-20
          */
         void UnlockPrint(Utils::LogLevel ll);
@@ -164,7 +169,6 @@ namespace Utils {
     /**
      * @brief Sets the `Utils::LogLevel` for the program.
      * @param ll The desired `Utils::LogLevel` for the program.
-     * @author Kyle Wagler
      * @date 2026-06-20
      */
     void SetLogLevel(Utils::LogLevel ll);

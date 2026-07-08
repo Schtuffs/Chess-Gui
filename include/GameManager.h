@@ -32,6 +32,13 @@ public:
     // ----- Read -----
 
     /**
+     * @brief Get all moves that have been made throughout the game.
+     * @return String of moves in long algebraic notation.
+     * @date 2026-07-07
+     */
+    std::string AllMoves() const noexcept;
+
+    /**
      * @brief Get the game fen state.
      * @return The fen state of the game.
      * @date 2026-07-01
@@ -39,11 +46,11 @@ public:
     std::string_view Fen() const noexcept;
 
     /**
-     * @brief Get all moves that have been made throughout the game.
-     * @return List of moves in long algebraic notation.
-     * @date 2026-07-07
+     * @brief Get the valid moves from selected `Piece`.
+     * @return The `BitBoard` moves.
+     * @date 2026-07-08
      */
-    std::string Moves() const noexcept;
+    BitBoard Moves() const noexcept;
     
     // ----- Update -----
 

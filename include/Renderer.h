@@ -32,11 +32,18 @@ public:
 
     /**
      * @brief Renders the board for the background.
-     * @param dark The colour for the dark tiles.
-     * @param light The colour for the light tiles.
+     * @param dark The `Color` for the dark tiles.
+     * @param light The `Color` for the light tiles.
      * @date 2026-06-11
      */
     void RenderBoard(Color dark, Color light);
+
+    /**
+     * @brief Renders the potential moves.
+     * @param moves The `BitBoard` representation of the valid moves for a `Piece`.
+     * @date 2026-07-08
+     */
+    void RenderMoves(BitBoard moves);
     
     /**
      * @brief Renders the pieces based on a fen.
@@ -51,9 +58,9 @@ private:
     int m_textureSize, m_startX, m_startY;
     
     /**
-     * @brief Determines a pieces colour.
+     * @brief Determines a pieces `Color`.
      * @param cur The current char in question.
-     * @return The colour of the piece;
+     * @return The `Color` of the piece;
      * @date 2026-06-11
      */
     int CheckColour(char cur);

@@ -63,12 +63,7 @@ GameManager::~GameManager()
 
 // ----- Read -----
 
-std::string_view GameManager::Fen() const noexcept
-{
-    return m_board.Fen();
-}
-
-std::string GameManager::Moves() const noexcept
+std::string GameManager::AllMoves() const noexcept
 {
     std::string moves;
     if (m_moves.size() == 0) {
@@ -82,6 +77,16 @@ std::string GameManager::Moves() const noexcept
     }
 
     return moves;
+}
+
+std::string_view GameManager::Fen() const noexcept
+{
+    return m_board.Fen();
+}
+
+BitBoard GameManager::Moves() const noexcept
+{
+    return m_possibleMoves;
 }
 
 
