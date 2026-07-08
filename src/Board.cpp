@@ -2,6 +2,7 @@
 
 #include <print>
 
+#include "Convert.h"
 #include "Fen.h"
 #include "MoveGen.h"
 #include "Utils.h"
@@ -89,6 +90,13 @@ Board::Board(std::string_view fen)
             break;
         }
     }
+
+    std::string_view enPassant = fen.substr(index + 1);
+    if (enPassant[0] != '-') {
+        enPassant = enPassant.substr(0, 2);
+        m_enPassant = Convert::MoveToIndex(enPassant);
+        m_pieces[m_enPassant] = Piece(m_enPassant);
+    }
 }
 
 Board::~Board()
@@ -134,8 +142,8 @@ Enums::Colour Board::Player() const noexcept
 
 bool Board::MakeMove(std::string_view move)
 {
-    u8 startPos = Fen::MoveToIndex(move);
-    u8 endPos = Fen::MoveToIndex(move.substr(2));
+    u8 startPos = Convert::MoveToIndex(move);
+    u8 endPos = Convert::MoveToIndex(move.substr(2));
 
     if (startPos == endPos) {
         return false;
@@ -166,14 +174,14 @@ bool Board::MakeMove(std::string_view move)
     if (p.Type() == Enums::Type::Pawn) {
         if (p.Colour() == Enums::Colour::White) {
             if (startPos + (2 * GRID_SIZE) == endPos) {
-                enPassant = startPos + GRID_SIZE;
-                m_pieces[enPassant] = Piece(Enums::Colour::Invalid, Enums::Type::Invalid, enPassant);
+                m_enPassant = startPos + GRID_SIZE;
+                m_pieces[m_enPassant] = Piece(m_enPassant);
             }
         }
         else if (p.Colour() == Enums::Colour::Black) {
             if (startPos - (2 * GRID_SIZE) == endPos) {
-                enPassant = startPos - GRID_SIZE;
-                m_pieces[enPassant] = Piece(Enums::Colour::Invalid, Enums::Type::Invalid, enPassant);
+                m_enPassant = startPos - GRID_SIZE;
+                m_pieces[m_enPassant] = Piece(m_enPassant);
             }
         }
     }
@@ -304,7 +312,7 @@ void Board::RecalculateFen(bool isCaptureOrPawn, u8 index)
     fen += ' ';
     if (index != UINT8_MAX) {
         m_enPassant = index;
-        fen += Fen::IndexToMove(m_enPassant);
+        fen += Convert::IndexToMove(m_enPassant);
     }
     else {
         fen += '-';
@@ -324,7 +332,9 @@ void Board::RecalculateFen(bool isCaptureOrPawn, u8 index)
     fen += ' ';
     strHalfMoves = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
     u32 moves = std::stoul(strHalfMoves.data());
-    moves++;
+    if (m_playerColour == Enums::Colour::White) {
+        moves++;
+    }
     fen += std::to_string(moves);
 
     m_fen = fen;

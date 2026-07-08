@@ -7,7 +7,7 @@
 
 #include "raylib.h"
 
-#include "Fen.h"
+#include "Convert.h"
 #include "Utils.h"
 
 typedef struct ManyType {
@@ -54,14 +54,14 @@ static void DefaultSettings()
         case Setting::BOARD_TILE_DARK: {
             Color dark = {100, 75, 60, 255};
             u32 val;
-            val = Utils::ColorToU32(dark);
+            val = Convert::ColorToU32(dark);
             s_settingData[i] = std::tuple<ManyType, ActualType>{{.i = val}, ActualType::U32};
             break;
         }
         case Setting::BOARD_TILE_LIGHT: {
             Color light = {175, 150, 120, 255};
             u32 val;
-            val = Utils::ColorToU32(light);
+            val = Convert::ColorToU32(light);
             s_settingData[i] = std::tuple<ManyType, ActualType>{{.i = val}, ActualType::U32};
             break;
         }

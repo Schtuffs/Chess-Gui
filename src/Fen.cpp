@@ -1,5 +1,6 @@
 #include "Fen.h"
 
+#include <cmath>
 #include <sstream>
 #include <string>
 
@@ -14,22 +15,9 @@
 // ----- Hidden -----
 
 /**
- * Moves string_view forward to space.
- */
-bool MoveToSpace(std::string_view& view)
-{
-    size_t index = view.find(' ');
-    if (index == std::string_view::npos || index + 1 >= view.length()) {
-        return false;
-    }
-    view = view.substr(index + 1);
-    return true;
-}
-
-/**
  * Validates piece data in given fen string.
  */
-bool ValidatePieces(std::string_view fen)
+static bool ValidatePieces(std::string_view fen)
 {
     // Check files and ranks
     i8 files = 0, ranks = 0;
@@ -85,7 +73,7 @@ bool ValidatePieces(std::string_view fen)
 /**
  * Validates the current player to move.
  */
-bool ValidateMove(std::string_view fen)
+static bool ValidateMove(std::string_view fen)
 {
     char c = fen[0];
     if (fen.length() != 1 && c != 'w' && c != 'b') {
@@ -99,7 +87,7 @@ bool ValidateMove(std::string_view fen)
 /**
  * Validates castling data.
  */
-bool ValidateCastling(std::string_view fen)
+static bool ValidateCastling(std::string_view fen)
 {
     if (fen.length() > 4) {
         return false;
@@ -129,7 +117,7 @@ bool ValidateCastling(std::string_view fen)
 /**
  * Validates en passant square.
  */
-bool ValidateEnPassant(std::string_view fen)
+static bool ValidateEnPassant(std::string_view fen)
 {
     if (fen[0] == '-') {
         return true;
@@ -154,7 +142,10 @@ bool ValidateEnPassant(std::string_view fen)
     return true;
 }
 
-bool NextCheck(std::istringstream& ss, bool(*validate)(std::string_view))
+/**
+ * Helper function to ensure next check passes
+ */
+static bool NextCheck(std::istringstream& ss, bool(*validate)(std::string_view))
 {
     std::string str;
     ss >> str;
@@ -188,15 +179,5 @@ bool Fen::IsValidFen(const char* data)
     }
     
     return true;
-}
-
-std::string Fen::IndexToMove(u8 index)
-{
-    return ((char)((index % GRID_SIZE) + 'a') + std::to_string((index / GRID_SIZE) + 1));
-}
-
-u8 Fen::MoveToIndex(std::string_view move)
-{
-    return (u8)((move[1] - '1') * GRID_SIZE) + (move[0] - 'a');
 }
 

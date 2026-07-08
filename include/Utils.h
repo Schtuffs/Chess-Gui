@@ -52,22 +52,6 @@ namespace Utils {
      * @date 2026-06-15
      */
     bool ClickableButton(Rectangle rect, const char* text, u8 id);
-    
-    /**
-     * @brief Converts a `Color` to a ABGR u32.
-     * @param col The `Color` to convert.
-     * @return The ABGR u32 representation of the colour.
-     * @date 2026-07-03
-     */
-    u32 ColorToU32(Color col);
-    
-    /**
-     * @brief Converts a ABGR u32 to a `Color`.
-     * @param col The ABGR u32 to convert.
-     * @return The `Color` representation of the ABGR u32.
-     * @date 2026-07-03
-     */
-    Color U32ToColor(u32 val);
 
     /**
      * @brief Centers given text.

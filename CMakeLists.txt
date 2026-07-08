@@ -22,6 +22,7 @@ FetchContent_MakeAvailable(raylib)
 add_executable(${PROJECT_NAME}
     ${SRC}/Board.cpp
     ${SRC}/Button.cpp
+    ${SRC}/Convert.cpp
     ${SRC}/Fen.cpp
     ${SRC}/GameManager.cpp
     ${SRC}/main.cpp
@@ -37,9 +38,13 @@ add_executable(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE})
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${THIRD_PARTY})
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    WIN32_EXECUTABLE $<CONFIG:Release>
-)
+if(WIN32)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        WIN32_EXECUTABLE $<CONFIG:Release>
+    )
+endif()
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<CONFIG:Release>:UTILS_LOG_NONE>)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR
     ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"

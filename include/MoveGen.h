@@ -17,6 +17,6 @@ namespace MoveGen {
      * @return The bitboard representation of the moves.
      * @date 2026-06-29
      */
-    u64 Generate(const Board& board, const Piece& piece);
+    BitBoard Generate(const Board& board, const Piece& piece);
 }
 

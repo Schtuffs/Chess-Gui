@@ -37,6 +37,13 @@ public:
      * @date 2026-07-01
      */
     std::string_view Fen() const noexcept;
+
+    /**
+     * @brief Get all moves that have been made throughout the game.
+     * @return List of moves in long algebraic notation.
+     * @date 2026-07-07
+     */
+    std::string Moves() const noexcept;
     
     // ----- Update -----
 
@@ -51,7 +58,10 @@ private:
     std::vector<std::string> m_moves;
     std::vector<Button> m_buttons;
     Board m_board;
-    u64 m_possibleMoves;
-    bool m_isWhiteTurn;
+    BitBoard m_possibleMoves;
+    bool m_isWhiteTurn, m_isWhiteAI, m_isBlackAI;
+
+    void CheckMove(std::string& move);
+    void OnButtonPress(Index index);
 };
 

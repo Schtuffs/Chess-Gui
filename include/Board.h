@@ -74,6 +74,6 @@ private:
     Enums::Colour m_playerColour;
 
     void RecalculateCastling();
-    void RecalculateFen(bool isCaptureOrPawn, u8 index);
+    void RecalculateFen(bool isCaptureOrPawn, Index index);
 };
 

@@ -53,21 +53,6 @@ bool Utils::ClickableButton(Rectangle rect, const char* text, u8 id)
     return false;
 }
 
-u32 Utils::ColorToU32(Color col)
-{
-    return (col.a << 24) | (col.b << 16) | (col.g << 8) | col.r;
-}
-
-Color Utils::U32ToColor(u32 val)
-{
-    Color col;
-    col.a = val >> 24;
-    col.b = val >> 16;
-    col.g = val >>  8;
-    col.r = val >>  0;
-    return col;
-}
-
 Vector3 Utils::GridPositioning()
 {
     // Make square

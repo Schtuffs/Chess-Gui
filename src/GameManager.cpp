@@ -1,6 +1,6 @@
 #include "GameManager.h"
 
-#include "Fen.h"
+#include "Convert.h"
 #include "MoveGen.h"
 #include "Settings.h"
 #include "Utils.h"
@@ -22,7 +22,7 @@ static void UpdateButtons(std::vector<Button>& buttons)
     }
 }
 
-static void UpdateButtonWithMove(Button& button, u64 moves, u64 index)
+static void UpdateButtonWithMove(Button& button, u64 moves, u8 index)
 {
     if ((moves >> index) & 1) {
         button.ColourInside({255, 0, 0, 255});
@@ -68,6 +68,25 @@ std::string_view GameManager::Fen() const noexcept
     return m_board.Fen();
 }
 
+std::string GameManager::Moves() const noexcept
+{
+    std::string moves;
+    if (m_moves.size() == 0) {
+        return moves;
+    }
+
+    moves += m_moves[0];
+    for (size_t i = 1; i < m_moves.size(); i++) {
+        moves += ' ';
+        moves += m_moves[i];
+    }
+
+    return moves;
+}
+
+
+
+// ----- Update -----
 
 void GameManager::Update(bool isWhitePerspective)
 {
@@ -76,7 +95,6 @@ void GameManager::Update(bool isWhitePerspective)
         UpdateButtons(m_buttons);
     }
 
-    static std::string move = "";
     for (size_t i = 0; i < m_buttons.size(); i++) {
         u8 index = (u8)(isWhitePerspective ? i : 63 - i);
 
@@ -94,35 +112,44 @@ void GameManager::Update(bool isWhitePerspective)
 
         // Player is making moves
         if (button.IsClicked()) {
-            move += Fen::IndexToMove(index);
-            if (m_possibleMoves == 0) {
-                Enums::Colour col = m_board.Pieces()[index].Colour();
-                if (
-                    (m_isWhiteTurn && col == Enums::Colour::Black) ||
-                    (!m_isWhiteTurn && col == Enums::Colour::White)
-                ) {
-                    move.clear();
-                    continue;
-                }
-                
-                m_possibleMoves = MoveGen::Generate(m_board, m_board.Pieces()[index]);
-                if (m_possibleMoves == 0) {
-                    move.clear();
-                }
-            }
-            else {
-                if (m_board.MakeMove(move)) {
-                    m_isWhiteTurn = !m_isWhiteTurn;
-                }
-                
-                move.clear();
-                m_possibleMoves = 0;
-            }
+            OnButtonPress(index);
         }
     }
 }
 
+// ----- Hidden -----
 
+void GameManager::CheckMove(std::string& move)
+{
+    if (m_board.MakeMove(move)) {
+        m_isWhiteTurn = !m_isWhiteTurn;
+        m_moves.push_back(move);
+    }
+    
+    move.clear();
+    m_possibleMoves = 0;
+}
 
-// ----- Update -----
-
+void GameManager::OnButtonPress(Index index)
+{
+    static std::string move;
+    move += Convert::IndexToMove(index);
+    if (m_possibleMoves == 0) {
+        Enums::Colour col = m_board.Pieces()[index].Colour();
+        if (
+            (m_isWhiteTurn && col == Enums::Colour::Black) ||
+            (!m_isWhiteTurn && col == Enums::Colour::White)
+        ) {
+            move.clear();
+            return;
+        }
+        
+        m_possibleMoves = MoveGen::Generate(m_board, m_board.Pieces()[index]);
+        if (m_possibleMoves == 0) {
+            move.clear();
+        }
+    }
+    else {
+        CheckMove(move);
+    }
+}

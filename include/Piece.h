@@ -16,30 +16,39 @@ public:
     // ----- Creation / Destruction -----
 
     /**
-     * @brief Creates an invalid piece.
+     * @brief Creates an invalid `Piece`.
      * @date 2026-06-28
      */
     Piece();
+
+    /**
+     * @brief Creates an en passant `Piece`.
+     * @param index The `Index` of the en passant square.
+     * @date 2026-06-28
+     */
+    Piece(Index index);
     
     /**
-     * @brief Creates a piece with a given type and colour.
-     * @param `Colour` The `Colour` of the piece.
-     * @param `Type` The `Type` of the piece.
+     * @brief Creates a `Piece` with a given `Enums::Type` and `Enums::Colour`.
+     * @param `Colour` The `Colour` of the `Piece`.
+     * @param `Type` The `Type` of the `Piece`.
+     * @param index The `Index` of the `Piece`.
      * @date 2026-06-08
      */
-    Piece(Enums::Colour colour, Enums::Type type, u8 pos);
+    Piece(Enums::Colour colour, Enums::Type type, Index index);
     
     /**
-     * @brief Frees any allocated memory associated with the piece.
+     * @brief Frees any allocated memory associated with the `Piece`.
      * @date 2026-06-08
      */
     ~Piece();
     
     /**
-     * @brief Frees any allocated memory associated with the piece.
+     * @brief Set the position of the `Piece`.
+     * @param index The index of the `Piece`.
      * @date 2026-06-08
      */
-    void Position(u8);
+    void Position(Index index);
     
     /**
      * @brief Get the `Enums::Colour` of the `Piece`.
@@ -56,11 +65,11 @@ public:
     bool IsValid() const noexcept;
     
     /**
-     * @brief Get the bitboard position of the `Piece`.
-     * @return The position of the `Piece`.
+     * @brief Get the `Index` position of the `Piece`.
+     * @return The `Index` of the `Piece`.
      * @date 2026-06-29
      */
-    u64 Position() const noexcept;
+    Index Position() const noexcept;
     
     /**
      * @brief Get the `Enums::Type` of the `Piece`.
@@ -86,7 +95,7 @@ public:
 private:
     Enums::Colour m_colour; 
     Enums::Type m_type;
-    u8 m_pos;
+    Index m_pos;
     bool m_isValid;
 };
 

@@ -7,6 +7,7 @@
 
 #include "raygui.h"
 
+#include "Convert.h"
 #include "GameManager.h"
 #include "Renderer.h"
 #include "Settings.h"
@@ -43,8 +44,8 @@ static Rectangle& MoveDown(Rectangle& rect, u8 squares)
 
 void Menu::Main(Enums::Screen& screen)
 {
-    Color dark = Utils::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
-    Color light = Utils::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
+    Color dark = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
+    Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
     
     board.RenderBoard(dark, light);
     Rectangle startPos = Utils::StartButtonPos(1, 1, 6, 1);
@@ -60,8 +61,8 @@ void Menu::Main(Enums::Screen& screen)
 
 void Menu::NewGame(Enums::Screen& screen)
 {
-    Color dark = Utils::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
-    Color light = Utils::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
+    Color dark = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
+    Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
 
     board.RenderBoard(dark, light);
     Rectangle startPos = Utils::StartButtonPos(1, 1, 6, 1);
@@ -76,8 +77,8 @@ void Menu::NewGame(Enums::Screen& screen)
 
 void Menu::Settings(Enums::Screen& screen)
 {
-    Color dark = Utils::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
-    Color light = Utils::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
+    Color dark = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
+    Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
     
     board.RenderBoard(dark, light);
     Rectangle startPos = Utils::StartButtonPos(1, 6, 6, 1);
@@ -99,8 +100,8 @@ void Menu::InGame(Enums::Screen& screen)
         isWhitePerspective = !isWhitePerspective;
     }
     
-    Color dark = Utils::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
-    Color light = Utils::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
+    Color dark = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
+    Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
     
     board.RenderBoard(dark, light);
     gameManager.Update(isWhitePerspective);
