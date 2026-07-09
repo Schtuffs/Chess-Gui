@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "Board.h"
-#include "Button.h"
 
 /**
  * @brief Manages game based workflows.
@@ -56,19 +55,18 @@ public:
 
     /**
      * @brief Update the current game state.
-     * @param isWhitePerspective If the game is currently shown from white's perspective.
+     * @param move A potential move that a player is trying to make.
      * @date 2026-07-05
      */
-    void Update(bool isWhitePerspective);
+    void Update(std::string_view move);
 
 private:
     std::vector<std::string> m_moves;
-    std::vector<Button> m_buttons;
     Board m_board;
     BitBoard m_possibleMoves;
     bool m_isWhiteTurn, m_isWhiteAI, m_isBlackAI;
 
     void CheckMove(std::string& move);
-    void OnButtonPress(Index index);
+    void OnButtonPress(std::string_view passedMove);
 };
 

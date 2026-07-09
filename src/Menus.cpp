@@ -47,6 +47,7 @@ void Menu::Main(Enums::Screen& screen)
     Color dark = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
     
+    board.FixSize();
     board.RenderBoard(dark, light);
     Rectangle startPos = Utils::StartButtonPos(1, 1, 6, 1);
     
@@ -64,6 +65,7 @@ void Menu::NewGame(Enums::Screen& screen)
     Color dark = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
 
+    board.FixSize();
     board.RenderBoard(dark, light);
     Rectangle startPos = Utils::StartButtonPos(1, 1, 6, 1);
     
@@ -80,6 +82,7 @@ void Menu::Settings(Enums::Screen& screen)
     Color dark = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
     
+    board.FixSize();
     board.RenderBoard(dark, light);
     Rectangle startPos = Utils::StartButtonPos(1, 6, 6, 1);
     
@@ -103,8 +106,11 @@ void Menu::InGame(Enums::Screen& screen)
     Color dark = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
     
+    board.FixSize();
+    std::string move = board.CheckMove(isWhitePerspective);
+    gameManager.Update(move);
     board.RenderBoard(dark, light);
-    gameManager.Update(isWhitePerspective);
+    board.RenderMoves(gameManager.Moves(), isWhitePerspective);
     board.RenderPieces(gameManager.Fen(), isWhitePerspective);
 }
 

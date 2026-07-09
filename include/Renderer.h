@@ -2,9 +2,11 @@
 
 #include <cstdint>
 #include <string_view>
+#include <vector>
 
 #include "raylib.h"
 
+#include "Button.h"
 #include "Constants.h"
 
 /**
@@ -29,6 +31,14 @@ public:
     ~Renderer();
     
     // ----- Read -----
+    
+    /**
+     * @brief Check if player clicked board and attempted to make a move.
+     * @param isWhitePerspective Determines if checking clicks from whites perspective or blacks perspective.
+     * @return The grid square the player clicked or "".
+     * @date 2026-06-11
+     */
+    std::string CheckMove(bool isWhitePerspective) const noexcept;
 
     /**
      * @brief Renders the board for the background.
@@ -36,14 +46,15 @@ public:
      * @param light The `Color` for the light tiles.
      * @date 2026-06-11
      */
-    void RenderBoard(Color dark, Color light);
+    void RenderBoard(Color dark, Color light) const noexcept;
 
     /**
      * @brief Renders the potential moves.
      * @param moves The `BitBoard` representation of the valid moves for a `Piece`.
+     * @param isWhitePerspective Determines if rendering moves from whites perspective or blacks perspective.
      * @date 2026-07-08
      */
-    void RenderMoves(BitBoard moves);
+    void RenderMoves(BitBoard moves, bool isWhitePerspective);
     
     /**
      * @brief Renders the pieces based on a fen.
@@ -51,10 +62,19 @@ public:
      * @param isWhitePerspective Determines if rendering pieces from whites perspective or blacks perspective.
      * @date 2026-06-11
      */
-    void RenderPieces(std::string_view fen, bool isWhitePerspective);
+    void RenderPieces(std::string_view fen, bool isWhitePerspective) const noexcept;
     
+    // ----- Update -----
+    
+    /**
+     * @brief Fixes window and UI elements size.
+     * @date 2026-06-15
+     */
+    void FixSize();
+
 private:
     Texture2D m_textures[12];
+    std::vector<Button> m_buttons;
     int m_textureSize, m_startX, m_startY;
     
     /**
@@ -63,7 +83,7 @@ private:
      * @return The `Color` of the piece;
      * @date 2026-06-11
      */
-    int CheckColour(char cur);
+    int CheckColour(char cur) const noexcept;
     
     /**
      * @brief Determines a pieces type.
@@ -71,13 +91,8 @@ private:
      * @return The type of the piece
      * @date 2026-06-11
      */
-    int CheckType(char cur);
+    int CheckType(char cur) const noexcept;
     
-    /**
-     * @brief Fixes window size.
-     * @date 2026-06-15
-     */
-    void FixSize();
     
     /**
      * @brief Renders a piece to the board.
@@ -85,6 +100,6 @@ private:
      * @param pos The `Vec2` position of the piece.
      * @date 2026-06-11
      */
-    void RenderPiece(Texture2D texture, Vec2<int> pos);
+    void RenderPiece(Texture2D texture, Vec2<int> pos) const noexcept;
 };
 

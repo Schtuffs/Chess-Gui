@@ -2,7 +2,35 @@
 
 #include <cctype>
 
+#include "Convert.h"
 #include "Utils.h"
+
+static float DefaultButtonThickness()
+{
+    return (Utils::Max(Utils::Min(GetScreenWidth(), GetScreenHeight()) / 300.f, 2.f));
+}
+
+static void UpdateButtons(std::vector<Button>& buttons)
+{
+    Vector3 grid = Utils::GridPositioning();
+    for (int i = 0; i < 64; i++) {
+        buttons[i].Dimension(Rectangle{grid.x + grid.z * (i % GRID_SIZE), grid.y + grid.z * (GRID_SIZE - (i / GRID_SIZE) - 1), grid.z, grid.z});
+        buttons[i].ColourInside((i + (i / GRID_SIZE)) % 2 == 1 ? BOARD_SQUARE_DARK_ALPHA : BOARD_SQUARE_LIGHT_ALPHA);
+        buttons[i].Thickness(DefaultButtonThickness());
+    }
+}
+
+static void UpdateButtonWithMove(Button& button, u64 moves, u8 index)
+{
+    if ((moves >> index) & 1) {
+        button.ColourInside({255, 0, 0, 255});
+        button.Thickness(DefaultButtonThickness());
+    }
+    else {
+        button.ColourInside((index + (index / GRID_SIZE)) % 2 == 1 ? BOARD_SQUARE_DARK_ALPHA : BOARD_SQUARE_LIGHT_ALPHA);
+        button.Thickness(0.f);
+    }
+}
 
 Renderer::Renderer()
 {
@@ -30,6 +58,16 @@ Renderer::Renderer()
             }
         }
     }
+    
+    m_buttons.reserve(GRID_SIZE * GRID_SIZE);
+    Vector3 grid = Utils::GridPositioning();
+    for (u64 rank = 0; rank < GRID_SIZE; rank++) {
+        for (u64 file = 0; file < GRID_SIZE; file++) {
+            Color col = (((rank + file) % 2) == 0 ? BOARD_SQUARE_DARK_ALPHA : BOARD_SQUARE_LIGHT_ALPHA);
+            m_buttons.emplace_back("", FontData{}, Rectangle{grid.x + grid.z * file, grid.y + grid.z * (GRID_SIZE - rank - 1), grid.z, grid.z}, col);
+            m_buttons.back().Thickness(DefaultButtonThickness());
+        }
+    }
 }
 
 Renderer::~Renderer()
@@ -49,10 +87,25 @@ Renderer::~Renderer()
 
 // ----- Read -----
 
-void Renderer::RenderBoard(Color dark, Color light)
+std::string Renderer::CheckMove(bool isWhitePerspective) const noexcept
 {
-    FixSize();
-    
+    std::string move;
+
+    for (size_t i = 0; i < m_buttons.size(); i++) {
+        u8 index = (u8)(isWhitePerspective ? i : 63 - i);
+        const Button& button = m_buttons[index];
+
+        // Player is making moves
+        if (button.IsClicked()) {
+            move = Convert::IndexToMove(index);
+        }
+    }
+
+    return move;
+}
+
+void Renderer::RenderBoard(Color dark, Color light) const noexcept
+{
     for (uint64_t i = 0; i < GRID_SIZE; i++) {
         for (uint64_t j = 0; j < GRID_SIZE; j++) {
             Color colour = dark;
@@ -65,10 +118,26 @@ void Renderer::RenderBoard(Color dark, Color light)
     }
 }
 
-void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective)
+void Renderer::RenderMoves(BitBoard bb, bool isWhitePerspective)
 {
-    FixSize();
-    
+    for (size_t i = 0; i < m_buttons.size(); i++) {
+        u8 index = (u8)(isWhitePerspective ? i : 63 - i);
+        Button& button = m_buttons[i];
+        UpdateButtonWithMove(button, bb, index);
+        
+        if (button.IsHovered()) {
+            button.Thickness(DefaultButtonThickness());
+            button.Render();
+        }
+
+        if ((bb >> index) & 1){ 
+            button.Render();
+        }
+    }
+}
+
+void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective) const noexcept
+{
     // Prepares to render top to bottom or bottom to top
     int file, rank, inc;
     if (isWhitePerspective) {
@@ -113,7 +182,7 @@ void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective)
             continue;
         }
 
-        throw Renderer();
+        ErrorPrintln("Renderer::RenderPieces: Invalid char detected: {}", cur);
     }
 }
 
@@ -121,7 +190,7 @@ void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective)
 
 // ----- Read ----- Hidden -----
 
-int Renderer::CheckType(char cur)
+int Renderer::CheckType(char cur) const noexcept
 {
     switch (cur) {
     case 'b':
@@ -147,12 +216,12 @@ int Renderer::CheckType(char cur)
     }
 }
 
-int Renderer::CheckColour(char cur)
+int Renderer::CheckColour(char cur) const noexcept
 {
     return static_cast<int>(isupper(cur) ? Enums::Colour::White : Enums::Colour::Black);
 }
 
-void Renderer::RenderPiece(Texture2D texture, Vec2<int> pos)
+void Renderer::RenderPiece(Texture2D texture, Vec2<int> pos) const noexcept
 {
     // Only render valid textures
     if (IsTextureValid(texture)) {
@@ -162,7 +231,7 @@ void Renderer::RenderPiece(Texture2D texture, Vec2<int> pos)
 
 
 
-// ----- Update ----- Hidden -----
+// ----- Update -----
 
 void Renderer::FixSize()
 {
@@ -200,5 +269,7 @@ void Renderer::FixSize()
         }
     }
     DebugPrintln("Reloaded");
+
+    UpdateButtons(m_buttons);
 }
 
