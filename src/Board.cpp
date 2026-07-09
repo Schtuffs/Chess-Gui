@@ -195,21 +195,21 @@ Piece Board::MovePiece(Index start, Index end)
 
 void Board::RecalculateCastling(Index start, Index end)
 {
-    Piece& piece = m_pieces[start];
+    Piece& piece = m_pieces[end];
     if (piece.Type() == Enums::Type::King) {
         // Short castle
         if (start + 2 == end) {
-            Piece& rook = m_pieces[start + 3];
+            Piece& rook = m_pieces[end + 1];
             rook.Position(end - 1);
             m_pieces[end - 1] = rook;
-            m_pieces[start + 3] = Piece();
+            m_pieces[end + 1] = Piece();
         }
         // Long castle
         else if (start - 2 == end) {
-            Piece& rook = m_pieces[start - 4];
+            Piece& rook = m_pieces[end - 2];
             rook.Position(end + 1);
             m_pieces[end + 1] = rook;
-            m_pieces[start - 4] = Piece();
+            m_pieces[end - 2] = Piece();
         }
     }
 
