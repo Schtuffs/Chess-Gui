@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Board.h"
+#include "MoveGen.h"
 
 /**
  * @brief Manages game based workflows.
@@ -63,10 +64,12 @@ public:
 private:
     std::vector<std::string> m_moves;
     Board m_board;
+    MoveGen m_moveGen;
     BitBoard m_possibleMoves;
     bool m_isWhiteTurn, m_isWhiteAI, m_isBlackAI;
 
     void CheckMove(std::string& move);
-    void OnButtonPress(std::string_view passedMove);
+    bool CheckPieceSelectable(Index index);
+    void OnButtonPress(std::string_view passedMove, bool tryReselect);
 };
 

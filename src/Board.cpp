@@ -8,13 +8,16 @@
 #include "Utils.h"
 
 constexpr Index INVALID_ENPASSANT   = UINT8_MAX;
+static MoveGen s_moveGen;
 
 
 
 // ----- Creation ----- Destruction -----
 
 Board::Board(std::string_view fen)
-    : m_fen(fen), m_castling(0), m_enPassant(INVALID_ENPASSANT), m_playerColour(Enums::Colour::White)
+  : m_fen(fen),
+    m_castling(0), m_enPassant(INVALID_ENPASSANT),
+    m_playerColour(Enums::Colour::White)
 {
     if (!Fen::IsValidFen(m_fen.c_str())) {
         ErrorPrintln("Invalid fen: {}", m_fen);
@@ -156,7 +159,7 @@ bool Board::MakeMove(std::string_view move)
         return false;
     }
 
-    BitBoard movesBB = MoveGen::Generate(*this, m_pieces[startPos]);
+    BitBoard movesBB = s_moveGen.Generate(*this, m_pieces[startPos]);
     if (!movesBB) {
         WarningPrintln("Board::MakeMove: Invalid piece at startpos.");
         return false;

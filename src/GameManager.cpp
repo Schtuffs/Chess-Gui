@@ -8,7 +8,8 @@
 // ----- Creation / Destruction -----
 
 GameManager::GameManager()
-    : m_board(Settings::s(Setting::GAME_STATE)), m_isWhiteTurn(true)
+  : m_board(Settings::s(Setting::GAME_STATE)),
+    m_isWhiteTurn(true)
 {
     std::string_view fen = m_board.Fen();
     u64 index = fen.find(' ');
@@ -59,7 +60,7 @@ BitBoard GameManager::Moves() const noexcept
 void GameManager::Update(std::string_view move)
 {
     if (move.length() > 0) {
-        OnButtonPress(move);
+        OnButtonPress(move, true);
     }
 }
 
@@ -73,30 +74,38 @@ void GameManager::CheckMove(std::string& move)
     }
     
     move.clear();
-    m_possibleMoves = 0;
 }
 
-void GameManager::OnButtonPress(std::string_view passedMove)
+bool GameManager::CheckPieceSelectable(Index index)
+{
+    Enums::Colour col = m_board.Pieces()[index].Colour();
+    return (
+        (m_isWhiteTurn && col == Enums::Colour::Black) ||
+        (!m_isWhiteTurn && col == Enums::Colour::White)
+    );
+}
+
+void GameManager::OnButtonPress(std::string_view passedMove, bool tryReselect)
 {
     static std::string move;
-    Index index = Convert::MoveToIndex(passedMove);
     move += passedMove;
-    if (m_possibleMoves == 0) {
-        Enums::Colour col = m_board.Pieces()[index].Colour();
-        if (
-            (m_isWhiteTurn && col == Enums::Colour::Black) ||
-            (!m_isWhiteTurn && col == Enums::Colour::White)
-        ) {
-            move.clear();
-            return;
+    Index index = Convert::MoveToIndex(passedMove);
+    if (m_possibleMoves == MoveGen::INVALID) {
+        if (CheckPieceSelectable(index)) {
+            m_possibleMoves = m_moveGen.Generate(m_board, m_board.Pieces()[index]);
+            if (m_possibleMoves == MoveGen::INVALID) {
+                move.clear();
+            }
         }
-        
-        m_possibleMoves = MoveGen::Generate(m_board, m_board.Pieces()[index]);
-        if (m_possibleMoves == 0) {
+        else {
             move.clear();
+            if (tryReselect) {
+                OnButtonPress(passedMove, false);
+            }
         }
     }
     else {
         CheckMove(move);
+        m_possibleMoves = MoveGen::INVALID;
     }
 }

@@ -8,45 +8,159 @@
 
 
 
-static BitBoard GenAttacks(const Board& board);
-bool isKingAttacked = false;
+// ----- Creation / Destruction -----
+
+MoveGen::MoveGen()
+    : m_inCheck(false), m_inDoubleCheck(false), m_generatingAttacks(false)
+{}
+
+
+
+// ----- Update -----
+
+BitBoard MoveGen::Generate(const Board& board, const Piece& piece)
+{
+    m_board = &board;
+
+    BitBoard bb = GenPawn(piece);
+    if (!piece.IsValid()) {
+        WarningPrintln("MoveGen::Generate: Invalid piece.");
+        return MoveGen::INVALID;
+    }
+
+    BitBoard attacks = GenAttacks();
+
+    // Only generate king moves in double check
+    if (m_inDoubleCheck) {
+        if (piece.Type() != Enums::Type::King) {
+            return Convert::IndexToBitBoard(piece.Position());
+        }
+
+        return GenKing(piece);
+    }
+
+    DebugPrintln("{}", Convert::BitBoardToString(bb));
+    return bb;
+}
+
+// ----- Update ----- Hidden -----
 
 /**
- * @return <0 on at least one piece is invalid. =0 on same colour. >0 on different colours.
+ * >0 Differing colours
+ * =0 Same colours
+ * <0 Invalid piece
  */
 static int PieceCompare(const Piece& lhs, const Piece& rhs)
 {
+    constexpr int INVALID   = -1;
+    constexpr int EQUAL     = 0;
+    constexpr int OPPOSITE  = 1;
+
     if (!lhs.IsValid()) {
-        return -1;
+        return INVALID;
     }
-    
+
     if (!rhs.IsValid()) {
-        return -1;
+        return INVALID;
     }
 
-    Enums::Colour clhs = lhs.Colour();
-    Enums::Colour crhs = rhs.Colour();
-
-    if (clhs == crhs) {
-        return 0;
+    if (lhs.Colour() == rhs.Colour()) {
+        return EQUAL;
     }
     
-    return 1;
+    return OPPOSITE;
 }
 
-static BitBoard GenMove(const Board& board, const Piece& piece, i32 offset, Index mod, bool isAttack)
+/**
+ * >0 Differing colours
+ * =0 Same colours
+ * <0 Invalid piece
+ */
+int MoveGen::AddMove(const Piece& piece, Index index, BitBoard& bb)
+{
+    const Piece& other = m_board->Pieces()[index];
+    if (PieceCompare(piece, other))
+}
+
+BitBoard MoveGen::GenAttacks()
+{
+    m_generatingAttacks = true;
+
+    BitBoard bb = 0;
+    const Piece* pieces = m_board->Pieces();
+    
+    for (Index i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+        const Piece& piece = pieces[i];
+        if (!piece.IsValid() || piece.Colour() == m_board->Player()) {
+            continue;
+        }
+
+        bb |= GenTypeSelection(piece);
+    }
+
+    m_generatingAttacks = false;
+
+    return MoveGen::INVALID;
+}
+
+BitBoard MoveGen::GenBishop(const Piece& piece)
+{
+    return Convert::IndexToBitBoard(piece.Position());
+}
+
+BitBoard MoveGen::GenRook(const Piece& piece)
+{
+    return Convert::IndexToBitBoard(piece.Position());
+}
+
+BitBoard MoveGen::GenQueen(const Piece& piece)
+{
+    return Convert::IndexToBitBoard(piece.Position());
+}
+
+BitBoard MoveGen::GenKing(const Piece& piece)
+{
+    return Convert::IndexToBitBoard(piece.Position());
+}
+
+BitBoard MoveGen::GenKnight(const Piece& piece)
+{
+    return Convert::IndexToBitBoard(piece.Position());
+}
+
+BitBoard MoveGen::GenPawn(const Piece& piece)
+{
+    return Convert::IndexToBitBoard(piece.Position());
+}
+
+BitBoard MoveGen::GenPawnAttack(const Piece& piece)
+{
+    return Convert::IndexToBitBoard(piece.Position());
+}
+
+
+/*
+
+static BitBoard AddMove(const Board& board, const Piece& piece, Index index, bool isAttack)
+{
+
+}
+
+
+
+static BitBoard GenSliding(const Board& board, const Piece& piece, i32 offset, Index mod, bool isAttack)
 {
     BitBoard bb = 0;
     for (Index i = 1; i < GRID_SIZE; i++) {
         Index index = piece.Position();
         index += (i32)i * offset;
         if (index >= GRID_SIZE * GRID_SIZE) {
-            DebugPrintln("MoveGen::GenMove: Index out of bounds: {}", index);
+            DebugPrintln("MoveGen::GenSliding: Index out of bounds: {}", index);
             break;
         }
 
         if ((index % (Index)GRID_SIZE) == mod) {
-            DebugPrintln("MoveGen::GenMove: Index is mod");
+            DebugPrintln("MoveGen::GenSliding: Index is mod");
             break;
         }
 
@@ -55,14 +169,14 @@ static BitBoard GenMove(const Board& board, const Piece& piece, i32 offset, Inde
 
         bool lastCheck = false;
         if (check == 0) {
-            DebugPrintln("MoveGen::GenMove: Same colour");
+            DebugPrintln("MoveGen::GenSliding: Same colour");
             if (isAttack) {
                 bb |= Convert::IndexToBitBoard(index);
             }
             break;
         }
         else if (check > 0) {
-            DebugPrintln("MoveGen::GenMove: Opposite colour: Last check");
+            DebugPrintln("MoveGen::GenSliding: Opposite colour: Last check");
             lastCheck = true;
         }
 
@@ -76,39 +190,31 @@ static BitBoard GenMove(const Board& board, const Piece& piece, i32 offset, Inde
     return bb;
 }
 
-static BitBoard GenCardinal(const Board& board, const Piece& piece, bool isAttack)
+static BitBoard GenBishop(const Board& board, const Piece& piece, bool isAttack)
 {
     BitBoard bb = (isAttack ? 0 : Convert::IndexToBitBoard(piece.Position()));
-    
-    bb |= GenMove(board, piece,  8, 0xff, isAttack); // Up
-    bb |= GenMove(board, piece,  1,    0, isAttack); // Right
-    bb |= GenMove(board, piece, -8, 0xff, isAttack); // Down
-    bb |= GenMove(board, piece, -1,    7, isAttack); // Left
+
+    bb |= GenSliding(board, piece,  7,    7, isAttack); // Up left
+    bb |= GenSliding(board, piece,  9,    0, isAttack); // Up right
+    bb |= GenSliding(board, piece, -7,    0, isAttack); // Down right
+    bb |= GenSliding(board, piece, -9,    7, isAttack); // Down left
     
     return bb;
 }
 
-static BitBoard GenDiag(const Board& board, const Piece& piece, bool isAttack)
+static BitBoard GenRook(const Board& board, const Piece& piece, bool isAttack)
 {
     BitBoard bb = (isAttack ? 0 : Convert::IndexToBitBoard(piece.Position()));
-
-    bb |= GenMove(board, piece,  7, 7, isAttack); // Up left
-    bb |= GenMove(board, piece,  9, 0, isAttack); // Up right
-    bb |= GenMove(board, piece, -7, 0, isAttack); // Down right
-    bb |= GenMove(board, piece, -9, 7, isAttack); // Down left
-
+    
+    bb |= GenSliding(board, piece,  8, 0xff, isAttack); // Up
+    bb |= GenSliding(board, piece,  1,    0, isAttack); // Right
+    bb |= GenSliding(board, piece, -8, 0xff, isAttack); // Down
+    bb |= GenSliding(board, piece, -1,    7, isAttack); // Left
+    
     return bb;
 }
 
-static BitBoard GenSliding(const Board& board, const Piece& piece, bool isRook, bool isAttack)
-{
-    if (isRook) {
-        return GenCardinal(board, piece, isAttack);
-    }
-    else {
-        return GenDiag(board, piece, isAttack);
-    }
-}
+
 
 static BitBoard GenKnight(const Board& board, const Piece& piece, bool isAttack)
 {
@@ -155,6 +261,8 @@ static BitBoard GenKnight(const Board& board, const Piece& piece, bool isAttack)
     BitBoard startPos = (isAttack ? 0 : Convert::IndexToBitBoard(piece.Position()));
     return (bb | startPos);
 }
+
+
 
 static BitBoard GenCastling(const Board& board)
 {
@@ -240,6 +348,8 @@ static BitBoard GenKing(const Board& board, const Piece& piece, bool isAttack)
     return bb | GenCastling(board);
 }
 
+
+
 static BitBoard GenPawnAttack(const Piece& piece, const Piece& other, Index index, bool isAttack)
 {
     BitBoard bb = 0;
@@ -299,13 +409,15 @@ static BitBoard GenPawn(const Board& board, const Piece& piece, bool isAttack)
     return bb;
 }
 
+
+
 static BitBoard SelectGeneration(const Board& board, const Piece& piece, bool isAttack)
 {
     BitBoard bb = 0;
 
     switch (piece.Type()) {
     case Enums::Type::Bishop:
-        bb = GenSliding(board, piece, false, isAttack);
+        bb = GenBishop(board, piece, isAttack);
         break;
     case Enums::Type::King:
         bb = GenKing(board, piece, isAttack);
@@ -317,11 +429,11 @@ static BitBoard SelectGeneration(const Board& board, const Piece& piece, bool is
         bb = GenPawn(board, piece, isAttack);
         break;
     case Enums::Type::Queen:
-        bb = GenSliding(board, piece, false, isAttack);
-        bb |= GenSliding(board, piece, true, isAttack);
+        bb = GenBishop(board, piece, isAttack);
+        bb |= GenRook(board, piece, isAttack);
         break;
     case Enums::Type::Rook:
-        bb = GenSliding(board, piece, true, isAttack);
+        bb = GenRook(board, piece, isAttack);
         break;
     default:
         bb = 0;
@@ -350,6 +462,27 @@ static BitBoard GenAttacks(const Board& board)
     return bb;
 }
 
+static bool CheckForChecks(const Board& board, BitBoard attacks)
+{
+    for (Index i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+        BitBoard bb = (BitBoard)1 << i;
+        if ((attacks & bb) == 0) {
+            continue;
+        }
+
+        const Piece& piece = board.Pieces()[i];
+        if (piece.Type() == Enums::Type::King && piece.Colour() == board.Player()) {
+            if (inCheck) {
+                inDoubleCheck = true;
+                return true;
+            }
+            inCheck = true;
+        }
+    }
+
+    return inCheck;
+}
+
 BitBoard MoveGen::Generate(const Board& board, const Piece& piece)
 {
     BitBoard bb = 0;
@@ -357,12 +490,16 @@ BitBoard MoveGen::Generate(const Board& board, const Piece& piece)
         WarningPrintln("MoveGen::Generate: Invalid piece.");
         return 0;
     }
+    
+    inCheck = false;
+    inDoubleCheck = false;
+    BitBoard attacks = GenAttacks(board);
+    bool inCheck = CheckForChecks(board, attacks);
+    DebugPrintln("Check? {}, {}", inCheck, inDoubleCheck);
 
     bb = SelectGeneration(board, piece, false);
-    if (piece.Type() == Enums::Type::King) {
-        BitBoard attacks = GenAttacks(board);
-        DebugPrintln("{}", Convert::BitBoardToString(attacks));
 
+    if (piece.Type() == Enums::Type::King) {
         bb &= ~attacks;
         bb |= Convert::IndexToBitBoard(piece.Position());
     }
@@ -371,4 +508,4 @@ BitBoard MoveGen::Generate(const Board& board, const Piece& piece)
     
     return bb;
 }
-
+*/
