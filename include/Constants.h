@@ -14,6 +14,8 @@ using u64       = uint64_t;
 using Index     =       u8;
 using BitBoard  =      u64;
 
+extern bool inDebugMode;
+
 /**
  * @brief Helpful for holding 2 variables of the same type in 1.
  * @tparam T The desired datatype.
@@ -28,7 +30,8 @@ struct Vec2 {
  * @brief Default fen string.
  * @date 2026-06-11
  */
-constexpr std::string_view DEFAULT_FEN  = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+// constexpr std::string_view DEFAULT_FEN  = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+constexpr std::string_view DEFAULT_FEN  = "r1bqkb1r/pppPpppp/n4n2/8/8/8/PPPP1PPP/RNBQKBNR b KQkq - 4 4";
 
 /**
  * @brief Grid size in files and ranks.

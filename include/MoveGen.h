@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Constants.h"
-#include "Board.h"
 #include "Piece.h"
 
 /**
@@ -24,23 +23,31 @@ public:
     // ----- Update -----
     
     /**
-     * @brief Generates moves for a given `Piece` and `Board` state.
-     * @param board The current `Board` state.
-     * @param piece The `Piece` to generate moves for.
+     * @brief Generates moves for a given `Piece`.
+     * @param pieces The current `Piece` list.
+     * @param index The `Index` of the `Piece` to generate moves for.
      * @return The `BitBoard` representation of the moves.
      * @date 2026-06-29
      */
-    BitBoard Generate(const Board& board, const Piece& piece);
+    BitBoard Generate(const Piece* pieces, Index index);
 
 private:
-    bool m_inCheck, m_inDoubleCheck, m_generatingAttacks;
-    const Board* m_board;
+    const Piece* m_pieceList;
+    Index m_pieceIndex;
 
-    int AddMove(const Piece& piece, Index index, BitBoard& bb);
+    bool m_generatingAttacks, m_inCheck, m_inDoubleCheck, m_pinningPiece;
+    Index m_pinIndex;
+    BitBoard m_attacks, m_pinsHorz, m_pinsVert, m_pinsUp, m_pinsDown;
+
+    void Reset();
+
+    int AddMove(const Piece& piece, const Piece& other, Index index, BitBoard& bb);
+    bool CheckPin(const Piece& other);
     BitBoard GenAttacks();
 
-    BitBoard GenTypeSelection(const Piece& piece);
+    BitBoard GenMoves(const Piece& piece);
 
+    BitBoard GenSliding(const Piece& piece, i32 offset, Index mod);
     BitBoard GenBishop(const Piece& piece);
     BitBoard GenRook(const Piece& piece);
     BitBoard GenQueen(const Piece& piece);

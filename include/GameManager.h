@@ -68,7 +68,7 @@ private:
     BitBoard m_possibleMoves;
     bool m_isWhiteTurn, m_isWhiteAI, m_isBlackAI;
 
-    void CheckMove(std::string& move);
+    bool CheckMove(std::string& move);
     bool CheckPieceSelectable(Index index);
     void OnButtonPress(std::string_view passedMove, bool tryReselect);
 };

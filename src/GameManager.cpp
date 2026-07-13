@@ -66,46 +66,50 @@ void GameManager::Update(std::string_view move)
 
 // ----- Hidden -----
 
-void GameManager::CheckMove(std::string& move)
+bool GameManager::CheckMove(std::string& move)
 {
     if (m_board.MakeMove(move)) {
         m_isWhiteTurn = !m_isWhiteTurn;
         m_moves.push_back(move);
+        return true;
     }
-    
-    move.clear();
+
+    return false;
 }
 
 bool GameManager::CheckPieceSelectable(Index index)
 {
     Enums::Colour col = m_board.Pieces()[index].Colour();
     return (
-        (m_isWhiteTurn && col == Enums::Colour::Black) ||
-        (!m_isWhiteTurn && col == Enums::Colour::White)
+        (m_isWhiteTurn && col == Enums::Colour::White) ||
+        (!m_isWhiteTurn && col == Enums::Colour::Black)
     );
 }
 
 void GameManager::OnButtonPress(std::string_view passedMove, bool tryReselect)
 {
     static std::string move;
+    bool isSameIndex = (move == passedMove);
     move += passedMove;
-    Index index = Convert::MoveToIndex(passedMove);
+
     if (m_possibleMoves == MoveGen::INVALID) {
+        Index index = Convert::MoveToIndex(passedMove);
         if (CheckPieceSelectable(index)) {
-            m_possibleMoves = m_moveGen.Generate(m_board, m_board.Pieces()[index]);
-            if (m_possibleMoves == MoveGen::INVALID) {
-                move.clear();
-            }
+            m_possibleMoves = m_moveGen.Generate(m_board.Pieces(), index);
         }
-        else {
+
+        if (m_possibleMoves == MoveGen::INVALID) {
             move.clear();
-            if (tryReselect) {
-                OnButtonPress(passedMove, false);
-            }
         }
     }
     else {
-        CheckMove(move);
+        bool moveCheck = CheckMove(move);
+
+        move.clear();
         m_possibleMoves = MoveGen::INVALID;
+        
+        if (!moveCheck && tryReselect && !isSameIndex) {
+            OnButtonPress(passedMove, false);
+        }
     }
 }

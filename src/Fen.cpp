@@ -181,3 +181,104 @@ bool Fen::IsValidFen(const char* data)
     return true;
 }
 
+
+
+static std::string GenPieces(const Piece* pieces)
+{
+    std::string fen;
+    u8 extra = 0;
+    for (u64 rank = GRID_SIZE - 1; rank < GRID_SIZE; rank--) {
+        if (extra > 0) {
+            fen += std::to_string(extra);
+            extra = 0;
+        }
+
+        if (rank != GRID_SIZE - 1) {
+            fen += "/";
+        }
+
+        for (u64 file = 0; file < GRID_SIZE; file++) {
+            u64 i = rank * GRID_SIZE + file;
+            
+            const Piece& piece = pieces[i];
+            char p = piece.AsChar();
+            if (!p) {
+                extra++;
+                continue;
+            }
+
+            if (extra > 0) {
+                fen += std::to_string(extra);
+                extra = 0;
+            }
+
+            fen += p;
+        }
+    }
+
+    return fen;
+}
+
+static std::string GenPlayer(char player)
+{
+    std::string fen = " ";
+    
+    fen += player;
+
+    return fen;
+}
+
+static std::string GenCastling(std::string_view castling)
+{
+    std::string fen = " ";
+
+    fen += castling;
+
+    return fen;
+}
+
+static std::string GenEnPassant(std::string_view enPassant)
+{
+    std::string fen = " ";
+
+    fen += enPassant;
+
+    return fen;
+}
+
+static std::string GenHalfMoves(u32 halfMoves)
+{
+    std::string fen = " ";
+
+    fen += std::to_string(halfMoves);
+
+    return fen;
+}
+
+static std::string GenFullMoves(u32 fullMoves)
+{
+    std::string fen = " ";
+
+    fen += std::to_string(fullMoves);
+
+    return fen;
+}
+
+std::string Fen::GenerateFen(const Piece* pieces, char player, std::string_view castling, std::string_view enPassant, u32 halfMoves, u32 fullMoves)
+{
+    std::string fen = "";
+
+    fen += GenPieces(pieces);
+    fen += GenPlayer(player);
+    fen += GenCastling(castling);
+    fen += GenEnPassant(enPassant);
+    fen += GenHalfMoves(halfMoves);
+    fen += GenFullMoves(fullMoves);
+
+    if (!IsValidFen(fen.c_str())) {
+        return "";
+    }
+    
+    return fen;
+}
+

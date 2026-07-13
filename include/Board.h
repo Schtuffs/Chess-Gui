@@ -3,6 +3,7 @@
 #include <string>
 #include <string_view>
 
+#include "MoveGen.h"
 #include "Piece.h"
 
 /**
@@ -73,10 +74,15 @@ private:
     Piece m_pieces[64];
     u8 m_castling, m_enPassant;
     Enums::Colour m_playerColour;
+    MoveGen m_moveGen;
 
     Piece MovePiece(Index start, Index end);
-    void RecalculateCastling(Index start, Index end);
-    void RecalculateEnPassant(Index start, Index end);
-    void RecalculateFen(bool isCaptureOrPawn);
+    bool ValidateMove(Index start, Index end);
+
+    char RecalculatePlayer();
+    std::string RecalculateCastling(Index start, Index end);
+    std::string RecalculateEnPassant(Index start, Index end);
+    u32 RecalculateHalfMoves(bool isCaptureOrPawn);
+    u32 RecalculateFullMoves();
 };
 

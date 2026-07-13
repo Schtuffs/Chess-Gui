@@ -19,6 +19,7 @@ Board:
 
 #include "raylib.h"
 
+#include "Constants.h"
 #include "Menus.h"
 #include "Settings.h"
 #include "Utils.h"
