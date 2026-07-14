@@ -321,7 +321,7 @@ int MoveGen::AddMove(const Piece& piece, Index index)
     return res;
 }
 
-int MoveGen::AddPawnMove(const Piece& piece, Index index, BitBoard& bb)
+int MoveGen::AddPawnMove(const Piece& piece, Index index)
 {
     if (CheckForCheck(index)) {
         return MOVE_END;
@@ -346,13 +346,13 @@ int MoveGen::AddPawnMove(const Piece& piece, Index index, BitBoard& bb)
     
     // Attacks
     const Piece& other = m_pieceList[index];
-    if (other.IsValid() || other.IsEnPassant()) {
+    if (other.IsValid() || other.IsEnPassant() || m_generatingAttacks) {
         if ((m_generatingAttacks) ||
             (!equalFile && PieceCompare(piece, other) > 0)
         ) {
             // Check file wraps
             if (std::abs(pFile - oFile) == 1) {
-                bb |= Convert::IndexToBitBoard(index);
+                m_currentMoves |= Convert::IndexToBitBoard(index);
             }
         }
         return MOVE_END;
@@ -360,7 +360,7 @@ int MoveGen::AddPawnMove(const Piece& piece, Index index, BitBoard& bb)
 
     // Move forward
     if (equalFile && !other.IsValid()) {
-        bb |= Convert::IndexToBitBoard(index);
+        m_currentMoves |= Convert::IndexToBitBoard(index);
         return MOVE_CONTINUE;
     }
 
@@ -372,8 +372,6 @@ int MoveGen::AddPawnMove(const Piece& piece, Index index, BitBoard& bb)
 BitBoard MoveGen::GenSliding(const Piece& piece, i32 offset, Index mod)
 {
     BitBoard bb = 0;
-    m_pinningPiece = false;
-    m_currentMoves = 0;
     
     bool untilNext = false;
     for (Index i = 1; i < GRID_SIZE; i++) {
@@ -478,7 +476,7 @@ BitBoard MoveGen::GenKing(const Piece& piece)
             Index index = (Index)((Index)pos + (rank * (Index)GRID_SIZE) + file);
             if (m_generatingAttacks) {
                 if (!(file == 0 && rank == 0)) {
-                    bb |= Convert::IndexToBitBoard(index);
+                    AddMove(piece, index);
                 }
                 continue;
             }
@@ -549,29 +547,32 @@ BitBoard MoveGen::GenPawn(const Piece& piece)
     Index checkIndex = pos + offset;
 
     // Forward moves
-    if (AddPawnMove(piece, checkIndex, bb) == MOVE_CONTINUE) {
+    if (AddPawnMove(piece, checkIndex) == MOVE_CONTINUE) {
         if ((pos / GRID_SIZE) == rank) {
             checkIndex += offset;
-            AddPawnMove(piece, checkIndex, bb);
+            AddPawnMove(piece, checkIndex);
         }
     }
 
     // Left attack
     checkIndex = pos + (offset - 1);
-    AddPawnMove(piece, checkIndex, bb);
+    AddPawnMove(piece, checkIndex);
     
     // Right attack
     checkIndex = pos + (offset + 1);
-    AddPawnMove(piece, checkIndex, bb);
+    AddPawnMove(piece, checkIndex);
 
+    bb = m_currentMoves;
     return bb;
-    return 0;
 }
 
 
 
 BitBoard MoveGen::GenMoves(const Piece& piece)
 {
+    m_currentMoves = 0;
+    m_pinningPiece = false;
+    
     BitBoard bb = (m_generatingAttacks ? 0 : Convert::IndexToBitBoard(piece.Position()));
 
     switch (piece.Type()) {

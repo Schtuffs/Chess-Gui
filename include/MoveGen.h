@@ -52,7 +52,7 @@ private:
     void UpdatePin(int pinDir);
 
     int AddMove(const Piece& piece, Index index);
-    int AddPawnMove(const Piece& piece, Index index, BitBoard& bb);
+    int AddPawnMove(const Piece& piece, Index index);
     BitBoard GenAttacks();
 
     BitBoard GenMoves(const Piece& piece);
