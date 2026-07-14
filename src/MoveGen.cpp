@@ -150,27 +150,22 @@ int MoveGen::CheckPin(const Piece& piece)
     BitBoard pos = Convert::IndexToBitBoard(index);
 
     if (!(pos & m_pins)) {
-        DebugPrintln("Pin none");
         return PIN_NONE;
     }
     
     if (pos & m_pinsHorz) {
-        DebugPrintln("Pin horz");
         return PIN_HORZ;
     }
     
     if (pos & m_pinsVert) {
-        DebugPrintln("Pin vert");
         return PIN_VERT;
     }
     
     if (pos & m_pinsDiagUp) {
-        DebugPrintln("Pin DiUp");
         return PIN_DIAG_UP;
     }
     
     if (pos & m_pinsDiagDown) {
-        DebugPrintln("Pin DiDo");
         return PIN_DIAG_DOWN;
     }
 
@@ -184,16 +179,17 @@ int MoveGen::CheckPin(const Piece& other, int pinDir)
     }
 
     if (!m_pinningPiece) {
+        m_pinningPiece = true;
+        m_pinIndex = other.Position();
+
         if (other.Type() == Enums::Type::King) {
             if (m_inCheck) {
                 m_inDoubleCheck = true;
             }
             m_inCheck = true;
-            return MOVE_PIN_TO_KING;
+            return MOVE_UNTIL_NEXT;
         }
 
-        m_pinningPiece = true;
-        m_pinIndex = other.Position();
         return MOVE_UNTIL_NEXT;
     }
 
@@ -204,22 +200,6 @@ int MoveGen::CheckPin(const Piece& other, int pinDir)
 
     UpdatePin(pinDir);
     return MOVE_PIN_TO_KING;
-}
-
-BitBoard MoveGen::GetPinBitBoard(int dir)
-{
-    switch (dir) {
-    case PIN_HORZ:
-        return m_pinsHorz;
-    case PIN_VERT:
-        return m_pinsVert;
-    case PIN_DIAG_UP:
-        return m_pinsDiagUp;
-    case PIN_DIAG_DOWN:
-        return m_pinsDiagDown;
-    default:
-        return 0;
-    }
 }
 
 void MoveGen::UpdatePin(int pinDir)
@@ -266,12 +246,8 @@ static int CalculatePinDir(Index lhs, Index rhs)
     return PIN_NONE;
 }
 
-int MoveGen::AddMove(const Piece& piece, Index index, int prevState, BitBoard& bb)
+int MoveGen::AddMove(const Piece& piece, Index index, BitBoard& bb)
 {
-    if (prevState == MOVE_END) {
-        return MOVE_END;
-    }
-
     const Piece& other = m_pieceList[index];
     int compare = PieceCompare(piece, other);
 
@@ -297,7 +273,7 @@ int MoveGen::AddMove(const Piece& piece, Index index, int prevState, BitBoard& b
     int dir = CalculatePinDir(piece.Position(), other.Position());
     int res = CheckPin(other, dir);
     if (res == MOVE_PIN_TO_KING) {
-        return MOVE_END;
+        return MOVE_PIN_TO_KING;
     }
     if (res == MOVE_UNTIL_NEXT) {
         bb |= Convert::IndexToBitBoard(index);
@@ -357,10 +333,8 @@ BitBoard MoveGen::GenSliding(const Piece& piece, i32 offset, Index mod)
 {
     BitBoard bb = 0;
     m_pinningPiece = false;
-    if (m_generatingAttacks) { Utils::SetLogLevel(Utils::LogLevel::ERROR);} else { Utils::SetLogLevel(Utils::LogLevel::INFO);}
     
     bool untilNext = false;
-    int res = MOVE_CONTINUE;
     for (Index i = 1; i < GRID_SIZE; i++) {
         Index index = piece.Position();
         index += (i32)i * offset;
@@ -374,16 +348,14 @@ BitBoard MoveGen::GenSliding(const Piece& piece, i32 offset, Index mod)
             break;
         }
 
-        res = AddMove(piece, index, res, bb);
+        int res = AddMove(piece, index, bb);
         if (res == MOVE_END) {
-            DebugPrintln("End: {}", m_pieceList[index].ToString());
             break;
         }
         if (res == MOVE_UNTIL_NEXT) {
             untilNext = true;
         }
         else if (res == MOVE_END && untilNext) {
-            DebugPrintln("Until next end: {}", m_pieceList[index].ToString());
             break;
         }
     }
@@ -462,13 +434,17 @@ BitBoard MoveGen::GenKing(const Piece& piece)
 
             Index index = (Index)((Index)pos + (rank * (Index)GRID_SIZE) + file);
             if (m_generatingAttacks) {
-                if (!(file == 0 && file == rank)) {
+                if (!(file == 0 && rank == 0)) {
                     bb |= Convert::IndexToBitBoard(index);
                 }
                 continue;
             }
 
-            AddMove(piece, index, 0, bb);
+            if (m_attacks & Convert::IndexToBitBoard(index)) {
+                continue;
+            }
+
+            AddMove(piece, index, bb);
         }
     }
     
@@ -509,7 +485,7 @@ BitBoard MoveGen::GenKnight(const Piece& piece)
             continue;
         }
 
-        AddMove(piece, index, 0, bb);
+        AddMove(piece, index, bb);
     }
     
     return bb;

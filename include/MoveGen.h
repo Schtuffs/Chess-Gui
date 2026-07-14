@@ -45,9 +45,8 @@ private:
     int CheckPin(const Piece& piece);
     int CheckPin(const Piece& other, int pinDir);
     void UpdatePin(int pinDir);
-    BitBoard GetPinBitBoard(int pinDir);
 
-    int AddMove(const Piece& piece, Index index, int prevState, BitBoard& bb);
+    int AddMove(const Piece& piece, Index index, BitBoard& bb);
     int AddPawnMove(const Piece& piece, Index index, BitBoard& bb);
     BitBoard GenAttacks();
 

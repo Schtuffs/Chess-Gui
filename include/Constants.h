@@ -31,7 +31,7 @@ struct Vec2 {
  * @date 2026-06-11
  */
 // constexpr std::string_view DEFAULT_FEN  = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-constexpr std::string_view DEFAULT_FEN  = "rnb1kbnr/ppp2q1p/4p3/5p1Q/8/8/PPPP1PPP/RNB1KBNR b KQkq - 2 13";
+constexpr std::string_view DEFAULT_FEN  = "rnb2bnr/pppk3Q/4p3/1B3p2/8/8/PPPP1PPP/RNB1K1NR b KQ - 2 16";
 
 /**
  * @brief Grid size in files and ranks.
