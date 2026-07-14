@@ -53,6 +53,8 @@ private:
 
     int AddMove(const Piece& piece, Index index);
     int AddPawnMove(const Piece& piece, Index index);
+
+    bool IsSquareAttacked(Index index);
     BitBoard GenAttacks();
 
     BitBoard GenMoves(const Piece& piece);
@@ -62,9 +64,11 @@ private:
     BitBoard GenRook(const Piece& piece);
     BitBoard GenQueen(const Piece& piece);
 
+    bool IsValidForCastle(Index index);
+    BitBoard GenCastling(const Piece& piece);
     BitBoard GenKing(const Piece& piece);
+
     BitBoard GenKnight(const Piece& piece);
     BitBoard GenPawn(const Piece& piece);
-    BitBoard GenPawnAttack(const Piece& piece);
 };
 

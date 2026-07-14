@@ -56,7 +56,7 @@ BitBoard MoveGen::Generate(const Piece* pieces, Index index, u8 castling)
         return MoveGen::INVALID;
     }
 
-    m_attacks = GenAttacks();
+    // m_attacks = GenAttacks();
     DebugPrintln("MoveGen::Generate: Attacks: {}", Convert::BitBoardToString(m_attacks));
 
     if (m_inDoubleCheck) {
@@ -93,6 +93,11 @@ void MoveGen::Reset()
 }
 
 
+
+bool MoveGen::IsSquareAttacked(Index index)
+{
+    return (m_attacks & (Convert::IndexToBitBoard(index)));
+}
 
 BitBoard MoveGen::GenAttacks()
 {
@@ -283,6 +288,7 @@ int MoveGen::AddMove(const Piece& piece, Index index)
     const Piece& other = m_pieceList[index];
     int compare = PieceCompare(piece, other);
 
+    DebugPrintln("Compare: {}", compare);
     if (piece.Type() != Enums::Type::King && CheckForCheck(index)) {
         if (compare == 0) {
             return MOVE_END;
@@ -450,6 +456,32 @@ BitBoard MoveGen::GenQueen(const Piece& piece)
 
 
 
+bool MoveGen::IsValidForCastle(Index index)
+{
+    return (!m_pieceList[index].IsValid() && !IsSquareAttacked(index) && !m_inCheck);
+}
+
+BitBoard MoveGen::GenCastling(const Piece& piece)
+{
+    if (m_castling & ((u8)Enums::Castling::White_King | (u8)Enums::Castling::Black_King)) {
+        Index index = piece.Position();
+        if (IsValidForCastle(index + 1) && IsValidForCastle(index + 2)) {
+            AddMove(piece, piece.Position() + 2);
+        }
+    }
+    
+    if (m_castling & ((u8)Enums::Castling::White_Queen | (u8)Enums::Castling::Black_Queen)) {
+        Index index = piece.Position();
+        if (IsValidForCastle(index - 1) && IsValidForCastle(index - 2)) {
+            AddMove(piece, index - 2);
+        }
+    }
+
+    BitBoard bb = m_currentMoves;
+
+    return bb;
+}
+
 BitBoard MoveGen::GenKing(const Piece& piece)
 {
     Index pos = piece.Position();
@@ -490,9 +522,12 @@ BitBoard MoveGen::GenKing(const Piece& piece)
         }
     }
     
+    if (!m_generatingAttacks) {
+        GenCastling(piece);
+    }
     bb = m_currentMoves;
     
-    return bb;// | GenCastling(board);
+    return bb;
 }
 
 BitBoard MoveGen::GenKnight(const Piece& piece)
