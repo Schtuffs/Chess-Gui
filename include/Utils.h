@@ -80,7 +80,7 @@ namespace Utils {
      * @return The position of the `Rectangle`.
      * @date 2026-06-15
      */
-    Rectangle StartButtonPos(u8 x, u8 y, u8 width, u8 height);
+    Rectangle ButtonPos(u8 x, u8 y, u8 width, u8 height);
 
     /**
      * @brief Loads a `Texture2D` to the GPU.

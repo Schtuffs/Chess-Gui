@@ -26,6 +26,14 @@ Board:
 
 bool inDebugMode = false;
 
+bool IsScreenSwapped(Enums::Screen screen)
+{
+    static Enums::Screen prev = Enums::Screen::Menu;
+    bool value = prev != screen;
+    prev = screen;
+    return value;
+}
+
 int main(void)
 {
     Settings::LoadSettings();
@@ -48,6 +56,19 @@ int main(void)
 
         if (IsKeyPressed(KEY_D)) {
             inDebugMode = !inDebugMode;
+        }
+
+        if (IsScreenSwapped(currentScreen)) {
+            if (currentScreen == Enums::Screen::Menu) {
+                SetExitKey(KEY_ESCAPE);
+            }
+            else {
+                SetExitKey(KEY_NULL);
+            }
+        }
+
+        if (IsKeyPressed(KEY_ESCAPE)) {
+            currentScreen = Enums::Screen::Menu;
         }
         
         switch(currentScreen) {

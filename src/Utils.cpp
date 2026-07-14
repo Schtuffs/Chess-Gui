@@ -69,7 +69,7 @@ Vector3 Utils::GridPositioning()
     return { startX, startY, size };
 }
 
-Rectangle Utils::StartButtonPos(u8 x, u8 y, u8 width, u8 height)
+Rectangle Utils::ButtonPos(u8 x, u8 y, u8 width, u8 height)
 {
     Vector3 grid = Utils::GridPositioning();
     Rectangle pos = {grid.x + grid.z * 0.125f, grid.y + grid.z * 0.125f,

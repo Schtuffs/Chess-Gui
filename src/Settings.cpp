@@ -102,6 +102,12 @@ std::string Settings::s(Setting setting)
 
 // ----- Update -----
 
+bool Settings::i(Setting setting, u32 value)
+{
+    std::get<0>(s_settingData[(u64)setting]).i = value;
+    return true;
+}
+
 bool Settings::s(Setting setting, std::string_view value)
 {
     std::get<0>(s_settingData[(u64)setting]).s = value.data();

@@ -44,12 +44,12 @@ static Rectangle& MoveDown(Rectangle& rect, u8 squares)
 
 void Menu::Main(Enums::Screen& screen)
 {
-    Color dark = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
+    Color dark  = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
     
     board.FixSize();
     board.RenderBoard(dark, light);
-    Rectangle startPos = Utils::StartButtonPos(1, 1, 6, 1);
+    Rectangle startPos = Utils::ButtonPos(1, 1, 6, 1);
     
     PushDefaultGuiStyle();
     
@@ -62,12 +62,12 @@ void Menu::Main(Enums::Screen& screen)
 
 void Menu::NewGame(Enums::Screen& screen)
 {
-    Color dark = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
+    Color dark  = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
 
     board.FixSize();
     board.RenderBoard(dark, light);
-    Rectangle startPos = Utils::StartButtonPos(1, 1, 6, 1);
+    Rectangle startPos = Utils::ButtonPos(1, 1, 6, 1);
     
     PushDefaultGuiStyle();
     
@@ -79,16 +79,40 @@ void Menu::NewGame(Enums::Screen& screen)
 
 void Menu::Settings(Enums::Screen& screen)
 {
-    Color dark = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
-    Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
+    static bool settingsLoaded = false;
+    static Vector3 darkHSV, lightHSV;
+    if (!settingsLoaded) {
+        settingsLoaded = true;
+
+        Color dark  = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
+        Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
+
+        darkHSV  = ColorToHSV(dark);
+        lightHSV = ColorToHSV(light);
+    }
     
     board.FixSize();
-    board.RenderBoard(dark, light);
-    Rectangle startPos = Utils::StartButtonPos(1, 6, 6, 1);
+    board.RenderBoard(ColorFromHSV(darkHSV.x, darkHSV.y, darkHSV.z), ColorFromHSV(lightHSV.x, lightHSV.y, lightHSV.z));
     
     PushDefaultGuiStyle();
     
-    if (Utils::ClickableButton(startPos, "Return", 1)) { screen = Enums::Screen::Menu; }
+    // static Vector3 col;
+    Rectangle darkPicker  = Utils::ButtonPos(1, 1, 2, 2);
+    Rectangle lightPicker = Utils::ButtonPos(4, 1, 2, 2);
+
+    GuiColorPickerHSV(darkPicker,  nullptr, &darkHSV);
+    GuiColorPickerHSV(lightPicker, nullptr, &lightHSV);
+
+    Rectangle saveButton = Utils::ButtonPos(1, 6, 3, 1);
+    if (Utils::ClickableButton(saveButton, "Save", 1)) {
+        DebugPrintln("Menu::Settings: Saving settings.");
+        Settings::i(Setting::BOARD_TILE_DARK,  Convert::ColorToU32(ColorFromHSV(darkHSV.x, darkHSV.y, darkHSV.z)));
+        Settings::i(Setting::BOARD_TILE_LIGHT, Convert::ColorToU32(ColorFromHSV(lightHSV.x, lightHSV.y, lightHSV.z)));
+        DebugPrintln("Menu::Settings: Saved settings.");
+    }
+
+    Rectangle returnButton = Utils::ButtonPos(4, 6, 3, 1);
+    if (Utils::ClickableButton(returnButton, "Return", 2)) { settingsLoaded = false; screen = Enums::Screen::Menu; }
     
     PopDefaultGuiStyle();
 }
