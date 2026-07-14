@@ -235,13 +235,16 @@ std::string Board::RecalculateCastling(Index start, Index end)
         }
     }
 
+    DebugPrintln("Doing stuff");
     std::string castle = "";
 
     // Remove all castling if king moved
     if (m_pieces[4].Type() != Enums::Type::King) {
+        DebugPrintln("No white king");
         m_castling &= ~((u8)Enums::Castling::White_King | (u8)Enums::Castling::White_Queen);
     }
     if (m_pieces[60].Type() != Enums::Type::King) {
+        DebugPrintln("No black king");
         m_castling &= ~((u8)Enums::Castling::Black_King | (u8)Enums::Castling::Black_Queen);
     }
     
@@ -249,25 +252,26 @@ std::string Board::RecalculateCastling(Index start, Index end)
     if (m_pieces[7].Type() != Enums::Type::Rook) {
         m_castling &= ~((u8)Enums::Castling::White_King);
     }
-    else {
-        castle += "K";
-    }
     if (m_pieces[0].Type() != Enums::Type::Rook) {
         m_castling &= ~((u8)Enums::Castling::White_Queen);
-    }
-    else {
-        castle += "Q";
     }
     if (m_pieces[63].Type() != Enums::Type::Rook) {
         m_castling &= ~((u8)Enums::Castling::Black_King);
     }
-    else {
-        castle += "k";
-    }
     if (m_pieces[56].Type() != Enums::Type::Rook) {
         m_castling &= ~((u8)Enums::Castling::Black_Queen);
     }
-    else {
+
+    if (m_castling & (u8)Enums::Castling::White_King) {
+        castle += "K";
+    }
+    if (m_castling & (u8)Enums::Castling::White_Queen) {
+        castle += "Q";
+    }
+    if (m_castling & (u8)Enums::Castling::Black_King) {
+        castle += "k";
+    }
+    if (m_castling & (u8)Enums::Castling::Black_Queen) {
         castle += "q";
     }
 
