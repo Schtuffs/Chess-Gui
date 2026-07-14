@@ -29,7 +29,8 @@ MoveGen::MoveGen()
   : m_pieceList(nullptr), m_pieceIndex(INVALID), m_castling(0),
     m_generatingAttacks(false), m_inCheck(false), m_inDoubleCheck(false), m_pinningPiece(false),
     m_pinIndex(INVALID),
-    m_attacks(0), m_pins(0), m_pinsHorz(0), m_pinsVert(0), m_pinsDiagUp(0), m_pinsDiagDown(0)
+    m_attacks(0), m_pins(0), m_pinsHorz(0), m_pinsVert(0), m_pinsDiagUp(0), m_pinsDiagDown(0),
+    m_checkSquares(0), m_currentMoves(0)
 {}
 
 
@@ -86,6 +87,9 @@ void MoveGen::Reset()
     m_pinsVert      = 0;
     m_pinsDiagUp    = 0;
     m_pinsDiagDown  = 0;
+
+    m_checkSquares = 0;
+    m_currentMoves = 0;
 }
 
 
@@ -100,6 +104,7 @@ BitBoard MoveGen::GenAttacks()
     
     for (Index i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
         m_pinningPiece = false;
+        m_currentMoves = 0;
         
         const Piece& piece = pieces[i];
         if (!piece.IsValid() || piece.Colour() == currentColour) {
@@ -147,13 +152,31 @@ static int PieceCompare(const Piece& lhs, const Piece& rhs)
 
 void MoveGen::AddCheck()
 {
+    // Update checks
     if (m_inCheck) {
         m_inDoubleCheck = true;
     }
     m_inCheck = true;
+    DebugPrintln("MoveGen::AddCheck: Check: {}, Double Check: {}", m_inCheck, m_inDoubleCheck);
 }
 
-int MoveGen::CheckPin(const Piece& piece)
+void MoveGen::AddCheckMoves(const Piece& piece)
+{
+    m_checkSquares |= Convert::IndexToBitBoard(piece.Position());
+    m_checkSquares |= m_currentMoves;
+    DebugPrintln("MoveGen::AddCheckMoves: Blocking moves: {}", Convert::BitBoardToString(m_checkSquares));
+}
+
+bool MoveGen::CheckForCheck(Index index)
+{
+    return (!m_generatingAttacks && m_inCheck && !m_inDoubleCheck &&
+        (Convert::IndexToBitBoard(index) & m_checkSquares) == 0
+    );
+}
+
+
+
+int MoveGen::GetPin(const Piece& piece)
 {
     Index index = piece.Position();
     BitBoard pos = Convert::IndexToBitBoard(index);
@@ -181,17 +204,16 @@ int MoveGen::CheckPin(const Piece& piece)
     return PIN_NONE;
 }
 
-int MoveGen::CheckPin(const Piece& other, int pinDir)
+int MoveGen::CheckPin(const Piece& piece, const Piece& other, int pinDir)
 {
     if (!m_generatingAttacks) {
         return MOVE_END;
     }
-
     
     if (!m_pinningPiece) {
         if (other.Type() == Enums::Type::King) {
             AddCheck();
-            DebugPrintln("Check: {}, Double: {}", m_inCheck, m_inDoubleCheck);
+            AddCheckMoves(piece);
             return MOVE_UNTIL_NEXT;
         }
         
@@ -202,12 +224,12 @@ int MoveGen::CheckPin(const Piece& other, int pinDir)
 
     m_pinningPiece = false;
 
-    if (other.Type() != Enums::Type::King) {
-        return MOVE_END;
+    if (other.Type() == Enums::Type::King) {
+        UpdatePin(pinDir);
+        return MOVE_PIN_TO_KING;
     }
     
-    UpdatePin(pinDir);
-    return MOVE_PIN_TO_KING;
+    return MOVE_END;
 }
 
 void MoveGen::UpdatePin(int pinDir)
@@ -254,48 +276,57 @@ static int CalculatePinDir(Index lhs, Index rhs)
     return PIN_NONE;
 }
 
-int MoveGen::AddMove(const Piece& piece, Index index, BitBoard& bb)
+
+
+int MoveGen::AddMove(const Piece& piece, Index index)
 {
     const Piece& other = m_pieceList[index];
     int compare = PieceCompare(piece, other);
 
+    if (piece.Type() != Enums::Type::King && CheckForCheck(index)) {
+        if (compare == 0) {
+            return MOVE_END;
+        }
+        return MOVE_CONTINUE;
+    }
+
     // Invalid
     if (compare < 0) {
         if (!m_pinningPiece) {
-            bb |= Convert::IndexToBitBoard(index);
+            m_currentMoves |= Convert::IndexToBitBoard(index);
         }
         return MOVE_CONTINUE;
     }
     // Equal
     else if (compare == 0) {
         if (m_generatingAttacks) {
-            bb |= Convert::IndexToBitBoard(index);
+            m_currentMoves |= Convert::IndexToBitBoard(index);
         }
         return MOVE_END;
     }
     // Opposite
     if (!m_generatingAttacks) {
-        bb |= Convert::IndexToBitBoard(index);
+        m_currentMoves |= Convert::IndexToBitBoard(index);
         return MOVE_END;
     }
 
     int dir = CalculatePinDir(piece.Position(), other.Position());
-    int res = CheckPin(other, dir);
+    int res = CheckPin(piece, other, dir);
     if (res == MOVE_PIN_TO_KING) {
         return MOVE_PIN_TO_KING;
     }
-    if (res == MOVE_UNTIL_NEXT) {
-        bb |= Convert::IndexToBitBoard(index);
-        return MOVE_UNTIL_NEXT;
-    }
 
-    bb |= Convert::IndexToBitBoard(index);
+    m_currentMoves |= Convert::IndexToBitBoard(index);
 
-    return MOVE_END;
+    return res;
 }
 
 int MoveGen::AddPawnMove(const Piece& piece, Index index, BitBoard& bb)
 {
+    if (CheckForCheck(index)) {
+        return MOVE_END;
+    }
+
     Index pFile = piece.Position() % GRID_SIZE;
     Index oFile = index % GRID_SIZE;
     bool equalFile = pFile == oFile;
@@ -306,7 +337,7 @@ int MoveGen::AddPawnMove(const Piece& piece, Index index, BitBoard& bb)
     }
     
     // Check for pins
-    int pins = CheckPin(piece);
+    int pins = GetPin(piece);
     if (pins != PIN_NONE) {
         if (equalFile && pins != PIN_VERT) {
             return MOVE_END;
@@ -342,6 +373,7 @@ BitBoard MoveGen::GenSliding(const Piece& piece, i32 offset, Index mod)
 {
     BitBoard bb = 0;
     m_pinningPiece = false;
+    m_currentMoves = 0;
     
     bool untilNext = false;
     for (Index i = 1; i < GRID_SIZE; i++) {
@@ -357,7 +389,7 @@ BitBoard MoveGen::GenSliding(const Piece& piece, i32 offset, Index mod)
             break;
         }
 
-        int res = AddMove(piece, index, bb);
+        int res = AddMove(piece, index);
         if (res == MOVE_END) {
             break;
         }
@@ -369,6 +401,8 @@ BitBoard MoveGen::GenSliding(const Piece& piece, i32 offset, Index mod)
         }
     }
 
+    bb = m_currentMoves;
+
     return bb;
 }
 
@@ -376,7 +410,7 @@ BitBoard MoveGen::GenBishop(const Piece& piece)
 {
     BitBoard bb = 0;
 
-    int pins = CheckPin(piece);
+    int pins = GetPin(piece);
     if (pins & (PIN_DIAG_UP | PIN_NONE) || m_generatingAttacks) {
         bb |= GenSliding(piece,  9, 0); // Up right
         bb |= GenSliding(piece, -9, 7); // Down left
@@ -393,7 +427,7 @@ BitBoard MoveGen::GenRook(const Piece& piece)
 {
     BitBoard bb = 0;
     
-    int pins = CheckPin(piece);
+    int pins = GetPin(piece);
     if (pins & (PIN_VERT | PIN_NONE) || m_generatingAttacks) {
         bb |= GenSliding(piece,  8, 0xff); // Up
         bb |= GenSliding(piece, -8, 0xff); // Down
@@ -449,13 +483,16 @@ BitBoard MoveGen::GenKing(const Piece& piece)
                 continue;
             }
 
+            // Can't move into attacked square
             if (m_attacks & Convert::IndexToBitBoard(index)) {
                 continue;
             }
 
-            AddMove(piece, index, bb);
+            AddMove(piece, index);
         }
     }
+    
+    bb = m_currentMoves;
     
     return bb;// | GenCastling(board);
 }
@@ -494,8 +531,10 @@ BitBoard MoveGen::GenKnight(const Piece& piece)
             continue;
         }
 
-        AddMove(piece, index, bb);
+        AddMove(piece, index);
     }
+
+    bb = m_currentMoves;
     
     return bb;
 }
