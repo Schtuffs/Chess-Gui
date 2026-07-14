@@ -13,6 +13,14 @@ enum MoveResult {
     MOVE_CAPTURE_KING,
 };
 
+enum PinDirection {
+    PIN_HORZ        = 1,
+    PIN_VERT        = 2,
+    PIN_DIAG_UP     = 4,
+    PIN_DIAG_DOWN   = 8,
+    PIN_NONE        = 16,
+};
+
 
 
 // ----- Creation / Destruction -----
@@ -21,7 +29,7 @@ MoveGen::MoveGen()
   : m_pieceList(nullptr), m_pieceIndex(INVALID),
     m_generatingAttacks(false), m_inCheck(false), m_inDoubleCheck(false), m_pinningPiece(false),
     m_pinIndex(INVALID),
-    m_attacks(0), m_pinsHorz(0), m_pinsVert(0), m_pinsUp(0), m_pinsDown(0)
+    m_attacks(0), m_pins(0), m_pinsHorz(0), m_pinsVert(0), m_pinsDiagUp(0), m_pinsDiagDown(0)
 {}
 
 
@@ -43,7 +51,6 @@ BitBoard MoveGen::Generate(const Piece* pieces, Index index)
 
     m_attacks = GenAttacks();
     DebugPrintln("{}", Convert::BitBoardToString(m_attacks));
-    m_inDoubleCheck = true;
 
     if (m_inDoubleCheck) {
         if (piece.Type() == Enums::Type::King) {
@@ -64,12 +71,15 @@ void MoveGen::Reset()
     m_generatingAttacks = false;
     m_pinningPiece = false;
 
-    m_attacks  = 0;
-    m_pinsHorz = 0;
-    m_pinsVert = 0;
-    m_pinsUp   = 0;
-    m_pinsDown = 0;
+    m_attacks       = 0;
+    m_pins          = 0;
+    m_pinsHorz      = 0;
+    m_pinsVert      = 0;
+    m_pinsDiagUp    = 0;
+    m_pinsDiagDown  = 0;
 }
+
+
 
 /**
  * >0 Differing colours
@@ -97,50 +107,142 @@ static int PieceCompare(const Piece& lhs, const Piece& rhs)
     return OPPOSITE;
 }
 
-bool MoveGen::CheckPin(const Piece& other)
+
+
+void MoveGen::UpdatePin(int pinDir)
+{
+    if (pinDir & PIN_HORZ) {
+        m_pinsHorz |= Convert::IndexToBitBoard(m_pinIndex);
+        m_pins |= m_pinsHorz;
+    }
+    
+    if (pinDir & PIN_VERT) {
+        m_pinsVert |= Convert::IndexToBitBoard(m_pinIndex);
+        m_pins |= m_pinsVert;
+    }
+    
+    if (pinDir & PIN_DIAG_UP) {
+        m_pinsDiagUp |= Convert::IndexToBitBoard(m_pinIndex);
+        m_pins |= m_pinsDiagUp;
+    }
+    
+    if (pinDir & PIN_DIAG_DOWN) {
+        m_pinsDiagDown |= Convert::IndexToBitBoard(m_pinIndex);
+        m_pins |= m_pinsDiagDown;
+    }
+
+    DebugPrintln("PINS: {}", Convert::BitBoardToString(m_pins));
+}
+
+int MoveGen::CheckPin(const Piece& other, int pinDir)
 {
     if (!m_generatingAttacks) {
-        return false;
+        return MOVE_END;
     }
 
     if (other.Type() == Enums::Type::King) {
         if (m_pinningPiece) {
-            // m
+            UpdatePin(pinDir);
+            return MOVE_END;
         }
+
         if (m_inCheck) {
             m_inDoubleCheck = true;
         }
         m_inCheck = true;
+
+        return MOVE_CAPTURE_KING;
     }
-    return -1;
+
+    return MOVE_UNTIL_NEXT;
 }
 
-/**
- * Use `MoveResult` enum to determine outcome.
- */
+static int CalculatePinDir(Index lhs, Index rhs)
+{
+    Index lFile = lhs % GRID_SIZE;
+    Index lRank = lhs / GRID_SIZE;
+    Index rFile = rhs % GRID_SIZE;
+    Index rRank = rhs / GRID_SIZE;
+
+    if (lRank == rRank) { return PIN_HORZ; }
+    if (lFile == rFile) { return PIN_VERT; }
+
+    int rise = rRank - lRank;
+    int run  = rFile - lFile;
+    
+    if (rise != run) { return PIN_NONE; }
+
+    if (rise > 0) { return PIN_DIAG_UP; }
+    if (rise < 0) { return PIN_DIAG_DOWN; }
+
+    return PIN_NONE;
+}
+
 int MoveGen::AddMove(const Piece& piece, const Piece& other, Index index, BitBoard& bb)
 {
     int compare = PieceCompare(piece, other);
 
+    // Invalid
     if (compare < 0) {
-        bb |= Convert::IndexToBitBoard(index);
+        if (!m_pinningPiece) {
+            bb |= Convert::IndexToBitBoard(index);
+        }
         return MOVE_CONTINUE;
     }
-    
+    // Equal
     else if (compare == 0) {
         if (m_generatingAttacks) {
             bb |= Convert::IndexToBitBoard(index);
         }
         return MOVE_END;
     }
-    
+    // Opposite
     else {
-        // bool pinned = CheckPin(other);
+        if (m_generatingAttacks) {
+            int dir = CalculatePinDir(piece.Position(), other.Position());
+            if (CheckPin(other, dir) == MOVE_END) {
+                return MOVE_END;
+            }
+        }
         bb |= Convert::IndexToBitBoard(index);
 
         return MOVE_END;
     }
 }
+
+int MoveGen::AddPawnMove(const Piece& piece, const Piece& other, Index index, BitBoard& bb)
+{
+    Index pFile = piece.Position() % GRID_SIZE;
+    Index oFile = index % GRID_SIZE;
+    bool equalFile = pFile == oFile;
+    
+    // Only get attacks
+    if (m_generatingAttacks && equalFile) {
+        return MOVE_END;
+    }
+    
+    // Move forward
+    if (!other.IsValid() && equalFile) {
+        bb |= Convert::IndexToBitBoard(index);
+        return MOVE_CONTINUE;
+    }
+    
+    // Attacks
+    if (((other.IsValid() || other.IsEnPassant()) &&
+        !equalFile && PieceCompare(piece, other) > 0) ||
+        m_generatingAttacks
+    ) {
+        // Ensure left and right file check
+        if (std::abs(pFile - oFile) == 1) {
+            bb |= Convert::IndexToBitBoard(index);
+            return MOVE_CONTINUE;
+        }
+        return MOVE_CONTINUE;
+    }
+
+    return MOVE_END;
+}
+
 
 BitBoard MoveGen::GenAttacks()
 {
@@ -166,6 +268,8 @@ BitBoard MoveGen::GenAttacks()
     return bb;
 }
 
+
+
 BitBoard MoveGen::GenSliding(const Piece& piece, i32 offset, Index mod)
 {
     BitBoard bb = 0;
@@ -185,7 +289,6 @@ BitBoard MoveGen::GenSliding(const Piece& piece, i32 offset, Index mod)
 
         const Piece& other = m_pieceList[index];
         int res = AddMove(piece, other, index, bb);
-
         if (res == MOVE_END) {
             break;
         }
@@ -227,6 +330,8 @@ BitBoard MoveGen::GenQueen(const Piece& piece)
 
     return bb;
 }
+
+
 
 BitBoard MoveGen::GenKing(const Piece& piece)
 {
@@ -277,46 +382,18 @@ BitBoard MoveGen::GenKing(const Piece& piece)
 
 BitBoard MoveGen::GenKnight(const Piece& piece)
 {
-    constexpr Index assumedStart = 18;
-    BitBoard bb = 0x00'00'00'0a'11'00'11'0a;
-    
-    Index logpos = piece.Position();
-    if (logpos % GRID_SIZE == 1) {
-        bb &= 0x00'00'00'0a'10'00'10'0a;
-    }
-    else if (logpos % GRID_SIZE == 0) {
-        bb &= 0x00'00'00'08'10'00'10'08;
-    }
-    else if (logpos % GRID_SIZE == GRID_SIZE - 2) {
-        bb &= 0x00'00'00'0a'01'00'01'0a;
-    }
-    else if (logpos % GRID_SIZE == GRID_SIZE - 1) {
-        bb &= 0x00'00'00'02'01'00'01'02;
-    }
-    
-    int shift = logpos - assumedStart;
-    if (shift > 0) {
-        bb = (bb << shift);
-    }
-    else {
-        bb = (bb >> (std::abs(shift)));
-    }
+    Index pos = piece.Position();
+    int moves[8] = {-17, -10, 6, 15, 17, 10, -6, -15};
 
-    BitBoard index = 0;
-    BitBoard pos = bb;
-    while (pos) {
-        if (pos & 1) {
-            const Piece& other = m_pieceList[index];
-            int res = AddMove(piece, other, index, bb);
-            (void)res;
-            // int check = PieceCompare(piece, other);
-            // if (check == 0 && !isAttack) {
-            //     bb &= ~((BitBoard)1 << index);
-            // }
+    BitBoard bb = 0;
+    for (int i = 0; i < 8; i++) {
+        Index index = moves[i] + pos;
+        if (index >= GRID_SIZE * GRID_SIZE) {
+            continue;
         }
 
-        index++;
-        pos = bb >> index;
+        const Piece& other = m_pieceList[index];
+        AddMove(piece, other, index, bb);
     }
     
     return bb;
@@ -333,26 +410,26 @@ BitBoard MoveGen::GenPawn(const Piece& piece)
 
     // Forward moves
     const Piece& other = m_pieceList[checkIndex];
-    if (AddMove(piece, other, checkIndex, bb) == MOVE_CONTINUE) {
+    if (AddPawnMove(piece, other, checkIndex, bb) == MOVE_CONTINUE) {
         if ((pos / GRID_SIZE) == rank) {
             checkIndex += offset;
-            AddMove(piece, other, checkIndex, bb);
+            AddPawnMove(piece, other, checkIndex, bb);
         }
     }
 
     // Left attack
     checkIndex = pos + (offset - 1);
-    AddMove(piece, m_pieceList[checkIndex], checkIndex, bb);
-    // bb |= GenPawnAttack(piece, m_pieceList[checkIndex], checkIndex, isAttack);
+    AddPawnMove(piece, m_pieceList[checkIndex], checkIndex, bb);
     
     // Right attack
     checkIndex = pos + (offset + 1);
-    AddMove(piece, m_pieceList[checkIndex], checkIndex, bb);
-    // bb |= GenPawnAttack(piece, m_pieceList[checkIndex], checkIndex, isAttack);
+    AddPawnMove(piece, m_pieceList[checkIndex], checkIndex, bb);
 
     return bb;
     return 0;
 }
+
+
 
 BitBoard MoveGen::GenMoves(const Piece& piece)
 {
@@ -384,334 +461,4 @@ BitBoard MoveGen::GenMoves(const Piece& piece)
 
     return bb;
 }
-
-
-
-/*
-static BitBoard AddMove(const Piece& piece, Index index)
-{
-
-}
-
-
-
-BitBoard MoveGen::GenBishop(const Piece& piece)
-{
-    BitBoard bb = 0;
-
-    bb |= GenSliding(piece,  7, 7); // Up left
-    bb |= GenSliding(piece,  9, 0); // Up right
-    bb |= GenSliding(piece, -7, 0); // Down right
-    bb |= GenSliding(piece, -9, 7); // Down left
-    
-    return bb;
-}
-
-BitBoard MoveGen::GenRook(const Piece& piece)
-{
-    BitBoard bb = 0;
-    
-    bb |= GenSliding(piece,  8, 0xff); // Up
-    bb |= GenSliding(piece,  1,    0); // Right
-    bb |= GenSliding(piece, -8, 0xff); // Down
-    bb |= GenSliding(piece, -1,    7); // Left
-    
-    return bb;
-}
-
-
-
-BitBoard MoveGen::GenKnight(const Piece& piece)
-{
-    constexpr Index assumedStart = 18;
-    BitBoard bb = 0x00'00'00'0a'11'00'11'0a;
-    
-    Index logpos = piece.Position();
-    if (logpos % GRID_SIZE == 1) {
-        bb &= 0x00'00'00'0a'10'00'10'0a;
-    }
-    else if (logpos % GRID_SIZE == 0) {
-        bb &= 0x00'00'00'08'10'00'10'08;
-    }
-    else if (logpos % GRID_SIZE == GRID_SIZE - 2) {
-        bb &= 0x00'00'00'0a'01'00'01'0a;
-    }
-    else if (logpos % GRID_SIZE == GRID_SIZE - 1) {
-        bb &= 0x00'00'00'02'01'00'01'02;
-    }
-    
-    int shift = logpos - assumedStart;
-    if (shift > 0) {
-        bb = (bb << shift);
-    }
-    else {
-        bb = (bb >> (std::abs(shift)));
-    }
-
-    BitBoard index = 0;
-    BitBoard pos = bb;
-    while (pos) {
-        if (pos & 1) {
-            const Piece& other = board.Pieces()[index];
-            int check = PieceCompare(piece, other);
-            if (check == 0 && !isAttack) {
-                bb &= ~((BitBoard)1 << index);
-            }
-        }
-
-        index++;
-        pos = bb >> index;
-    }
-    
-    BitBoard startPos = (isAttack ? 0 : Convert::IndexToBitBoard(piece.Position()));
-    return (bb | startPos);
-}
-
-
-
-static BitBoard GenCastling(const Board& board)
-{
-    u8 castling = board.Castling(board.Player());
-    BitBoard bb = 0;
-    if (board.Player() == Enums::Colour::White) {
-        if (castling & (u8)Enums::Castling::White_King) {
-            const Piece& bishop = board.Pieces()[5];
-            const Piece& knight = board.Pieces()[6];
-
-            if (!bishop.IsValid() && !knight.IsValid()) {
-                bb |= 0x00'00'00'00'00'00'00'40;
-            }
-        }
-        
-        if (castling & (u8)Enums::Castling::White_Queen) {
-            const Piece& queen  = board.Pieces()[3];
-            const Piece& bishop = board.Pieces()[2];
-            const Piece& knight = board.Pieces()[1];
-    
-            if (!bishop.IsValid() && !knight.IsValid() && !queen.IsValid()) {
-                bb |= 0x00'00'00'00'00'00'00'04;
-            }
-        }
-    }
-    else if (board.Player() == Enums::Colour::Black) {
-        if (castling & (u8)Enums::Castling::Black_King) {
-            const Piece& bishop = board.Pieces()[61];
-            const Piece& knight = board.Pieces()[62];
-
-            if (!bishop.IsValid() && !knight.IsValid()) {
-                bb |= 0x40'00'00'00'00'00'00'00;
-            }
-        }
-        
-        if (castling & (u8)Enums::Castling::Black_Queen) {
-            const Piece& queen  = board.Pieces()[59];
-            const Piece& bishop = board.Pieces()[58];
-            const Piece& knight = board.Pieces()[57];
-    
-            if (!bishop.IsValid() && !knight.IsValid() && !queen.IsValid()) {
-                bb |= 0x04'00'00'00'00'00'00'00;
-            }
-        }
-    }
-
-    return bb;
-}
-
-BitBoard MoveGen::GenKing(const Piece& piece)
-{
-    Index pos = piece.Position();
-    BitBoard bb = (isAttack ? 0 : Convert::IndexToBitBoard(pos));
-    for (int rank = -1; rank < 2; rank++) {
-        if (rank == -1 && (pos / GRID_SIZE) == 0) {
-            continue;
-        }
-
-        if (rank == 1 && (pos / GRID_SIZE) == GRID_SIZE - 1) {
-            continue;
-        }
-        
-        for (int file = -1; file < 2; file++) {
-            if (file == -1 && (pos % GRID_SIZE) == 0) {
-                continue;
-            }
-    
-            if (file == 1 && (pos % GRID_SIZE) == GRID_SIZE - 1) {
-                continue;
-            }
-
-            BitBoard index = (BitBoard)((i64)pos + (rank * (i64)GRID_SIZE) + file);
-            const Piece& other = board.Pieces()[index];
-            int check = PieceCompare(piece, other);
-            if (check == 0 && !isAttack) {
-                continue;
-            }
-
-            bb |= ((BitBoard)1 << index);
-        }
-    }
-    
-    return bb | GenCastling(board);
-}
-
-
-
-static BitBoard GenPawnAttack(const Piece& piece, const Piece& other, Index index)
-{
-    BitBoard bb = 0;
-
-    if (isAttack) {
-        bb |= Convert::IndexToBitBoard(index);
-    }
-    else if (PieceCompare(piece, other) > 0 || other.IsEnPassant()) {
-        bb |= Convert::IndexToBitBoard(index);
-    }
-
-    return bb;
-}
-
-static BitBoard GenPawn(const Piece& piece, i64 offset, Index mod, bool isAttack)
-{
-    BitBoard bb = 0;
-    Index pos = piece.Position();
-
-    // Forward moves
-    Index checkIndex = pos + offset;
-    if (PieceCompare(piece, board.Pieces()[checkIndex]) < 0) {
-        bb |= Convert::IndexToBitBoard(checkIndex);
-        if ((pos / GRID_SIZE) == mod) {
-            // Double move
-            checkIndex = pos + (offset * 2);
-            if (PieceCompare(piece, board.Pieces()[checkIndex]) < 0) {
-                bb |= Convert::IndexToBitBoard(checkIndex);
-            }
-        }
-    }
-
-    // Left attack
-    checkIndex = pos + (offset - 1);
-    bb |= GenPawnAttack(piece, board.Pieces()[checkIndex], checkIndex, isAttack);
-
-    // Right attack
-    checkIndex = pos + (offset + 1);
-    bb |= GenPawnAttack(piece, board.Pieces()[checkIndex], checkIndex, isAttack);
-
-    return bb;
-}
-
-BitBoard MoveGen::GenPawn(const Piece& piece)
-{
-    Index pos = piece.Position();
-    BitBoard bb = (m_generatingAttacks ? 0 : Convert::IndexToBitBoard(pos));
-
-    if (piece.Colour() == Enums::Colour::White) {
-        bb |= GenPawn(piece,  (i64)GRID_SIZE, 1, m_generatingAttacks);
-    }
-    
-    if (piece.Colour() == Enums::Colour::Black) {
-        bb |= GenPawn(piece, -(i64)GRID_SIZE, 6, m_generatingAttacks);
-    }
-
-    return bb;
-}
-
-
-
-static BitBoard SelectGeneration(const Piece& piece)
-{
-    BitBoard bb = 0;
-
-    switch (piece.Type()) {
-    case Enums::Type::Bishop:
-        bb = GenBishop(board, piece, isAttack);
-        break;
-    case Enums::Type::King:
-        bb = GenKing(board, piece, isAttack);
-        break;
-    case Enums::Type::Knight:
-        bb = GenKnight(board, piece, isAttack);
-        break;
-    case Enums::Type::Pawn:
-        bb = GenPawn(board, piece, isAttack);
-        break;
-    case Enums::Type::Queen:
-        bb = GenBishop(board, piece, isAttack);
-        bb |= GenRook(board, piece, isAttack);
-        break;
-    case Enums::Type::Rook:
-        bb = GenRook(board, piece, isAttack);
-        break;
-    default:
-        bb = 0;
-        break;
-    }
-
-    return bb;
-}
-
-static BitBoard GenAttacks(const Board& board)
-{
-    Enums::Colour attackColour = (
-        board.Player() == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White
-    );
-
-    BitBoard bb = 0;
-    for (Index i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
-        const Piece& piece = board.Pieces()[i];
-        if (piece.Colour() != attackColour) {
-            continue;
-        }
-
-        bb |= SelectGeneration(board, piece, true);
-    }
-
-    return bb;
-}
-
-static bool CheckForChecks(BitBoard attacks)
-{
-    for (Index i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
-        BitBoard bb = (BitBoard)1 << i;
-        if ((attacks & bb) == 0) {
-            continue;
-        }
-
-        const Piece& piece = board.Pieces()[i];
-        if (piece.Type() == Enums::Type::King && piece.Colour() == board.Player()) {
-            if (inCheck) {
-                inDoubleCheck = true;
-                return true;
-            }
-            inCheck = true;
-        }
-    }
-
-    return inCheck;
-}
-
-BitBoard MoveGen::Generate(const Piece& piece)
-{
-    BitBoard bb = 0;
-    if (!piece.IsValid()) {
-        WarningPrintln("MoveGen::Generate: Invalid piece.");
-        return 0;
-    }
-    
-    inCheck = false;
-    inDoubleCheck = false;
-    BitBoard attacks = GenAttacks(board);
-    bool inCheck = CheckForChecks(board, attacks);
-    DebugPrintln("Check? {}, {}", inCheck, inDoubleCheck);
-
-    bb = SelectGeneration(board, piece, false);
-
-    if (piece.Type() == Enums::Type::King) {
-        bb &= ~attacks;
-        bb |= Convert::IndexToBitBoard(piece.Position());
-    }
-
-    DebugPrintln("{}", Convert::BitBoardToString(bb));
-    
-    return bb;
-}
-*/
 

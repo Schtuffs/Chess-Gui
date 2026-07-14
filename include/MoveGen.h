@@ -37,12 +37,14 @@ private:
 
     bool m_generatingAttacks, m_inCheck, m_inDoubleCheck, m_pinningPiece;
     Index m_pinIndex;
-    BitBoard m_attacks, m_pinsHorz, m_pinsVert, m_pinsUp, m_pinsDown;
+    BitBoard m_attacks, m_pins, m_pinsHorz, m_pinsVert, m_pinsDiagUp, m_pinsDiagDown;
 
     void Reset();
 
     int AddMove(const Piece& piece, const Piece& other, Index index, BitBoard& bb);
-    bool CheckPin(const Piece& other);
+    int AddPawnMove(const Piece& piece, const Piece& other, Index index, BitBoard& bb);
+    int CheckPin(const Piece& other, int pinDir);
+    void UpdatePin(int pinDir);
     BitBoard GenAttacks();
 
     BitBoard GenMoves(const Piece& piece);
