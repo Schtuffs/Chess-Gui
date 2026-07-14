@@ -42,6 +42,7 @@ private:
 
     void Reset();
 
+    void AddCheck();
     int CheckPin(const Piece& piece);
     int CheckPin(const Piece& other, int pinDir);
     void UpdatePin(int pinDir);

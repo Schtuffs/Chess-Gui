@@ -56,9 +56,10 @@ BitBoard MoveGen::Generate(const Piece* pieces, Index index, u8 castling)
     }
 
     m_attacks = GenAttacks();
-    DebugPrintln("Attacks: {}", Convert::BitBoardToString(m_attacks));
+    DebugPrintln("MoveGen::Generate: Attacks: {}", Convert::BitBoardToString(m_attacks));
 
     if (m_inDoubleCheck) {
+        DebugPrintln("MoveGen::Generate: In double check");
         if (piece.Type() == Enums::Type::King) {
             return GenMoves(piece);
         }
@@ -66,7 +67,7 @@ BitBoard MoveGen::Generate(const Piece* pieces, Index index, u8 castling)
     }
 
     BitBoard bb = GenMoves(piece);
-    DebugPrintln("Moves: {}", Convert::BitBoardToString(bb));
+    DebugPrintln("MoveGen::Generate: Moves: {}", Convert::BitBoardToString(bb));
     return bb;
 }
 
@@ -144,6 +145,14 @@ static int PieceCompare(const Piece& lhs, const Piece& rhs)
 
 
 
+void MoveGen::AddCheck()
+{
+    if (m_inCheck) {
+        m_inDoubleCheck = true;
+    }
+    m_inCheck = true;
+}
+
 int MoveGen::CheckPin(const Piece& piece)
 {
     Index index = piece.Position();
@@ -178,26 +187,25 @@ int MoveGen::CheckPin(const Piece& other, int pinDir)
         return MOVE_END;
     }
 
+    
     if (!m_pinningPiece) {
-        m_pinningPiece = true;
-        m_pinIndex = other.Position();
-
         if (other.Type() == Enums::Type::King) {
-            if (m_inCheck) {
-                m_inDoubleCheck = true;
-            }
-            m_inCheck = true;
+            AddCheck();
+            DebugPrintln("Check: {}, Double: {}", m_inCheck, m_inDoubleCheck);
             return MOVE_UNTIL_NEXT;
         }
-
+        
+        m_pinningPiece = true;
+        m_pinIndex = other.Position();
         return MOVE_UNTIL_NEXT;
     }
 
+    m_pinningPiece = false;
+
     if (other.Type() != Enums::Type::King) {
-        m_pinningPiece = false;
         return MOVE_END;
     }
-
+    
     UpdatePin(pinDir);
     return MOVE_PIN_TO_KING;
 }
@@ -268,6 +276,7 @@ int MoveGen::AddMove(const Piece& piece, Index index, BitBoard& bb)
     // Opposite
     if (!m_generatingAttacks) {
         bb |= Convert::IndexToBitBoard(index);
+        return MOVE_END;
     }
 
     int dir = CalculatePinDir(piece.Position(), other.Position());
