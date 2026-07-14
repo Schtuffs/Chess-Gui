@@ -92,11 +92,11 @@ std::string Renderer::CheckMove(bool isWhitePerspective) const noexcept
     std::string move;
 
     for (size_t i = 0; i < m_buttons.size(); i++) {
-        u8 index = (u8)(isWhitePerspective ? i : 63 - i);
-        const Button& button = m_buttons[index];
-
+        const Button& button = m_buttons[i];
+        
         // Player is making moves
         if (button.IsClicked()) {
+            Index index = (u8)(isWhitePerspective ? i : 63 - i);
             move = Convert::IndexToMove(index);
         }
     }
