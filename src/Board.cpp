@@ -155,7 +155,7 @@ bool Board::ValidateMove(Index start, Index end)
         return false;
     }
     
-    BitBoard movesBB = m_moveGen.Generate(m_pieces, start);
+    BitBoard movesBB = m_moveGen.Generate(m_pieces, start, m_castling);
     if (!movesBB) {
         WarningPrintln("Board::ValidateMove: Invalid piece at start position.");
         return false;
@@ -235,16 +235,13 @@ std::string Board::RecalculateCastling(Index start, Index end)
         }
     }
 
-    DebugPrintln("Doing stuff");
     std::string castle = "";
 
     // Remove all castling if king moved
     if (m_pieces[4].Type() != Enums::Type::King) {
-        DebugPrintln("No white king");
         m_castling &= ~((u8)Enums::Castling::White_King | (u8)Enums::Castling::White_Queen);
     }
     if (m_pieces[60].Type() != Enums::Type::King) {
-        DebugPrintln("No black king");
         m_castling &= ~((u8)Enums::Castling::Black_King | (u8)Enums::Castling::Black_Queen);
     }
     

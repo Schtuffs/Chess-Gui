@@ -95,7 +95,7 @@ void GameManager::OnButtonPress(std::string_view passedMove, bool tryReselect)
     if (m_possibleMoves == MoveGen::INVALID) {
         Index index = Convert::MoveToIndex(passedMove);
         if (CheckPieceSelectable(index)) {
-            m_possibleMoves = m_moveGen.Generate(m_board.Pieces(), index);
+            m_possibleMoves = m_moveGen.Generate(m_board.Pieces(), index, m_board.Castling(m_board.Player()));
         }
 
         if (m_possibleMoves == MoveGen::INVALID) {

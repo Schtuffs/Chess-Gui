@@ -29,11 +29,12 @@ public:
      * @return The `BitBoard` representation of the moves.
      * @date 2026-06-29
      */
-    BitBoard Generate(const Piece* pieces, Index index);
+    BitBoard Generate(const Piece* pieces, Index index, u8 castling);
 
 private:
     const Piece* m_pieceList;
     Index m_pieceIndex;
+    u8 m_castling;
 
     bool m_generatingAttacks, m_inCheck, m_inDoubleCheck, m_pinningPiece;
     Index m_pinIndex;
@@ -41,10 +42,13 @@ private:
 
     void Reset();
 
-    int AddMove(const Piece& piece, const Piece& other, Index index, BitBoard& bb);
-    int AddPawnMove(const Piece& piece, const Piece& other, Index index, BitBoard& bb);
+    int CheckPin(const Piece& piece);
     int CheckPin(const Piece& other, int pinDir);
     void UpdatePin(int pinDir);
+    BitBoard GetPinBitBoard(int pinDir);
+
+    int AddMove(const Piece& piece, Index index, int prevState, BitBoard& bb);
+    int AddPawnMove(const Piece& piece, Index index, BitBoard& bb);
     BitBoard GenAttacks();
 
     BitBoard GenMoves(const Piece& piece);
