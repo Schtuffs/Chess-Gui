@@ -7,11 +7,13 @@
 
 // ----- Creation / Destruction -----
 
-GameManager::GameManager()
-  : m_board(Settings::s(Setting::GAME_STATE)),
-    m_isWhiteTurn(true)
+GameManager::GameManager(std::string_view fen)
+  : m_board(fen),
+    m_moveGen(),
+    m_possibleMoves(0),
+    m_isWhiteTurn(true), m_isWhiteAI(false), m_isBlackAI(false)
 {
-    std::string_view fen = m_board.Fen();
+    fen = m_board.Fen();
     u64 index = fen.find(' ');
     fen = fen.substr(index + 1);
 
@@ -68,13 +70,7 @@ void GameManager::Update(std::string_view move)
 
 bool GameManager::CheckMove(std::string& move)
 {
-    if (m_board.MakeMove(move)) {
-        m_isWhiteTurn = !m_isWhiteTurn;
-        m_moves.push_back(move);
-        return true;
-    }
-
-    return false;
+    return (m_board.MakeMove(move));
 }
 
 bool GameManager::CheckPieceSelectable(Index index)
@@ -104,6 +100,11 @@ void GameManager::OnButtonPress(std::string_view passedMove, bool tryReselect)
     }
     else {
         bool moveCheck = CheckMove(move);
+        if (moveCheck) {
+            m_isWhiteTurn = !m_isWhiteTurn;
+            m_moves.push_back(move);
+            Settings::s(Setting::GAME_FEN, Fen());
+        }
 
         move.clear();
         m_possibleMoves = MoveGen::INVALID;

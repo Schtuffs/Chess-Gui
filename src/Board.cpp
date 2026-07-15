@@ -19,10 +19,10 @@ Board::Board(std::string_view fen)
     m_playerColour(Enums::Colour::White)
 {
     if (!Fen::IsValidFen(m_fen.c_str())) {
-        ErrorPrintln("Invalid fen: {}", m_fen);
+        ErrorPrintln("Board::Board: Invalid fen: {}", m_fen);
         m_fen = DEFAULT_FEN;
     }
-    DebugPrintln("Fen: {}", m_fen);
+    DebugPrintln("Board::Board: Fen: {}", m_fen);
     
     u8 index = 0;
     for (u64 rank = GRID_SIZE - 1; rank < GRID_SIZE; rank--) {

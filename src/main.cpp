@@ -36,8 +36,8 @@ bool IsScreenSwapped(Enums::Screen screen)
 
 int main(void)
 {
+    Utils::SetLogLevel(Utils::LogLevel::INFO);
     Settings::LoadSettings();
-    Utils::SetLogLevel(Utils::LogLevel::DEBUG);
 
     // Prepare window
     SetTraceLogLevel(LOG_WARNING);

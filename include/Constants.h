@@ -82,8 +82,8 @@ namespace Enums {
         Quit,           /**< Quitting the game. */
         Menu,           /**< Main menu screen. */
         NewGame,        /**< New game options screen. */
-        Multiplayer,    /**< Setup multiplayer screen. */
         Game,           /**< Playing a game screen. */
+        Multiplayer,    /**< Setup multiplayer screen. */
         Settings,       /**< Settings screen. */
     };
     
@@ -131,7 +131,7 @@ namespace Enums {
          * @date 2026-07-01
          */
         constexpr const char* Setting[] = {
-            "SAVE_GAME_STATE", "GAME_STATE",
+            "GAME_LOAD", "GAME_FEN",
             "BOARD_TILE_DARK", "BOARD_TILE_LIGHT",
             "TOTAL_SETTINGS",
         };

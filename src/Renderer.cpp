@@ -32,6 +32,8 @@ static void UpdateButtonWithMove(Button& button, u64 moves, u8 index)
     }
 }
 
+
+
 Renderer::Renderer()
 {
     // Make texture size square
@@ -53,9 +55,9 @@ Renderer::Renderer()
                 int index = type * 2 + col;
                 m_textures[index] = texture;
             }
-            else {
-                ErrorPrintln("Renderer::Renderer: Could not create texture: {} {}", Enums::ToString::Colour[col], Enums::ToString::Type[type]);
-            }
+            // else {
+            //     ErrorPrintln("Renderer::Renderer: Could not create texture: {} {}", Enums::ToString::Colour[col], Enums::ToString::Type[type]);
+            // }
         }
     }
     
@@ -238,14 +240,14 @@ void Renderer::FixSize()
     if (!IsWindowResized()) {
         return;
     }
-    DebugPrintln("Fixing");
+    DebugPrintln("Renderer::FixSize: Fixing texture sizes");
 
     Vector3 grid = Utils::GridPositioning();
     m_startX = grid.x;
     m_startY = grid.y;
     m_textureSize = grid.z;
     
-    DebugPrintln("Unloading");
+    DebugPrintln("Renderer::FixSize: Unloading textures");
     for (uint64_t col = 0; col < 2; col++) {
         for (uint64_t type = 0; type < 6; type++) {
             int i = type * 2 + col;
@@ -255,7 +257,7 @@ void Renderer::FixSize()
         }
     }
 
-    DebugPrintln("Reloading");
+    DebugPrintln("Renderer::FixSize: Reloading textures");
     for (u64 col = 0; col < 2; col++) {
         for (u64 type = 0; type < 6; type++) {
             Texture2D texture = Utils::LoadTexture(static_cast<Enums::Colour>(col), static_cast<Enums::Type>(type), m_textureSize);
@@ -264,11 +266,11 @@ void Renderer::FixSize()
                 m_textures[index] = texture;
             }
             else {
-                ErrorPrintln("Renderer::Renderer: Could not create texture: {} {}", Enums::ToString::Colour[col], Enums::ToString::Type[type]);
+                ErrorPrintln("Renderer::FixSize: Could not create texture: {} {}", Enums::ToString::Colour[col], Enums::ToString::Type[type]);
             }
         }
     }
-    DebugPrintln("Reloaded");
+    DebugPrintln("Renderer::FixSize: Reloaded textures");
 
     UpdateButtons(m_buttons);
 }

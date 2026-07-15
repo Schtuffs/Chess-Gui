@@ -85,6 +85,11 @@ Rectangle Utils::ButtonPos(u8 x, u8 y, u8 width, u8 height)
 
 Texture2D Utils::LoadTexture(Enums::Colour colour, Enums::Type type, int size)
 {
+    // Prevent unnecessary warnings at program startup
+    if (size == 0) {
+        return Texture2D{};
+    }
+
     // Check size
     if (size < 1) {
         ErrorPrintln("Utils::LoadTexture: Received invalid size: {}", size);

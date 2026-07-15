@@ -12,8 +12,8 @@
  * @date 2026-07-01 
  */
 enum class Setting {
-    SAVE_GAME_STATE,
-    GAME_STATE,
+    GAME_LOAD,
+    GAME_FEN,
     BOARD_TILE_DARK,
     BOARD_TILE_LIGHT,
     TOTAL_SETTINGS

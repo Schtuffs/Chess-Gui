@@ -21,7 +21,7 @@ public:
      * @brief Constructor.
      * @date 2026-07-01
      */
-    GameManager();
+    GameManager(std::string_view fen);
     
     /**
      * @brief Deconstructor.
