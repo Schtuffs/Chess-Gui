@@ -39,14 +39,14 @@ void TestSuite::invoke() {
                 std::println();
             }
             sFails++;
-            std::println(stderr, "Test #{} failed! {}", i + 1, e.c_str());
+            std::println(stderr, "Test #{} ({}) failed! {}", i + 1, sTestFunctions[i].first, e.c_str());
         }
         catch (...) {
             if (sFails == 0) {
                 std::println();
             }
             sFails++;
-            std::println(stderr, "Test #{} failed! Uncaught exception!", i + 1);
+            std::println(stderr, "Test #{} ({}) failed! Uncaught exception!", i + 1, sTestFunctions[i].first);
         }
     }
 }
@@ -81,7 +81,7 @@ void TestSuite::assertEqual(const void* expected, const void* actual, int length
 void TestSuite::assertNotEqual(const void* expected, const void* actual, int length) {
     if (memcmp(expected, actual, length) == 0) {
         std::stringstream str;
-        str << "<" << expected << "> is not equal to <" << actual << ">";
+        str << "<" << expected << "> is equal to <" << actual << ">";
         TEST_FAIL(str.str());
     }
     TEST_SUCCESS;

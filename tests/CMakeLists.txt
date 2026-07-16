@@ -1,13 +1,11 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.22)
 
-# Setup variables
 set(CMAKE_CXX_STANDARD 23)
 set(SRC ${CMAKE_CURRENT_LIST_DIR}/src)
 set(SUITE ${CMAKE_CURRENT_LIST_DIR}/TestSuite)
 set(INCLUDES ../include ../third_party)
 set(SOURCES ../src)
 
-# Get sources from main system and remove its main file
 file(GLOB ALL_SOURCE_FILES ${SOURCES}/*.cpp)
 list(FILTER ALL_SOURCE_FILES EXCLUDE REGEX ".*/main\\.cpp$")
 
