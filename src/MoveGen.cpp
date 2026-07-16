@@ -39,12 +39,12 @@ MoveGen::MoveGen()
 
 BitBoard MoveGen::Generate(const Piece* pieces, Index index, u8 castling)
 {
-    Reset();
-
     if (pieces == nullptr) {
         WarningPrintln("MoveGen::Generate: Piece list was null;");
         return INVALID;
     }
+
+    Reset();
 
     m_pieceList = pieces;
     m_pieceIndex = index;
@@ -56,7 +56,7 @@ BitBoard MoveGen::Generate(const Piece* pieces, Index index, u8 castling)
         return MoveGen::INVALID;
     }
 
-    // m_attacks = GenAttacks();
+    m_attacks = GenAttacks();
     DebugPrintln("MoveGen::Generate: Attacks: {}", Convert::BitBoardToString(m_attacks));
 
     if (m_inDoubleCheck) {

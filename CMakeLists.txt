@@ -53,3 +53,6 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Werror -Wpedantic)
 endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
+
+add_subdirectory(tests)
+
