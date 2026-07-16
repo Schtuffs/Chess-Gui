@@ -4,23 +4,21 @@ cmake_minimum_required(VERSION 3.25)
 set(CMAKE_CXX_STANDARD 23)
 set(SRC ${CMAKE_CURRENT_LIST_DIR}/src)
 set(SUITE ${CMAKE_CURRENT_LIST_DIR}/TestSuite)
-set(INCLUDES ../include)
+set(INCLUDES ../include ../third_party)
 set(SOURCES ../src)
 
 # Get sources from main system and remove its main file
 file(GLOB ALL_SOURCE_FILES ${SOURCES}/*.cpp)
-list(REMOVE_ITEM ALL_SOURCE_FILES ${SOURCES}/main.cpp)
-message("List: ${ALL_SOURCE_FILES}")
+list(FILTER ALL_SOURCE_FILES EXCLUDE REGEX ".*/main\\.cpp$")
 
-project(Tests CXX)
+project(tests LANGUAGES C CXX)
 add_subdirectory(TestSuite)
 
 add_executable(${PROJECT_NAME}
     ${ALL_SOURCE_FILES}
+    ../third_party/raygui.c
     tests.cpp
 )
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<CONFIG:Release>:UTILS_LOG_NONE>)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR
     ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"
@@ -31,4 +29,5 @@ endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${SUITE} ${INCLUDES})
 target_link_libraries(${PROJECT_NAME} PRIVATE TestSuite)
+target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
 
