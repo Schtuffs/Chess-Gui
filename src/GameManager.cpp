@@ -88,29 +88,35 @@ void GameManager::OnButtonPress(std::string_view passedMove, bool tryReselect)
     bool isSameIndex = (move == passedMove);
     move += passedMove;
 
-    if (m_possibleMoves == MoveGen::INVALID) {
-        Index index = Convert::MoveToIndex(passedMove);
-        if (CheckPieceSelectable(index)) {
-            m_possibleMoves = m_moveGen.Generate(m_board.Pieces(), index, m_board.Castling(m_board.Player()));
-        }
-
-        if (m_possibleMoves == MoveGen::INVALID) {
-            move.clear();
-        }
-    }
-    else {
+    // Part of a current move
+    if (move.length() >= 4) {
         bool moveCheck = CheckMove(move);
         if (moveCheck) {
             m_isWhiteTurn = !m_isWhiteTurn;
             m_moves.push_back(move);
-            Settings::s(Setting::GAME_FEN, Fen());
+            Settings::s(Setting::GAME_FEN, Fen().data());
         }
 
         move.clear();
         m_possibleMoves = MoveGen::INVALID;
         
+        // For reselection
         if (!moveCheck && tryReselect && !isSameIndex) {
             OnButtonPress(passedMove, false);
+        }
+    }
+    // No current move, add it in
+    else {
+        Index index = Convert::MoveToIndex(passedMove);
+        if (CheckPieceSelectable(index)) {
+            m_possibleMoves = m_moveGen.Generate(m_board.Pieces(), index, m_board.Castling(m_board.Player()));
+            if (tryReselect) {
+                OnButtonPress(passedMove.substr(2), false);
+            }
+        }
+
+        if (m_possibleMoves == MoveGen::INVALID) {
+            move.clear();
         }
     }
 }

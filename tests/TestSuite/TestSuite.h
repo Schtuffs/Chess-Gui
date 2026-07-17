@@ -12,11 +12,12 @@
 
 /**
  * @brief Testing suite
- * @class TestSuite
+ * @namespace TestSuite
  * @date 2025-11-27
  */
-class TestSuite {
-public:
+namespace TestSuite {
+
+    void RunTests();
     
     // ----- Asserts -----
 
@@ -26,14 +27,14 @@ public:
      * @date 2025-11-27
      */
     // Checks if the value is true
-    static void assertTrue(bool val);
+    void assertTrue(bool val);
     
     /**
      * @brief Checks if the value is false.
      * @param val a hopefully false value.
      * @date 2025-11-27
      */
-    static void assertFalse(bool val);
+    void assertFalse(bool val);
     
     /**
      * @brief Checks if the expected value is equal to the actual value. Bytes length required.
@@ -42,7 +43,7 @@ public:
      * @param length the length of the bytes.
      * @date 2025-11-27
      */
-    static void assertEqual(const void* expected, const void* actual, int length);
+    void assertEqual(const void* expected, const void* actual, int length);
     
     /**
      * @brief Checks if the expected value is equal to the actual value. Type T must have operator ==.
@@ -51,7 +52,7 @@ public:
      * @date 2025-11-27
      */
     template <typename T>
-    static void assertEqual(const T& expected, const T& actual) {
+    void assertEqual(const T& expected, const T& actual) {
         if (expected == actual) {
             TEST_SUCCESS;
         }
@@ -69,7 +70,7 @@ public:
      * @param length the length of the bytes.
      * @date 2026-07-15
      */
-    static void assertNotEqual(const void* expected, const void* actual, int length);
+    void assertNotEqual(const void* expected, const void* actual, int length);
     
     /**
      * @brief Checks if the expected value is not equal to the actual value. Type T must have operator ==.
@@ -78,7 +79,7 @@ public:
      * @date 2025-11-27
      */
     template <typename T>
-    static void assertNotEqual(const T& expected, const T& actual) {
+    void assertNotEqual(const T& expected, const T& actual) {
         if (expected == actual) {
             std::stringstream str;
             str << "<" << expected << "> is equal to <" << actual << ">";
@@ -93,17 +94,7 @@ public:
      * @param function the lambda function for testing.
      * @date 2025-11-27
      */
-    static void add(const char* testName, std::function<void()> function);
-
-private:
-    static std::vector<std::pair<const char*, std::function<void()>>> sTestFunctions;
-    static int sPasses, sFails;
-    static TestSuite sSuite;
-
-    // Inaccessible functions
-    TestSuite();
-    static void invoke();
-    ~TestSuite();
+    void add(const char* testName, std::function<void()> function);
 };
 
 #define TEST(__test_name, ...) TestSuite::add(__test_name, __VA_ARGS__)

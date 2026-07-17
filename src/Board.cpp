@@ -100,6 +100,13 @@ Board::Board(std::string_view fen)
         m_enPassant = Convert::MoveToIndex(enPassant);
         m_pieces[m_enPassant] = Piece(m_enPassant);
     }
+
+    std::string_view halfMoves = enPassant.substr(enPassant.find(' ') + 1);
+    
+    std::string_view fullMoves = halfMoves.substr(halfMoves.find(' ') + 1);
+    if (fullMoves.length() == 1 && fullMoves[0] == '1') {
+        m_fen[m_fen.length() - 1] = '0';
+    }
 }
 
 Board::~Board()
@@ -172,6 +179,25 @@ bool Board::ValidateMove(Index start, Index end)
 
 bool Board::MakeMove(std::string_view move)
 {
+    // Short castle
+    if (move == "O-O") {
+        if (m_playerColour == Enums::Colour::White) {
+            move = "e1g1";
+        }
+        else if (m_playerColour == Enums::Colour::Black) {
+            move = "e8g8";
+        }
+    }
+    // Long castle
+    else if (move == "O-O-O") {
+        if (m_playerColour == Enums::Colour::White) {
+            move = "e1c1";
+        }
+        else if (m_playerColour == Enums::Colour::Black) {
+            move = "e8c8";
+        }
+    }
+
     Index startPos = Convert::MoveToIndex(move);
     Index endPos = Convert::MoveToIndex(move.substr(2));
 
@@ -184,8 +210,8 @@ bool Board::MakeMove(std::string_view move)
         m_playerColour == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White
     );
 
-    Piece& piece = m_pieces[startPos];
     Piece other = MovePiece(startPos, endPos);
+    const Piece& piece = m_pieces[endPos];
     
     char player = RecalculatePlayer();
     std::string castling = RecalculateCastling(startPos, endPos);
@@ -318,14 +344,17 @@ std::string Board::RecalculateEnPassant(Index start, Index end)
 
 u32 Board::RecalculateHalfMoves(bool isCaptureOrPawn)
 {
+    if (isCaptureOrPawn) {
+        return 0;
+    }
+
     std::string_view strHalfMoves = m_fen.substr(m_fen.find(' ') + 1);
     strHalfMoves = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
     strHalfMoves = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
     strHalfMoves = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
 
     u32 halfMoves = std::stoul(strHalfMoves.data());
-    
-    return (isCaptureOrPawn ? 0 : halfMoves + 1);
+    return (halfMoves + 1);
     
 }
 
@@ -338,7 +367,7 @@ u32 Board::RecalculateFullMoves()
     strHalfMoves = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
     
     u32 fullMoves = std::stoul(strHalfMoves.data());
-    if (m_playerColour == Enums::Colour::White) {
+    if (m_playerColour == Enums::Colour::Black) {
         fullMoves++;
     }
 

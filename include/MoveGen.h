@@ -26,6 +26,7 @@ public:
      * @brief Generates moves for a given `Piece`.
      * @param pieces The current `Piece` list.
      * @param index The `Index` of the `Piece` to generate moves for.
+     * @param castling The castling rights of the current player's king.
      * @return The `BitBoard` representation of the moves.
      * @date 2026-06-29
      */

@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.22)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(SRC ${CMAKE_CURRENT_LIST_DIR}/src)
 set(SUITE ${CMAKE_CURRENT_LIST_DIR}/TestSuite)
 set(INCLUDES ../include ../third_party)
@@ -16,6 +18,9 @@ add_executable(${PROJECT_NAME}
     ${ALL_SOURCE_FILES}
     ../third_party/raygui.c
     tests.cpp
+    BoardTests.cpp
+    GameManagerTests.cpp
+    MoveGenTests.cpp
 )
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR

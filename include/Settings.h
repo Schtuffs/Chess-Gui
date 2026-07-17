@@ -2,7 +2,6 @@
 
 #include <cfloat>
 #include <string>
-#include <string_view>
 
 #include "Constants.h"
 
@@ -144,6 +143,6 @@ namespace Settings {
      * @return `true` on success and valid type.
      * @date 2026-07-01
      */
-    bool s(Setting setting, std::string_view value);
+    bool s(Setting setting, const std::string& value);
 }
 

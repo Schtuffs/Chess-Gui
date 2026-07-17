@@ -5,31 +5,15 @@
 #include <string>
 #include <sstream>
 
-int TestSuite::sPasses = 0;
-int TestSuite::sFails = 0;
-std::vector<std::pair<const char*, std::function<void()>>> TestSuite::sTestFunctions;
-TestSuite TestSuite::sSuite;
-
-TestSuite::TestSuite() {
-    // Nothing todo
-}
-
-TestSuite::~TestSuite() {
-    // Invoke the tests
-    this->invoke();
-
-    // Print data
-    std::println("\nPasses: {}, Fails: {}, Success: {}%\n", sPasses, sFails, ((sPasses / (double)(sPasses + sFails)) * 100));
-
-    // Exit program with the number of fails
-    exit(sFails);
-}
+int sPasses = 0;
+int sFails = 0;
+std::vector<std::pair<const char*, std::function<void()>>> sTestFunctions;
 
 void TestSuite::add(const char* name, std::function<void()> function) {
     sTestFunctions.push_back({name, function});
 }
 
-void TestSuite::invoke() {
+void TestSuite::RunTests() {
     for (size_t i = 0; i < sTestFunctions.size(); i++) {
         try {
             sTestFunctions[i].second();
@@ -49,6 +33,12 @@ void TestSuite::invoke() {
             std::println(stderr, "Test #{} ({}) failed! Uncaught exception!", i + 1, sTestFunctions[i].first);
         }
     }
+
+    // Print data
+    std::println("\nPasses: {}, Fails: {}, Success: {}%\n", sPasses, sFails, ((sPasses / (double)(sPasses + sFails)) * 100));
+
+    // Exit program with the number of fails
+    exit(sFails);
 }
 
 

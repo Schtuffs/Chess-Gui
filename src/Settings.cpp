@@ -1,29 +1,18 @@
 #include "Settings.h"
 
+#include <array>
 #include <cstring>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <print>
-#include <tuple>
-#include <vector>
-
-#include "raylib.h"
+#include <utility>
 
 #include "Convert.h"
 #include "Utils.h"
 
 constexpr const char* SETTINGS_FILE = "./settings.txt";
 constexpr char SETTINGS_DELIM       = ':';
-
-typedef struct ManyType {
-    u8 b  =  UINT8_MAX;
-    u32 i = UINT32_MAX;
-    u64 l = UINT64_MAX;
-    float f  = FLT_MAX;
-    double d = DBL_MAX;
-    std::string s = "";
-} ManyType;
 
 enum class ActualType {
     U8,
@@ -34,10 +23,19 @@ enum class ActualType {
     STRING,
 };
 
-static std::vector<std::tuple<ManyType, ActualType>> s_settingData;
+typedef struct ManyType {
+    u8 b  =  UINT8_MAX;
+    u32 i = UINT32_MAX;
+    u64 l = UINT64_MAX;
+    float f  = FLT_MAX;
+    double d = DBL_MAX;
+    std::string s = "";
+} ManyType;
 
-static Setting DetermineSetting(std::string_view key);
-static void SetSetting(Setting setting, ActualType type, std::string_view value);
+static std::array<std::pair<ActualType, ManyType>, (u64)Setting::TOTAL_SETTINGS> s_settingData;
+
+static Setting DetermineSetting(const std::string& key);
+static void SetSetting(Setting setting, ActualType type, const std::string& value);
 
 
 
@@ -45,31 +43,30 @@ static void SetSetting(Setting setting, ActualType type, std::string_view value)
 
 static void DefaultSettings()
 {
-    s_settingData.resize((u64)Setting::TOTAL_SETTINGS);
-
     if (s_settingData.size() != (u64)Setting::TOTAL_SETTINGS) {
         ErrorPrintln("Settings::DefaultSettings: Settings data not all initialized to default values");
         exit(1);
     }
+    
     for (u64 i = 0; i < (u64)Setting::TOTAL_SETTINGS; i++) {
         // This is used so the compiler warns about not all paths being implemented
         switch ((Setting)i) {
         case Setting::GAME_LOAD:
-            s_settingData[i] = std::tuple<ManyType, ActualType>{{.b = true}, ActualType::U8};
+            s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::U8, {.b = true}};
             break;
         case Setting::GAME_FEN:
-            s_settingData[i] = std::tuple<ManyType, ActualType>{{.s = DEFAULT_FEN.data()}, ActualType::STRING};
+            s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::STRING, {.s = DEFAULT_FEN.data()}};
             break;
         case Setting::BOARD_TILE_DARK: {
             Color dark = {100, 75, 60, 255};
             u32 val = Convert::ColorToU32(dark);
-            s_settingData[i] = std::tuple<ManyType, ActualType>{{.i = val}, ActualType::U32};
+            s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::U32, {.i = val}};
             break;
         }
         case Setting::BOARD_TILE_LIGHT: {
             Color light = {175, 150, 120, 255};
             u32 val = Convert::ColorToU32(light);
-            s_settingData[i] = std::tuple<ManyType, ActualType>{{.i = val}, ActualType::U32};
+            s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::U32, {.i = val}};
             break;
         }
         case Setting::TOTAL_SETTINGS:
@@ -104,7 +101,7 @@ bool Settings::LoadSettings()
         value = token;
 
         Setting setting = DetermineSetting(key);
-        ActualType type = std::get<1>(s_settingData[(u64)setting]);
+        ActualType type = (s_settingData[(u64)setting]).first;
         SetSetting(setting, type, value);
     }
 
@@ -125,24 +122,24 @@ bool Settings::SaveSettings()
         file << Enums::ToString::Setting[i] << SETTINGS_DELIM;
 
         const auto& item = s_settingData[i];
-        switch (std::get<1>(item)) {
+        switch (std::get<0>(item)) {
         case ActualType::U8:
-            file << (u16)std::get<0>(item).b;
+            file << (u16)std::get<1>(item).b;
             break;
         case ActualType::U32:
-            file << std::get<0>(item).i;
+            file << std::get<1>(item).i;
             break;
         case ActualType::U64:
-            file << std::get<0>(item).l;
+            file << std::get<1>(item).l;
             break;
         case ActualType::FLOAT:
-            file << std::get<0>(item).f;
+            file << std::get<1>(item).f;
             break;
         case ActualType::DOUBLE:
-            file << std::get<0>(item).d;
+            file << std::get<1>(item).d;
             break;
         case ActualType::STRING:
-            file << std::get<0>(item).s;
+            file << std::get<1>(item).s;
             break;
         }
 
@@ -160,35 +157,35 @@ bool Settings::SaveSettings()
 
 u8 Settings::b(Setting setting)
 {
-    return std::get<0>(s_settingData[(u64)setting]).b;
+    return (s_settingData[(u64)setting]).second.b;
 }
 
 u32 Settings::i(Setting setting)
 {
-    return std::get<0>(s_settingData[(u64)setting]).i;
+    return (s_settingData[(u64)setting]).second.i;
 }
 
 u64 Settings::l(Setting setting)
 {
-    return std::get<0>(s_settingData[(u64)setting]).l;
+    return (s_settingData[(u64)setting]).second.l;
 }
 
 float Settings::f(Setting setting)
 {
-    return std::get<0>(s_settingData[(u64)setting]).f;
+    return (s_settingData[(u64)setting]).second.f;
 }
 
 double Settings::d(Setting setting)
 {
-    return std::get<0>(s_settingData[(u64)setting]).d;
+    return (s_settingData[(u64)setting]).second.d;
 }
 
 std::string Settings::s(Setting setting)
 {
-    return std::get<0>(s_settingData[(u64)setting]).s;
+    return (s_settingData[(u64)setting]).second.s;
 }
 
-static Setting DetermineSetting(std::string_view key)
+static Setting DetermineSetting(const std::string& key)
 {
     for (int i = 0; i < (int)Setting::TOTAL_SETTINGS; i++) {
         if (key == Enums::ToString::Setting[i]) {
@@ -205,65 +202,71 @@ static Setting DetermineSetting(std::string_view key)
 
 bool Settings::b(Setting setting, u8 value)
 {
-    if (std::get<1>(s_settingData[(u64)setting]) != ActualType::U8) {
+    u64 index = static_cast<u64>(setting);
+    if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::U8) {
         return false;
     }
     
-    std::get<0>(s_settingData[(u64)setting]).b = value;
+    (s_settingData[index]).second.b = value;
     return true;
 }
 
 bool Settings::i(Setting setting, u32 value)
 {
-    if (std::get<1>(s_settingData[(u64)setting]) != ActualType::U32) {
+    u64 index = static_cast<u64>(setting);
+    if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::U32) {
         return false;
     }
     
-    std::get<0>(s_settingData[(u64)setting]).i = value;
+    (s_settingData[index]).second.i = value;
     return true;
 }
 
 bool Settings::l(Setting setting, u64 value)
 {
-    if (std::get<1>(s_settingData[(u64)setting]) != ActualType::U64) {
+    u64 index = static_cast<u64>(setting);
+    if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::U64) {
         return false;
     }
     
-    std::get<0>(s_settingData[(u64)setting]).l = value;
+    (s_settingData[index]).second.l = value;
     return true;
 }
 
 bool Settings::f(Setting setting, float value)
 {
-    if (std::get<1>(s_settingData[(u64)setting]) != ActualType::FLOAT) {
+    u64 index = static_cast<u64>(setting);
+    if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::FLOAT) {
         return false;
     }
     
-    std::get<0>(s_settingData[(u64)setting]).f = value;
+    (s_settingData[index]).second.f = value;
     return true;
 }
 
 bool Settings::d(Setting setting, double value)
 {
-    if (std::get<1>(s_settingData[(u64)setting]) != ActualType::DOUBLE) {
+    u64 index = static_cast<u64>(setting);
+    if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::DOUBLE) {
         return false;
     }
     
-    std::get<0>(s_settingData[(u64)setting]).d = value;
+    (s_settingData[index]).second.d = value;
     return true;
 }
 
-bool Settings::s(Setting setting, std::string_view value)
+bool Settings::s(Setting setting, const std::string& value)
 {
-    if (std::get<1>(s_settingData[(u64)setting]) != ActualType::STRING) {
+    u64 index = static_cast<u64>(setting);
+    if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::STRING) {
         return false;
     }
-
-    std::get<0>(s_settingData[(u64)setting]).s = value.data();
+    
+    (s_settingData[index]).second.s = std::string(value);
     return true;
 }
 
-static void SetSetting(Setting setting, ActualType type, std::string_view value)
+static void SetSetting(Setting setting, ActualType type, const std::string& value)
 {
     switch(type) {
     case ActualType::U8:
