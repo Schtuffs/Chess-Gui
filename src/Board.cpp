@@ -161,6 +161,11 @@ bool Board::ValidateMove(Index start, Index end)
         InfoPrintln("Board::ValidateMove: Piece returned to starting position.");
         return false;
     }
+
+    const Piece& piece = m_pieces[start];
+    if (piece.Colour() != m_playerColour) {
+        return false;
+    }
     
     BitBoard movesBB = m_moveGen.Generate(m_pieces, start, m_castling);
     if (!movesBB) {

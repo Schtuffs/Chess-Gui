@@ -132,6 +132,16 @@ static void MiscTests()
 
         TestSuite::assertEqual(expected, actual);
     });
+
+    TEST("MoveGen::Generate: invalid piece", [](){
+        BitBoard expected = MoveGen::INVALID;
+        Board b(DEFAULT_FEN);
+
+        MoveGen gen;
+        BitBoard actual = gen.Generate(b.Pieces(), 34, b.Castling(b.Player()));
+
+        TestSuite::assertEqual(expected, actual);
+    });
 }
 
 void MoveGenTests()
