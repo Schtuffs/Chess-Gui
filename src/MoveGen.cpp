@@ -285,10 +285,13 @@ static int CalculatePinDir(Index lhs, Index rhs)
 
 int MoveGen::AddMove(const Piece& piece, Index index)
 {
+    if (index >= GRID_SIZE * GRID_SIZE) {
+        WarningPrintln("MoveGen::AddMove: Index out of bounds: {}", index);
+    }
+
     const Piece& other = m_pieceList[index];
     int compare = PieceCompare(piece, other);
 
-    DebugPrintln("Compare: {}", compare);
     if (piece.Type() != Enums::Type::King && CheckForCheck(index)) {
         if (compare == 0) {
             return MOVE_END;

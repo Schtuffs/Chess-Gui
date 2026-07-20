@@ -84,10 +84,15 @@ bool GameManager::CheckPieceSelectable(Index index)
 
 void GameManager::OnButtonPress(std::string_view passedMove, bool tryReselect)
 {
+    if (passedMove.length() < 2) {
+        WarningPrintln("GameManager::OnButtonPress: passed move too small: \"{}\"", passedMove);
+        return;
+    }
+    
     static std::string move;
     bool isSameIndex = (move == passedMove);
     move += passedMove;
-
+    
     // Part of a current move
     if (move.length() >= 4) {
         bool moveCheck = CheckMove(move);
@@ -96,7 +101,7 @@ void GameManager::OnButtonPress(std::string_view passedMove, bool tryReselect)
             m_moves.push_back(move);
             Settings::s(Setting::GAME_FEN, Fen().data());
         }
-
+        
         move.clear();
         m_possibleMoves = MoveGen::INVALID;
         
@@ -110,11 +115,11 @@ void GameManager::OnButtonPress(std::string_view passedMove, bool tryReselect)
         Index index = Convert::MoveToIndex(passedMove);
         if (CheckPieceSelectable(index)) {
             m_possibleMoves = m_moveGen.Generate(m_board.Pieces(), index, m_board.Castling(m_board.Player()));
-            if (tryReselect) {
+            if (tryReselect && passedMove.length() > 2) {
                 OnButtonPress(passedMove.substr(2), false);
             }
         }
-
+        
         if (m_possibleMoves == MoveGen::INVALID) {
             move.clear();
         }

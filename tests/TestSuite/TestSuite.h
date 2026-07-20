@@ -17,7 +17,7 @@
  */
 namespace TestSuite {
 
-    void RunTests();
+    int RunTests(int argc, char** argv);
     
     // ----- Asserts -----
 

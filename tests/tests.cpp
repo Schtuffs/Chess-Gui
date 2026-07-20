@@ -8,14 +8,14 @@ void BoardTests(void);
 void GameManagerTests(void);
 void MoveGenTests(void);
 
-int main(void) {
+int main(int argc, char** argv) {
     Settings::LoadSettings();
     
     BoardTests();
     GameManagerTests();
     MoveGenTests();
 
-    TestSuite::RunTests();
+    TestSuite::RunTests(argc, argv);
 
     return 0;
 }

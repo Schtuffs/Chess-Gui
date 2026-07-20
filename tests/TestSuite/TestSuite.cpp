@@ -1,5 +1,6 @@
 #include "TestSuite.h"
 
+#include <cstdint>
 #include <iostream>
 #include <print>
 #include <string>
@@ -7,13 +8,67 @@
 
 int sPasses = 0;
 int sFails = 0;
+
 std::vector<std::pair<const char*, std::function<void()>>> sTestFunctions;
+static uint32_t sThreadCount = 1;
+
+static std::vector<std::string> CreateArgList(int argc, char** argv)
+{
+    std::vector<std::string> args;
+    args.reserve(argc - 1);
+    for (int i = 1; i < argc; i++) {
+        args.push_back(argv[i]);
+    }
+    return args;
+}
+
+static void ParseArgs(int argc, char** argv)
+{
+    constexpr const char* ARG_THREADS       = "-n";
+    // constexpr const char* ARG_HELP_SHORT    = "-h";
+    // constexpr const char* ARG_HELP_LONG     = "-help";
+    // constexpr const char* ARG_HELP_QUESTION = "-?";
+
+    std::vector args = CreateArgList(argc, argv);
+
+    bool argRequiresNext = false;
+    std::string prevArg;
+    char firstPrint = '\n';
+    for (const auto& arg : args) {
+        if (argRequiresNext) {
+            argRequiresNext = false;
+
+            if (prevArg == ARG_THREADS) {
+                try {
+                    sThreadCount = std::stoi(arg);
+                } catch (...) {
+                    std::println("{}ERROR: Failed to parse threads from: {}", firstPrint, arg);
+                    firstPrint = '\0';
+                }
+            }
+            
+            continue;
+        }
+        
+        if (arg == ARG_THREADS) {
+            argRequiresNext = true;
+            prevArg = arg;
+            continue;
+        }
+        
+        std::println(stderr, "{}ERROR: Unknown argument: {}", firstPrint, arg);
+        firstPrint = '\0';
+    }
+    std::println("\nRunning with {} threads", sThreadCount);
+}
 
 void TestSuite::add(const char* name, std::function<void()> function) {
     sTestFunctions.push_back({name, function});
 }
 
-void TestSuite::RunTests() {
+int TestSuite::RunTests(int argc, char** argv) {
+    ParseArgs(argc, argv);
+    
     for (size_t i = 0; i < sTestFunctions.size(); i++) {
         try {
             sTestFunctions[i].second();
@@ -38,7 +93,7 @@ void TestSuite::RunTests() {
     std::println("\nPasses: {}, Fails: {}, Success: {}%\n", sPasses, sFails, ((sPasses / (double)(sPasses + sFails)) * 100));
 
     // Exit program with the number of fails
-    exit(sFails);
+    return (sFails);
 }
 
 
