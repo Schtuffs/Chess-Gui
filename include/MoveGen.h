@@ -57,6 +57,7 @@ private:
 
     bool IsSquareAttacked(Index index);
     BitBoard GenAttacks();
+    void ResetAttackPiece();
 
     BitBoard GenMoves(const Piece& piece);
 

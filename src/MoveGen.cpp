@@ -125,6 +125,12 @@ BitBoard MoveGen::GenAttacks()
     return bb;
 }
 
+void MoveGen::ResetAttackPiece()
+{
+    m_pinningPiece = false;
+    m_currentMoves = 0;
+}
+
 
 
 /**
@@ -380,6 +386,8 @@ int MoveGen::AddPawnMove(const Piece& piece, Index index)
 
 BitBoard MoveGen::GenSliding(const Piece& piece, i32 offset, Index mod)
 {
+    ResetAttackPiece();
+
     BitBoard bb = 0;
     
     bool untilNext = false;
@@ -487,6 +495,8 @@ BitBoard MoveGen::GenCastling(const Piece& piece)
 
 BitBoard MoveGen::GenKing(const Piece& piece)
 {
+    ResetAttackPiece();
+    
     Index pos = piece.Position();
     BitBoard bb = 0;
 
@@ -535,6 +545,8 @@ BitBoard MoveGen::GenKing(const Piece& piece)
 
 BitBoard MoveGen::GenKnight(const Piece& piece)
 {
+    ResetAttackPiece();
+    
     constexpr int HOP_INVALID   = 0x7f;
     Index pos = piece.Position();
     BitBoard bb = 0;
@@ -577,6 +589,8 @@ BitBoard MoveGen::GenKnight(const Piece& piece)
 
 BitBoard MoveGen::GenPawn(const Piece& piece)
 {
+    ResetAttackPiece();
+    
     const i8 offset = ((piece.Colour() == Enums::Colour::White) ? (i8)GRID_SIZE : (-(i8)GRID_SIZE));
     const Index rank = ((piece.Colour() == Enums::Colour::White) ? 1 : (GRID_SIZE - 2));
 
