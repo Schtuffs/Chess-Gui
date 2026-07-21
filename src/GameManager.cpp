@@ -11,6 +11,7 @@ GameManager::GameManager(std::string_view fen)
   : m_board(fen),
     m_moveGen(),
     m_possibleMoves(0),
+    m_promotionSquare(GRID_SIZE * GRID_SIZE),
     m_isWhiteTurn(true), m_isWhiteAI(false), m_isBlackAI(false)
 {
     fen = m_board.Fen();
@@ -88,6 +89,27 @@ void GameManager::OnButtonPress(std::string_view passedMove, bool tryReselect)
         WarningPrintln("GameManager::OnButtonPress: passed move too small: \"{}\"", passedMove);
         return;
     }
+
+    if (m_promotionSquare < GRID_SIZE * GRID_SIZE) {
+        constexpr u8 TOTAL_PROMOTIONS = 4;
+        constexpr Enums::Type PROMOTIONS[TOTAL_PROMOTIONS]  = {Enums::Type::Bishop, Enums::Type::Knight, Enums::Type::Queen, Enums::Type::Rook};
+        constexpr const char* PROMOTIONS_CHAR               = "bkqr";
+        Index movePos = Convert::MoveToIndex(passedMove);
+        i8 sign = (m_promotionSquare / GRID_SIZE == 0 ? 1 : -1);
+
+        for (u8 i = 0; i < TOTAL_PROMOTIONS; i++) {
+            Index index = m_promotionSquare + (sign * (i8)(i * GRID_SIZE));
+            if (index == movePos) {
+                if (m_board.PromotePiece(m_promotionSquare, PROMOTIONS[i])) {
+                    m_moves[m_moves.size() - 1] += PROMOTIONS_CHAR[i];
+                    m_promotionSquare = GRID_SIZE * GRID_SIZE;
+                }
+                return;
+            }
+        }
+        
+        return;
+    }
     
     static std::string move;
     bool isSameIndex = (move == passedMove);
@@ -97,9 +119,7 @@ void GameManager::OnButtonPress(std::string_view passedMove, bool tryReselect)
     if (move.length() >= 4) {
         bool moveCheck = CheckMove(move);
         if (moveCheck) {
-            m_isWhiteTurn = !m_isWhiteTurn;
-            m_moves.push_back(move);
-            Settings::s(Setting::GAME_FEN, Fen().data());
+            OnValidMove(move);
         }
         
         move.clear();
@@ -125,3 +145,37 @@ void GameManager::OnButtonPress(std::string_view passedMove, bool tryReselect)
         }
     }
 }
+
+void GameManager::OnValidMove(std::string_view move)
+{
+    m_isWhiteTurn = !m_isWhiteTurn;
+    m_moves.push_back(move.data());
+    Settings::s(Setting::GAME_FEN, Fen().data());
+
+    CheckForPromotion(move);
+    CheckForCheckmate();
+}
+
+void GameManager::CheckForPromotion(std::string_view move)
+{
+    move = move.substr(2);
+    Index index = Convert::MoveToIndex(move);
+    const Piece& piece = m_board.Pieces()[index];
+    
+    if (piece.Type() != Enums::Type::Pawn) {
+        return;
+    }
+
+    if (index / GRID_SIZE == 0 && piece.Colour() == Enums::Colour::Black) {
+        m_promotionSquare = index;
+    }
+    else if (index / GRID_SIZE == (GRID_SIZE - 1) && piece.Colour() == Enums::Colour::White) {
+        m_promotionSquare = index;
+    }
+}
+
+void GameManager::CheckForCheckmate()
+{
+
+}
+

@@ -69,6 +69,15 @@ public:
      */
     bool MakeMove(std::string_view move);
     
+    /**
+     * @brief Attempt to make a move on the board.
+     * @param index The index of the piece to promote.
+     * @param type The type of piece to promote the pawn to.
+     * @return `true` on piece successfully promoted.
+     * @date 2026-07-20
+     */
+    bool PromotePiece(Index index, Enums::Type type);
+    
 private:
     std::string m_fen;
     Piece m_pieces[64];

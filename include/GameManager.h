@@ -66,10 +66,15 @@ private:
     Board m_board;
     MoveGen m_moveGen;
     BitBoard m_possibleMoves;
+    Index m_promotionSquare;
     bool m_isWhiteTurn, m_isWhiteAI, m_isBlackAI;
 
     bool CheckMove(std::string& move);
     bool CheckPieceSelectable(Index index);
     void OnButtonPress(std::string_view passedMove, bool tryReselect);
+    void OnValidMove(std::string_view move);
+
+    void CheckForPromotion(std::string_view move);
+    void CheckForCheckmate();
 };
 

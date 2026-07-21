@@ -150,38 +150,6 @@ Enums::Colour Board::Player() const noexcept
 
 // ----- Update -----
 
-bool Board::ValidateMove(Index start, Index end)
-{
-    if (start >= GRID_SIZE * GRID_SIZE || end >= GRID_SIZE * GRID_SIZE) {
-        WarningPrintln("Board::ValidateMove: Invalid start or end pos: {}, {}", start, end);
-        return false;
-    }
-    
-    if (start == end) {
-        InfoPrintln("Board::ValidateMove: Piece returned to starting position.");
-        return false;
-    }
-
-    const Piece& piece = m_pieces[start];
-    if (piece.Colour() != m_playerColour) {
-        return false;
-    }
-    
-    BitBoard movesBB = m_moveGen.Generate(m_pieces, start, m_castling);
-    if (!movesBB) {
-        WarningPrintln("Board::ValidateMove: Invalid piece at start position.");
-        return false;
-    }
-    
-    BitBoard indexBB = Convert::IndexToBitBoard(end);
-    if ((indexBB & movesBB) == 0) {
-        InfoPrintln("Board::ValidateMove: End position was invalid.");
-        return false;
-    }
-
-    return true;
-}
-
 bool Board::MakeMove(std::string_view move)
 {
     // Short castle
@@ -229,7 +197,68 @@ bool Board::MakeMove(std::string_view move)
     return true;
 }
 
+bool Board::PromotePiece(Index index, Enums::Type type)
+{
+    DebugPrintln("Promoting: {}, {}", index, Enums::ToString::Type[(u8)type]);
+    // In index
+    if (index >= GRID_SIZE * GRID_SIZE) {
+        return false;
+    }
+
+    // Valid promotion type
+    if (type != Enums::Type::Bishop &&
+        type != Enums::Type::Knight &&
+        type != Enums::Type::Queen  &&
+        type != Enums::Type::Rook
+    ) {
+        return false;
+    }
+
+    // Promote pawn
+    if (m_pieces[index].Type() != Enums::Type::Pawn) {
+        return false;
+    }
+
+    // Add the piece
+    Enums::Colour colour = m_pieces[index].Colour();
+    m_pieces[index] = Piece(colour, type, index);
+
+    return true;
+}
+
 // ----- Hidden -----
+
+bool Board::ValidateMove(Index start, Index end)
+{
+    if (start >= GRID_SIZE * GRID_SIZE || end >= GRID_SIZE * GRID_SIZE) {
+        WarningPrintln("Board::ValidateMove: Invalid start or end pos: {}, {}", start, end);
+        return false;
+    }
+    
+    if (start == end) {
+        InfoPrintln("Board::ValidateMove: Piece returned to starting position.");
+        return false;
+    }
+
+    const Piece& piece = m_pieces[start];
+    if (piece.Colour() != m_playerColour) {
+        return false;
+    }
+    
+    BitBoard movesBB = m_moveGen.Generate(m_pieces, start, m_castling);
+    if (!movesBB) {
+        WarningPrintln("Board::ValidateMove: Invalid piece at start position.");
+        return false;
+    }
+    
+    BitBoard indexBB = Convert::IndexToBitBoard(end);
+    if ((indexBB & movesBB) == 0) {
+        InfoPrintln("Board::ValidateMove: End position was invalid.");
+        return false;
+    }
+
+    return true;
+}
 
 Piece Board::MovePiece(Index start, Index end)
 {
