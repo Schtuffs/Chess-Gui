@@ -343,7 +343,10 @@ std::string Board::RecalculateEnPassant(Index start, Index end)
 {
     // Remove old en passant
     if (m_enPassant != INVALID_ENPASSANT) {
-        if (!m_pieces[m_enPassant].IsValid()) {
+        if (m_pieces[m_enPassant].IsValid()) {
+            i8 offset = (m_pieces[m_enPassant].Colour() == Enums::Colour::White ? -(i8)(GRID_SIZE) : (i8)(GRID_SIZE));
+            m_pieces[m_enPassant + offset] = Piece();
+        } else {
             m_pieces[m_enPassant] = Piece();
         }
         m_enPassant = INVALID_ENPASSANT;

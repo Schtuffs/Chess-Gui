@@ -142,6 +142,16 @@ static void MiscTests()
 
         TestSuite::assertEqual(expected, actual);
     });
+
+    TEST("MoveGen::Generate: en passant", [](){
+        BitBoard expected = 0x00'00'18'08'00'00'00'00;
+        Board b("rnbqkbnr/pppp1ppp/8/3Pp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 2");
+
+        MoveGen gen;
+        BitBoard actual = gen.Generate(b.Pieces(), 35, b.Castling(b.Player()));
+
+        TestSuite::assertEqual(expected, actual);
+    });
 }
 
 void MoveGenTests()

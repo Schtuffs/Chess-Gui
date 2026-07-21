@@ -363,7 +363,7 @@ int MoveGen::AddPawnMove(const Piece& piece, Index index)
     const Piece& other = m_pieceList[index];
     if (other.IsValid() || other.IsEnPassant() || m_generatingAttacks) {
         if ((m_generatingAttacks) ||
-            (!equalFile && PieceCompare(piece, other) > 0)
+            (!equalFile && PieceCompare(piece, other) != 0)
         ) {
             // Check file wraps
             if (std::abs(pFile - oFile) == 1) {
