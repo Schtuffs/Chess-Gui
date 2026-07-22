@@ -81,7 +81,7 @@ BitBoard MoveGen::Generate(const Piece* pieces, Index index, u8 castling)
     }
 
     // Verify index
-    if (index >= 64) {
+    if (!Utils::IsValidIndex(index)) {
         WarningPrintln("MoveGen::Generate: Index out of bounds: {}", index);
         return INVALID;
     }
@@ -336,7 +336,7 @@ static int CalculatePinDir(Index lhs, Index rhs)
 int MoveGen::AddMove(const Piece& piece, Index index)
 {
     // Valid index
-    if (index >= 64) {
+    if (!Utils::IsValidIndex(index)) {
         WarningPrintln("MoveGen::AddMove: Index out of bounds: {}", index);
         return MOVE_END;
     }
@@ -446,7 +446,7 @@ BitBoard MoveGen::GenSliding(const Piece& piece, i32 offset, Index mod)
     for (Index i = 1; i < 8; i++) {
         Index index = piece.Position();
         index += (i32)i * offset;
-        if (index >= 64) {
+        if (!Utils::IsValidIndex(index)) {
             DebugPrintln("MoveGen::GenSliding: Index out of bounds: {}", index);
             break;
         }
@@ -632,7 +632,7 @@ BitBoard MoveGen::GenKnight(const Piece& piece)
     // Add attack moves
     for (int i = 0; i < 8; i++) {
         Index index = moves[i] + pos;
-        if (index >= 64) {
+        if (!Utils::IsValidIndex(index)) {
             continue;
         }
 

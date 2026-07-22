@@ -20,10 +20,22 @@ static void UpdateButtons(std::vector<Button>& buttons)
     }
 }
 
-static void UpdateButtonWithMove(Button& button, u64 moves, u8 index)
+static void UpdateButtonWithMove(Button& button, u64 moves, Index index)
 {
     if ((moves >> index) & 1) {
         button.ColourInside({255, 0, 0, 255});
+        button.Thickness(DefaultButtonThickness());
+    }
+    else {
+        button.ColourInside((index + (index / 8)) % 2 == 1 ? BOARD_SQUARE_DARK_ALPHA : BOARD_SQUARE_LIGHT_ALPHA);
+        button.Thickness(0.f);
+    }
+}
+
+static void UpdateButtonWithPromotion(Button& button, Index index, bool promoSquare)
+{
+    if (promoSquare) {
+        button.ColourInside({255, 255, 0, 255});
         button.Thickness(DefaultButtonThickness());
     }
     else {
@@ -55,9 +67,6 @@ Renderer::Renderer()
                 int index = type * 2 + col;
                 m_textures[index] = texture;
             }
-            // else {
-            //     ErrorPrintln("Renderer::Renderer: Could not create texture: {} {}", Enums::ToString::Colour[col], Enums::ToString::Type[type]);
-            // }
         }
     }
 
@@ -166,7 +175,7 @@ void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective) const
         if (isalpha(cur)) {
             int type = CheckType(cur);
             int colour = CheckColour(cur);
-            RenderPiece(m_textures[type * 2 + colour], {file * m_textureSize + m_startX, rank * m_textureSize + m_startY});
+            RenderPiece(m_textures[type * 2 + colour], rank * 8 + file);
             file += inc;
             continue;
         }
@@ -185,6 +194,29 @@ void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective) const
         }
 
         ErrorPrintln("Renderer::RenderPieces: Invalid char detected: {}", cur);
+    }
+}
+
+void Renderer::RenderPromotion(Index promotionSquare, Enums::Colour colour, bool isWhitePerspective)
+{
+    // Validate index
+    if (!Utils::IsValidIndex(promotionSquare)) {
+        return;
+    }
+
+    // Prepare data
+    Index index = (isWhitePerspective ? promotionSquare : 63 - promotionSquare);
+    i8 offset = (isWhitePerspective ? (-8) : 8);
+
+    // Render the stuff
+    constexpr Enums::Type TYPES[] = {Enums::Type::Queen, Enums::Type::Rook, Enums::Type::Bishop, Enums::Type::Knight};
+    for (u8 promo = 0; promo < 4; promo++) {
+        Index i = index + (offset * promo);
+        UpdateButtonWithPromotion(m_buttons[i], i, true);
+        m_buttons[i].Render();
+        Index tex = (u8)TYPES[promo] * 2 + (u8)colour;
+        std::println("Tex: {}, I: {}", tex, i);
+        RenderPiece(m_textures[tex], i);
     }
 }
 
@@ -223,11 +255,14 @@ int Renderer::CheckColour(char cur) const noexcept
     return static_cast<int>(isupper(cur) ? Enums::Colour::White : Enums::Colour::Black);
 }
 
-void Renderer::RenderPiece(Texture2D texture, Vec2<int> pos) const noexcept
+void Renderer::RenderPiece(Texture2D texture, Index index) const noexcept
 {
     // Only render valid textures
     if (IsTextureValid(texture)) {
-        DrawTexture(texture, pos.x, pos.y, WHITE);
+        int file = index % 8;
+        int rank = index / 8;
+
+        DrawTexture(texture, file * m_textureSize + m_startX, rank * m_textureSize + m_startY, WHITE);
     }
 }
 

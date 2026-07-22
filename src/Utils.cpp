@@ -143,6 +143,13 @@ void Utils::UnloadTexture(Texture2D& texture, Enums::Colour colour, Enums::Type 
     }
 }
 
+bool Utils::IsValidIndex(Index index)
+{
+    return (index < 64);
+}
+
+
+
 static std::mutex mtxPrint, mtxDebug, mtxError, mtxInfo, mtxWarning;
 static std::atomic<Utils::LogLevel> s_logLevel = Utils::LogLevel::ERROR;
 

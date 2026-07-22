@@ -260,6 +260,19 @@ static void MiscTests()
 
         TestSuite::assertEqual(expected, actual);
     });
+
+    TEST("MoveGen::Generate: en passant", [](){
+        BitBoard expected = 0x00'00'30'10'00'00'00'00;
+        Board b(DEFAULT_FEN);
+        std::vector<std::string> moves = {"e2e4", "d7d5", "e4e5", "f7f5"};
+        for (const auto& move : moves) {
+            TestSuite::assertTrue(b.MakeMove(move));
+        }
+        MoveGen gen;
+        BitBoard actual = gen.Generate(b.Pieces().data(), 36, b.Castling(b.Player()));
+
+        TestSuite::assertEqual(expected, actual);
+    });
 }
 
 void MoveGenTests()

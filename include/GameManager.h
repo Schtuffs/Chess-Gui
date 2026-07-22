@@ -52,6 +52,12 @@ public:
      */
     BitBoard Moves() const noexcept;
 
+    // Get the current player colour.
+    Enums::Colour Player() const noexcept;
+
+    // Check if `Board` is in state of attempting to promote a `Piece`.
+    Index Promotion() const noexcept;
+
     // ----- Update -----
 
     /**

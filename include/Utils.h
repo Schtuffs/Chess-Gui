@@ -102,6 +102,14 @@ namespace Utils {
     void UnloadTexture(Texture2D& texture, Enums::Colour colour, Enums::Type type);
 
     /**
+     * @brief Checks if an `Index` is valid.
+     * @param index The `Index` to check.
+     * @return `true` on valid.
+     * @date 2026-07-22
+     */
+    bool IsValidIndex(Index index);
+
+    /**
      * @brief Specify the level of logging.
      * @enum LogLevel
      * @date 2026-06-21

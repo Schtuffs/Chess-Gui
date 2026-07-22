@@ -1,5 +1,6 @@
 #include "TestSuite.h"
 
+#include <chrono>
 #include <cstdint>
 #include <iostream>
 #include <print>
@@ -11,6 +12,7 @@ int sFails = 0;
 
 std::vector<std::pair<const char*, std::function<void()>>> sTestFunctions;
 static uint32_t sThreadCount = 1;
+static uint32_t sTotalRunTimes = 1;
 
 static std::vector<std::string> CreateArgList(int argc, char** argv)
 {
@@ -24,10 +26,8 @@ static std::vector<std::string> CreateArgList(int argc, char** argv)
 
 static void ParseArgs(int argc, char** argv)
 {
-    constexpr const char* ARG_THREADS       = "-n";
-    // constexpr const char* ARG_HELP_SHORT    = "-h";
-    // constexpr const char* ARG_HELP_LONG     = "-help";
-    // constexpr const char* ARG_HELP_QUESTION = "-?";
+    constexpr const char* ARG_THREADS   = "-n";
+    constexpr const char* ARG_RUNTIMES  = "-c";
 
     std::vector args = CreateArgList(argc, argv);
 
@@ -42,7 +42,20 @@ static void ParseArgs(int argc, char** argv)
                 try {
                     sThreadCount = std::stoi(arg);
                 } catch (...) {
-                    std::println("{}ERROR: Failed to parse threads from: {}", firstPrint, arg);
+                    std::println(stderr, "{}ERROR: Failed to parse threads from: {}", firstPrint, arg);
+                    firstPrint = '\0';
+                }
+            }
+            else if (prevArg == ARG_RUNTIMES) {
+                try {
+                    sTotalRunTimes = std::stoi(arg);
+                    if (sTotalRunTimes < 1) {
+                        sTotalRunTimes = 1;
+                        std::println(stderr, "{}ERROR: Invalid run count given: {}", firstPrint, arg);
+                        firstPrint = '\0';
+                    }
+                } catch (...) {
+                    std::println(stderr, "{}ERROR: Failed to parse threads from: {}", firstPrint, arg);
                     firstPrint = '\0';
                 }
             }
@@ -51,6 +64,12 @@ static void ParseArgs(int argc, char** argv)
         }
 
         if (arg == ARG_THREADS) {
+            argRequiresNext = true;
+            prevArg = arg;
+            continue;
+        }
+
+        if (arg == ARG_RUNTIMES) {
             argRequiresNext = true;
             prevArg = arg;
             continue;
@@ -69,28 +88,40 @@ void TestSuite::add(const char* name, std::function<void()> function) {
 int TestSuite::RunTests(int argc, char** argv) {
     ParseArgs(argc, argv);
 
-    for (size_t i = 0; i < sTestFunctions.size(); i++) {
-        try {
-            sTestFunctions[i].second();
-            sPasses++;
-        } catch (std::string e) {
-            if (sFails == 0) {
-                std::println();
+    const auto& start = std::chrono::system_clock::now();
+
+    for (uint32_t times = 0; times < sTotalRunTimes; times++) {
+        for (size_t i = 0; i < sTestFunctions.size(); i++) {
+            try {
+                sTestFunctions[i].second();
+                sPasses++;
+            } catch (std::string e) {
+                if (sFails == 0) {
+                    std::println(stderr);
+                }
+                sFails++;
+                std::println(stderr, "Test #{} ({}) failed! {}", i + 1, sTestFunctions[i].first, e.c_str());
             }
-            sFails++;
-            std::println(stderr, "Test #{} ({}) failed! {}", i + 1, sTestFunctions[i].first, e.c_str());
-        }
-        catch (...) {
-            if (sFails == 0) {
-                std::println();
+            catch (...) {
+                if (sFails == 0) {
+                    std::println(stderr);
+                }
+                sFails++;
+                std::println(stderr, "Test #{} ({}) failed! Uncaught exception!", i + 1, sTestFunctions[i].first);
             }
-            sFails++;
-            std::println(stderr, "Test #{} ({}) failed! Uncaught exception!", i + 1, sTestFunctions[i].first);
         }
     }
 
+    const auto& end = std::chrono::system_clock::now();
+    const auto& duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
     // Print data
-    std::println("\nPasses: {}, Fails: {}, Success: {}%\n", sPasses, sFails, ((sPasses / (double)(sPasses + sFails)) * 100));
+    FILE* out = stdout;
+    std::println(out);
+    std::println(out, "Total tests: {}, Run {}x each", sTestFunctions.size(), sTotalRunTimes);
+    std::println(out, "Passes: {}, Fails: {}, Success: {}%", sPasses, sFails, ((sPasses / (double)(sPasses + sFails)) * 100));
+    std::println(out, "Total test runtime: {}", duration);
+    std::println(out);
 
     // Exit program with the number of fails
     return (sFails);

@@ -57,11 +57,13 @@ private:
 
     bool ValidateMove(Index start, Index end);
     void MovePiece(std::string_view move);
+    void MovePromotion(std::string_view move);
     void MoveEnPassant(std::string_view move);
     void MoveCastling(std::string_view move);
 
     // ----- Fen -----
 
+    std::string RecalculateFen();
     std::string RecalculateFen(bool isCaptureOrPawn);
     char RecalculatePlayer();
     std::string RecalculateCastling();

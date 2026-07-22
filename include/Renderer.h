@@ -64,6 +64,15 @@ public:
      */
     void RenderPieces(std::string_view fen, bool isWhitePerspective) const noexcept;
 
+    /**
+     * @brief Renders board promotion (if occuring).
+     * @param promotionSquare The square of the promotion.
+     * @param colour The `Enums::Colour` of the `Piece` being promoted.
+     * @param isWhitePerspective Determines if rendering promotion from whites perspective or blacks perspective.
+     * @date 2026-07-22
+     */
+    void RenderPromotion(Index promotionSquare, Enums::Colour colour, bool isWhitePerspective);
+
     // ----- Update -----
 
     /**
@@ -95,11 +104,11 @@ private:
 
 
     /**
-     * @brief Renders a piece to the board.
+     * @brief Renders a `Piece`.
      * @param texture The `Texture2D` to render.
-     * @param pos The `Vec2` position of the piece.
+     * @param index The `Index` of the `Piece`.
      * @date 2026-06-11
      */
-    void RenderPiece(Texture2D texture, Vec2<int> pos) const noexcept;
+    void RenderPiece(Texture2D texture, Index index) const noexcept;
 };
 

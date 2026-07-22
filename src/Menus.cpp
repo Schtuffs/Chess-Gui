@@ -13,7 +13,7 @@
 #include "Settings.h"
 #include "Utils.h"
 
-static Renderer board;
+static Renderer renderer;
 
 std::array defaultGuiStyle {
     std::tuple { DEFAULT, (int)TEXT_SIZE, 0 },
@@ -47,8 +47,8 @@ void Menu::Main(Enums::Screen& screen)
     Color dark  = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
 
-    board.FixSize();
-    board.RenderBoard(dark, light);
+    renderer.FixSize();
+    renderer.RenderBoard(dark, light);
     Rectangle startPos = Utils::ButtonPos(1, 1, 6, 1);
 
     PushDefaultGuiStyle();
@@ -65,8 +65,8 @@ void Menu::NewGame(Enums::Screen& screen)
     Color dark  = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
 
-    board.FixSize();
-    board.RenderBoard(dark, light);
+    renderer.FixSize();
+    renderer.RenderBoard(dark, light);
     Rectangle startPos = Utils::ButtonPos(1, 1, 6, 1);
 
     PushDefaultGuiStyle();
@@ -105,8 +105,8 @@ void Menu::Settings(Enums::Screen& screen)
     darkPicker.width -= barSize;
     lightPicker.width -= barSize;
 
-    board.FixSize();
-    board.RenderBoard(ColorFromHSV(darkHSV.x, darkHSV.y, darkHSV.z), ColorFromHSV(lightHSV.x, lightHSV.y, lightHSV.z));
+    renderer.FixSize();
+    renderer.RenderBoard(ColorFromHSV(darkHSV.x, darkHSV.y, darkHSV.z), ColorFromHSV(lightHSV.x, lightHSV.y, lightHSV.z));
 
     PushDefaultGuiStyle();
 
@@ -146,7 +146,7 @@ void Menu::InGame(Enums::Screen& screen)
             gameManager = new GameManager(Settings::s(Setting::GAME_FEN));
         }
         screen = Enums::Screen::Game;
-        board.RenderMoves(0, true);
+        renderer.RenderMoves(0, true);
     }
 
     if (IsKeyPressed(KEY_F)) {
@@ -156,11 +156,12 @@ void Menu::InGame(Enums::Screen& screen)
     Color dark = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
 
-    std::string move = board.CheckMove(isWhitePerspective);
-    board.FixSize();
+    std::string move = renderer.CheckMove(isWhitePerspective);
+    renderer.FixSize();
     gameManager->Update(move);
-    board.RenderBoard(dark, light);
-    board.RenderMoves(gameManager->Moves(), isWhitePerspective);
-    board.RenderPieces(gameManager->Fen(), isWhitePerspective);
+    renderer.RenderBoard(dark, light);
+    renderer.RenderMoves(gameManager->Moves(), isWhitePerspective);
+    renderer.RenderPieces(gameManager->Fen(), isWhitePerspective);
+    renderer.RenderPromotion(gameManager->Promotion(), gameManager->Player(), isWhitePerspective);
 }
 
