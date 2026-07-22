@@ -81,6 +81,8 @@ void GameManager::Update(std::string_view move)
 
 void GameManager::Update(std::string_view passedMove, bool tryReselect)
 {
+    static std::string move;
+
     // Move requires file and rank
     if (passedMove.length() < 2) {
         WarningPrintln("GameManager::Update: passed move too small: \"{}\"", passedMove);
@@ -89,12 +91,12 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
 
     // Manage the promotion taking place
     if (Utils::IsValidIndex(m_promotionSquare)) {
+        move.clear();
         ManagePromotion(passedMove);
         return;
     }
 
     // Prepare state information
-    static std::string move;
     bool isSameIndex = (move == passedMove);
     if (passedMove.length() >= 4) {
         move = passedMove;

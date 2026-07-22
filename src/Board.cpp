@@ -194,8 +194,19 @@ bool Board::MakeMove(std::string_view move)
 
 bool Board::PromotePawn(Index index, Enums::Type type)
 {
+    if (!Utils::IsValidIndex(m_promotion)) {
+        ErrorPrintln("Board::PromotePawn: Attempting promotion without valid pawn.");
+        return false;
+    }
+
     if (!Utils::IsValidIndex(index)) {
         ErrorPrintln("Board::PromotePawn: Received invalid index: {}", index);
+        return false;
+    }
+
+    Index rank = index / 8;
+    if ((rank != 0 && rank != 7)) {
+        WarningPrintln("Board::PromotePawn: Attempting to promote without reaching end rank.");
         return false;
     }
 
@@ -217,10 +228,15 @@ bool Board::PromotePawn(Index index, Enums::Type type)
     }
 
     // Add the piece
-    InfoPrintln("Board::PromotePawn: Promoting: {} to {}", piece.ToString(), Enums::ToString::Type[(u8)type]);
+    InfoPrintln("Board::PromotePawn: Promoting: {} to {}.", piece.ToString(), Enums::ToString::Type[(u8)type]);
     piece = Piece(piece.Colour(), type, piece.Position());
+    m_playerColour = (
+        m_playerColour == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White
+    );
+    m_promotion = INVALID_ENPASSANT;
 
     m_fen = RecalculateFen();
+    DebugPrintln("Board::PromotePawn: Updated fen: {}", m_fen);
     return true;
 }
 
@@ -327,13 +343,15 @@ void Board::MovePromotion(std::string_view move)
     }
 
     // Check rank
-    Index rank = piece.Position() / 8;
+    Index rank = end / 8;
     if ((rank == 0 && piece.Colour() == Enums::Colour::Black) ||
         (rank == 7 && piece.Colour() == Enums::Colour::White)
     ) {
         m_playerColour = (
             m_playerColour == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White
         );
+
+        m_promotion = end;
     }
 }
 
@@ -377,7 +395,7 @@ std::string Board::RecalculateFen()
     std::string enPassant = RecalculateEnPassant();
     u32 halfMoves = RecalculateHalfMoves(false) - 1;
     u32 fullMoves = RecalculateFullMoves();
-    if (m_playerColour == Enums::Colour::Black) {
+    if (m_playerColour == Enums::Colour::White) {
         fullMoves--;
     }
     return Fen::GenerateFen(m_pieces, player, castling, enPassant, halfMoves, fullMoves);

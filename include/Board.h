@@ -49,7 +49,7 @@ private:
     std::string m_fen;
     std::array<Piece, 64> m_pieces;
     u8 m_castling;
-    Index m_enPassant;
+    Index m_enPassant, m_promotion;
     Enums::Colour m_playerColour;
     MoveGen m_moveGen;
 

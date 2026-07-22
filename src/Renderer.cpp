@@ -206,7 +206,21 @@ void Renderer::RenderPromotion(Index promotionSquare, Enums::Colour colour, bool
 
     // Prepare data
     Index index = (isWhitePerspective ? promotionSquare : 63 - promotionSquare);
-    i8 offset = (isWhitePerspective ? (-8) : 8);
+    i8 offset;
+    if (colour == Enums::Colour::White) {
+        if (isWhitePerspective) {
+            offset = -8;
+        } else {
+            offset = 8;
+        }
+    }
+    else {
+        if (isWhitePerspective) {
+            offset = 8;
+        } else {
+            offset = -8;
+        }
+    }
 
     // Render the stuff
     constexpr Enums::Type TYPES[] = {Enums::Type::Queen, Enums::Type::Rook, Enums::Type::Bishop, Enums::Type::Knight};
@@ -215,8 +229,9 @@ void Renderer::RenderPromotion(Index promotionSquare, Enums::Colour colour, bool
         UpdateButtonWithPromotion(m_buttons[i], i, true);
         m_buttons[i].Render();
         Index tex = (u8)TYPES[promo] * 2 + (u8)colour;
-        std::println("Tex: {}, I: {}", tex, i);
-        RenderPiece(m_textures[tex], i);
+        int file = i % 8;
+        int rank = 7 - (i / 8);
+        RenderPiece(m_textures[tex], rank * 8 + file);
     }
 }
 

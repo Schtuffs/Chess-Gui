@@ -216,6 +216,11 @@ static std::string GenPieces(std::span<const Piece, 64> pieces)
         }
     }
 
+    if (extra > 0) {
+        fen += std::to_string(extra);
+        extra = 0;
+    }
+
     return fen;
 }
 
