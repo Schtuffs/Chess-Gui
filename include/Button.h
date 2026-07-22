@@ -44,7 +44,7 @@ public:
      * @date 2026-06-13
      */
     Button();
-    
+
     /**
      * @brief Prepares `Button` for rendering.
      * @param text The text to display.
@@ -54,44 +54,44 @@ public:
      * @date 2026-06-13
      */
     Button(const std::string& text, FontData font, Rectangle dimensions, Color colour);
-    
+
     /**
      * @brief Free allocated memory.
      * @date 2026-06-13
      */
     ~Button();
-    
+
     // ----- Read -----
-    
+
     /**
      * @brief Check if the `Button` has been clicked.
      * @return `true` if the `Button` has been clicked.
      * @date 2026-06-13
      */
     bool IsClicked() const noexcept;
-    
+
     /**
      * @brief Check if the `Button` is being hovered.
      * @return `true` if the `Button` is hovered.
      * @date 2026-06-13
      */
     bool IsHovered() const noexcept;
-    
+
     /**
      * @brief Renders the `Button`.
      * @date 2026-06-13
      */
     void Render() const noexcept;
-    
+
     /**
      * @brief Get the text of this `Button`.
      * @return The text.
      * @date 2026-06-13
      */
     std::string Text() const noexcept;
-    
+
     // -----Update -----
-    
+
     /**
      * @brief Changes the `Color` of the `Button`.
      * @param newColour The `Color` to change the `Button` to.
@@ -99,7 +99,7 @@ public:
      * @date 2026-06-13
      */
     Button& ColourInside(Color newColour);
-    
+
     /**
      * @brief Changes the `Color` of the `Button` border.
      * @param newColour The `Color` to change the `Button` border to.
@@ -107,7 +107,7 @@ public:
      * @date 2026-06-13
      */
     Button& ColourBorder(Color newColour);
-    
+
     /**
      * @brief Changes the dimensions of the `Button`.
      * @param newDimensions The new dimensions for the `Button`.
@@ -115,7 +115,7 @@ public:
      * @date 2026-06-13
      */
     Button& Dimension(Rectangle newDimensions);
-    
+
     /**
      * @brief Changes the font of the text.
      * @param newFont The new text font to use.
@@ -123,7 +123,7 @@ public:
      * @date 2026-06-13
      */
     Button& Font(FontData newFont);
-    
+
     /**
      * @brief Changes the text the `Button` displays.
      * @param newText The new text to display.
@@ -131,7 +131,7 @@ public:
      * @date 2026-06-13
      */
     Button& Text(const std::string& newText);
-    
+
     /**
      * @brief Changes the thickness of the `Button` border.
      * @param newThickness The thickness of the border.

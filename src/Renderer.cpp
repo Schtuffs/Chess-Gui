@@ -60,7 +60,7 @@ Renderer::Renderer()
             // }
         }
     }
-    
+
     m_buttons.reserve(64);
     Vector3 grid = Utils::GridPositioning();
     for (u64 rank = 0; rank < 8; rank++) {
@@ -95,7 +95,7 @@ std::string Renderer::CheckMove(bool isWhitePerspective) const noexcept
 
     for (size_t i = 0; i < m_buttons.size(); i++) {
         const Button& button = m_buttons[i];
-        
+
         // Player is making moves
         if (button.IsClicked()) {
             Index index = (u8)(isWhitePerspective ? i : 63 - i);
@@ -114,7 +114,7 @@ void Renderer::RenderBoard(Color dark, Color light) const noexcept
             if ((i + j) % 2 == 0) {
                 colour = light;
             }
-    
+
             DrawRectangle(i * m_textureSize + m_startX, j * m_textureSize + m_startY, m_textureSize, m_textureSize, colour);
         }
     }
@@ -126,7 +126,7 @@ void Renderer::RenderMoves(BitBoard bb, bool isWhitePerspective)
         u8 index = (u8)(isWhitePerspective ? i : 63 - i);
         Button& button = m_buttons[i];
         UpdateButtonWithMove(button, bb, index);
-        
+
         if (button.IsHovered()) {
             button.Thickness(DefaultButtonThickness());
             button.Render();
@@ -161,7 +161,7 @@ void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective) const
         if (cur == ' ') {
             break;
         }
-        
+
         // Alphabetical means its a piece
         if (isalpha(cur)) {
             int type = CheckType(cur);
@@ -246,7 +246,7 @@ void Renderer::FixSize()
     m_startX = grid.x;
     m_startY = grid.y;
     m_textureSize = grid.z;
-    
+
     DebugPrintln("Renderer::FixSize: Unloading textures");
     for (uint64_t col = 0; col < 2; col++) {
         for (uint64_t type = 0; type < 6; type++) {

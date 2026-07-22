@@ -66,7 +66,7 @@ namespace Enums {
         White,      /**< Piece colour white */
         Invalid,    /**< Invalid piece. */
     };
-    
+
     /**
      * @brief Screen state information.
      * @enum Screen
@@ -80,7 +80,7 @@ namespace Enums {
         Multiplayer,    /**< Setup multiplayer screen. */
         Settings,       /**< Settings screen. */
     };
-    
+
     /**
      * @brief Holds information for the type of piece.
      * @enum Type
@@ -95,7 +95,7 @@ namespace Enums {
         Rook,       /**< Rook type. */
         Invalid,    /**< Invalid piece. */
     };
-    
+
     /**
      * @brief Convert an enum variable to a string via indexing with enum value.
      * @namespace ToString
@@ -109,7 +109,7 @@ namespace Enums {
         constexpr const char* Colour[] = {
             "black", "white", "invalid",
         };
-        
+
         /**
          * @brief Convert `Enums::Type` to string.
          * @date 2026-06-08
@@ -119,7 +119,7 @@ namespace Enums {
             "pawn", "queen", "rook",
             "invalid",
         };
-        
+
         /**
          * @brief Convert `Utils::Setting` to string.
          * @date 2026-07-01

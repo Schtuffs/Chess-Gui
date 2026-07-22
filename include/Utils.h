@@ -138,7 +138,7 @@ namespace Utils {
          * @date 2026-06-20
          */
         bool LockPrint(Utils::LogLevel ll);
-        
+
         /**
          * @brief Unlocks printing to allow another thread to print.
          * @param ll The desired output stream to stop writing to.

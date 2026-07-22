@@ -29,9 +29,9 @@ public:
      * @date 2026-06-11
      */
     ~Renderer();
-    
+
     // ----- Read -----
-    
+
     /**
      * @brief Check if player clicked board and attempted to make a move.
      * @param isWhitePerspective Determines if checking clicks from whites perspective or blacks perspective.
@@ -55,7 +55,7 @@ public:
      * @date 2026-07-08
      */
     void RenderMoves(BitBoard moves, bool isWhitePerspective);
-    
+
     /**
      * @brief Renders the pieces based on a fen.
      * @param fen The fen state to render the board in.
@@ -63,9 +63,9 @@ public:
      * @date 2026-06-11
      */
     void RenderPieces(std::string_view fen, bool isWhitePerspective) const noexcept;
-    
+
     // ----- Update -----
-    
+
     /**
      * @brief Fixes window and UI elements size.
      * @date 2026-06-15
@@ -76,7 +76,7 @@ private:
     Texture2D m_textures[12];
     std::vector<Button> m_buttons;
     int m_textureSize, m_startX, m_startY;
-    
+
     /**
      * @brief Determines a pieces `Color`.
      * @param cur The current char in question.
@@ -84,7 +84,7 @@ private:
      * @date 2026-06-11
      */
     int CheckColour(char cur) const noexcept;
-    
+
     /**
      * @brief Determines a pieces type.
      * @param cur The current char in question.
@@ -92,8 +92,8 @@ private:
      * @date 2026-06-11
      */
     int CheckType(char cur) const noexcept;
-    
-    
+
+
     /**
      * @brief Renders a piece to the board.
      * @param texture The `Texture2D` to render.

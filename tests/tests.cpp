@@ -10,7 +10,7 @@ void MoveGenTests(void);
 
 int main(int argc, char** argv) {
     Settings::LoadSettings();
-    
+
     BoardTests();
     GameManagerTests();
     MoveGenTests();

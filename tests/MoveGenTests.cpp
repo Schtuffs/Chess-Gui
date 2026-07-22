@@ -4,6 +4,44 @@
 #include "Convert.h"
 #include "MoveGen.h"
 
+static void BreakMoveGen()
+{
+    TEST("MoveGen::Generate: null pieces", [](){
+        BitBoard expected = MoveGen::INVALID;
+        MoveGen gen;
+
+        BitBoard actual = gen.Generate(nullptr, 3, 12);
+
+        TestSuite::assertEqual(expected, actual);
+    });
+
+    TEST("MoveGen::Generate: index out of bounds", [](){
+        BitBoard expected = MoveGen::INVALID;
+        Piece pieces[64];
+        MoveGen gen;
+
+        BitBoard actual = gen.Generate(pieces, 64, 12);
+
+        TestSuite::assertEqual(expected, actual);
+    });
+
+    TEST("MoveGen::Generate: too much castling", [](){
+        BitBoard expected = MoveGen::INVALID;
+        Board b(DEFAULT_FEN);
+        MoveGen gen;
+        constexpr u8 castling = (
+            (u8)Enums::Castling::Black_King | (u8)Enums::Castling::Black_Queen |
+            (u8)Enums::Castling::White_King | (u8)Enums::Castling::White_Queen
+        );
+
+        BitBoard actual = gen.Generate(b.Pieces().data(), 3, castling);
+
+        TestSuite::assertEqual(expected, actual);
+    });
+}
+
+
+
 static void WhiteLondonTests()
 {
     constexpr const char* fen = "r1bq1rk1/ppp2ppp/2n1pn2/b2pN3/3P1B2/2PBP3/PP3PPP/RN1QK2R w KQ - 3 6";
@@ -143,23 +181,23 @@ static void CheckTests()
     TEST("MoveGen::Generate: knight check - king", [](){
         BitBoard expected = 0xc0'c0'80'00'00'00'00'00;
         Board b("rnbq1r2/ppp1pp1k/3p2p1/6N1/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
-        
+
         MoveGen gen;
         BitBoard actual = gen.Generate(b.Pieces().data(), 55, b.Castling(b.Player()));
-        
+
         TestSuite::assertEqual(expected, actual);
     });
-    
+
     TEST("MoveGen::Generate: pawn check - king", [](){
         BitBoard expected = 0xc0'c0'c0'00'00'00'00'00;
         Board b("rnbq1r2/ppp1pp1k/3p2P1/6N1/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
-        
+
         MoveGen gen;
         BitBoard actual = gen.Generate(b.Pieces().data(), 55, b.Castling(b.Player()));
-        
+
         TestSuite::assertEqual(expected, actual);
     });
-    
+
     TEST("MoveGen::Generate: pawn check defended - king", [](){
         BitBoard expected = 0xc0'c0'80'00'00'00'00'00;
         Board b("rnbq1r2/ppp1pp1k/3p2P1/8/2P2N2/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
@@ -206,6 +244,8 @@ static void MiscTests()
 
 void MoveGenTests()
 {
+    BreakMoveGen();
+
     WhiteLondonTests();
     WhitePuzzleTests();
 

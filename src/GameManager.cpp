@@ -82,18 +82,23 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
         ManagePromotion(passedMove);
         return;
     }
-    
+
+    // Prepare state information
     static std::string move;
     bool isSameIndex = (move == passedMove);
-    move += passedMove;
-    
-    if (move.length() < 4) {
+    if (passedMove.length() >= 4) {
+        move = passedMove;
+    } else {
+        move += passedMove;
+    }
+
+    if (move.length() == 2) {
         // Current move not complete, add it in
         Index index = Convert::MoveToIndex(passedMove);
         if (CheckPieceSelectable(index)) {
             m_possibleMoves = m_moveGen.Generate(m_board.Pieces().data(), index, m_board.Castling(m_board.Player()));
         }
-        
+
         // Failed to generate moves
         if (m_possibleMoves == MoveGen::INVALID) {
             move.clear();
@@ -107,11 +112,11 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
     if (moveCheck) {
         OnValidMove(move);
     }
-    
+
     // Clear old data
     move.clear();
     m_possibleMoves = MoveGen::INVALID;
-    
+
     // Try to reselect
     if (!moveCheck && tryReselect && !isSameIndex) {
         Update(passedMove, false);
@@ -147,7 +152,7 @@ void GameManager::CheckForPromotion(std::string_view move)
     move = move.substr(2);
     Index index = Convert::MoveToIndex(move);
     const Piece& piece = m_board.Pieces()[index];
-    
+
     if (piece.Type() != Enums::Type::Pawn) {
         return;
     }

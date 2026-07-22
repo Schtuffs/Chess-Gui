@@ -20,7 +20,7 @@ namespace Fen {
      * @date 2026-07-01
      */
     bool IsValidFen(const char* data);
-    
+
     /**
      * @brief Generates fen string from given data.
      * @param pieces The `Piece` list to generate board `Piece` locations.

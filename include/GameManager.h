@@ -16,13 +16,13 @@ class GameManager {
 public:
 
     // ----- Creation / Destruction -----
-    
+
     /**
      * @brief Constructor.
      * @date 2026-07-01
      */
     GameManager(std::string_view fen);
-    
+
     /**
      * @brief Deconstructor.
      * @date 2026-07-01
@@ -51,7 +51,7 @@ public:
      * @date 2026-07-08
      */
     BitBoard Moves() const noexcept;
-    
+
     // ----- Update -----
 
     /**
@@ -77,7 +77,7 @@ private:
 
     void CheckForPromotion(std::string_view move);
     void ManagePromotion(std::string_view move);
-    
+
     void CheckForCheckmate();
 };
 

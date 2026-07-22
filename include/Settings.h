@@ -24,7 +24,7 @@ enum class Setting {
  * @date 2026-07-01 
  */
 namespace Settings {
-    
+
     // ----- Creation / Destruction -----
 
     /**
@@ -56,7 +56,7 @@ namespace Settings {
      * @date 2026-07-01
      */
     u32 i(Setting setting);
-    
+
     /**
      * @brief Get a u64 `Setting`.
      * @param setting The `Setting` value to get.
@@ -64,7 +64,7 @@ namespace Settings {
      * @date 2026-07-01
      */
     u64 l(Setting setting);
-    
+
     /**
      * @brief Get a float `Setting`.
      * @param setting The `Setting` value to get.
@@ -88,8 +88,8 @@ namespace Settings {
      * @date 2026-07-01
      */
     std::string s(Setting setting);
-    
-    // ----- Update -----    
+
+    // ----- Update -----
 
     /**
      * @brief Set a u8 `Setting`.
@@ -108,7 +108,7 @@ namespace Settings {
      * @date 2026-07-01
      */
     bool i(Setting setting, u32 value);
-    
+
     /**
      * @brief Set a u64 `Setting`.
      * @param setting The `Setting` value to set.
@@ -117,7 +117,7 @@ namespace Settings {
      * @date 2026-07-01
      */
     bool l(Setting setting, u64 value);
-    
+
     /**
      * @brief Set a float `Setting`.
      * @param setting The `Setting` value to set.
@@ -126,7 +126,7 @@ namespace Settings {
      * @date 2026-07-01
      */
     bool f(Setting setting, float value);
-    
+
     /**
      * @brief Set a double `Setting`.
      * @param setting The `Setting` value to set.
@@ -135,7 +135,7 @@ namespace Settings {
      * @date 2026-07-01
      */
     bool d(Setting setting, double value);
-    
+
     /**
      * @brief Set a string `Setting`.
      * @param setting The `Setting` value to set.

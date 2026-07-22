@@ -46,16 +46,16 @@ static void ParseArgs(int argc, char** argv)
                     firstPrint = '\0';
                 }
             }
-            
+
             continue;
         }
-        
+
         if (arg == ARG_THREADS) {
             argRequiresNext = true;
             prevArg = arg;
             continue;
         }
-        
+
         std::println(stderr, "{}ERROR: Unknown argument: {}", firstPrint, arg);
         firstPrint = '\0';
     }
@@ -68,7 +68,7 @@ void TestSuite::add(const char* name, std::function<void()> function) {
 
 int TestSuite::RunTests(int argc, char** argv) {
     ParseArgs(argc, argv);
-    
+
     for (size_t i = 0; i < sTestFunctions.size(); i++) {
         try {
             sTestFunctions[i].second();
