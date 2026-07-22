@@ -201,8 +201,9 @@ void MoveGen::AddCheck()
 void MoveGen::AddCheckMoves(const Piece& piece)
 {
     m_checkSquares |= Convert::IndexToBitBoard(piece.Position());
-    m_checkSquares |= m_currentMoves;
-    DebugPrintln("MoveGen::AddCheckMoves: Blocking moves: {}", Convert::BitBoardToString(m_checkSquares));
+    if (piece.Type() != Enums::Type::Knight && piece.Type() != Enums::Type::Pawn) {
+        m_checkSquares |= m_currentMoves;
+    }
 }
 
 bool MoveGen::IsBlockCheck(Index index)
@@ -256,8 +257,10 @@ int MoveGen::IsNewPin(const Piece& piece, const Piece& other, int pinDir)
         }
 
         // Begin pinning this piece
-        m_pinningPiece = true;
-        m_pinIndex = other.Position();
+        if (piece.Type() != Enums::Type::Knight) {
+            m_pinningPiece = true;
+            m_pinIndex = other.Position();
+        }
         return MOVE_UNTIL_NEXT;
     }
 
@@ -277,6 +280,10 @@ int MoveGen::IsPiecePinned(const Piece& piece)
 {
     Index index = piece.Position();
     BitBoard pos = Convert::IndexToBitBoard(index);
+
+    if (m_generatingAttacks) {
+        return PIN_NONE;
+    }
 
     if (!(pos & m_pins)) {
         return PIN_NONE;
@@ -404,10 +411,12 @@ int MoveGen::AddPawnMove(const Piece& piece, Index index)
 
     // Attacks
     const Piece& other = m_pieceList[index];
-    if (other.IsValid() || other.IsEnPassant() || m_generatingAttacks) {
-        if ((m_generatingAttacks) ||
-        (!equalFile && PieceCompare(piece, other) != 0)
-    ) {
+    if (m_generatingAttacks && other.Type() == Enums::Type::King) {
+        AddCheck();
+        AddCheckMoves(piece);
+    }
+    else if (other.IsValid() || other.IsEnPassant()) {
+        if (!equalFile && PieceCompare(piece, other) != 0) {
             // Check file wraps
             if (std::abs(pFile - oFile) == 1) {
                 m_currentMoves |= Convert::IndexToBitBoard(index);
@@ -599,6 +608,8 @@ BitBoard MoveGen::GenKnight(const Piece& piece)
 
     int moves[8] = {-17, -10, 6, 15, 17, 10, -6, -15};
     int file = pos % (int)8;
+
+    // Stop left overflow
     if (file <= 1) {
         moves[1] = HOP_INVALID;
         moves[2] = HOP_INVALID;
@@ -607,6 +618,8 @@ BitBoard MoveGen::GenKnight(const Piece& piece)
             moves[3] = HOP_INVALID;
         }
     }
+
+    // Stop right overflow
     if (file >= ((int)8 - 2)) {
         moves[5] = HOP_INVALID;
         moves[6] = HOP_INVALID;
@@ -616,6 +629,7 @@ BitBoard MoveGen::GenKnight(const Piece& piece)
         }
     }
 
+    // Add attack moves
     for (int i = 0; i < 8; i++) {
         Index index = moves[i] + pos;
         if (index >= 64) {

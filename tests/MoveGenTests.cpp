@@ -178,6 +178,16 @@ static void CheckTests()
         TestSuite::assertEqual(expected, actual);
     });
 
+    TEST("MoveGen::Generate: knight check - pawn", [](){
+        BitBoard expected = 0x00'10'00'00'00'00'00'00;
+        Board b("rnbq1r2/ppp1pp1k/3p2p1/6N1/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
+
+        MoveGen gen;
+        BitBoard actual = gen.Generate(b.Pieces().data(), 52, b.Castling(b.Player()));
+
+        TestSuite::assertEqual(expected, actual);
+    });
+
     TEST("MoveGen::Generate: knight check - king", [](){
         BitBoard expected = 0xc0'c0'80'00'00'00'00'00;
         Board b("rnbq1r2/ppp1pp1k/3p2p1/6N1/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
@@ -190,10 +200,20 @@ static void CheckTests()
 
     TEST("MoveGen::Generate: pawn check - king", [](){
         BitBoard expected = 0xc0'c0'c0'00'00'00'00'00;
-        Board b("rnbq1r2/ppp1pp1k/3p2P1/6N1/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
+        Board b("rnbq1r2/ppp1pp1k/3p2P1/8/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
 
         MoveGen gen;
         BitBoard actual = gen.Generate(b.Pieces().data(), 55, b.Castling(b.Player()));
+
+        TestSuite::assertEqual(expected, actual);
+    });
+
+    TEST("MoveGen::Generate: pawn check - pawn", [](){
+        BitBoard expected = 0x00'20'40'00'00'00'00'00;
+        Board b("rnbq1r2/ppp1pp1k/3p2P1/8/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
+
+        MoveGen gen;
+        BitBoard actual = gen.Generate(b.Pieces().data(), 53, b.Castling(b.Player()));
 
         TestSuite::assertEqual(expected, actual);
     });
