@@ -153,9 +153,9 @@ void GameManager::OnValidMove(std::string_view move)
 {
     m_isWhiteTurn = !m_isWhiteTurn;
     m_moves.push_back(move.data());
-    std::string saveFen = Fen().data();
-    saveFen += " " + AllMoves();
-    Settings::s(Setting::GAME_FEN, saveFen);
+    
+    Settings::s(Setting::GAME_FEN, Fen().data());
+    Settings::s(Setting::GAME_MOVES, AllMoves());
 
     CheckForPromotion(move);
     CheckForCheckmate();

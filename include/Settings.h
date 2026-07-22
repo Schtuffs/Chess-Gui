@@ -13,6 +13,7 @@
 enum class Setting {
     GAME_LOAD,
     GAME_FEN,
+    GAME_MOVES,
     BOARD_TILE_DARK,
     BOARD_TILE_LIGHT,
     TOTAL_SETTINGS

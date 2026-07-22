@@ -43,11 +43,6 @@ static void SetSetting(Setting setting, ActualType type, const std::string& valu
 
 static void DefaultSettings()
 {
-    if (s_settingData.size() != (u64)Setting::TOTAL_SETTINGS) {
-        ErrorPrintln("Settings::DefaultSettings: Settings data not all initialized to default values");
-        exit(1);
-    }
-
     for (u64 i = 0; i < (u64)Setting::TOTAL_SETTINGS; i++) {
         // This is used so the compiler warns about not all paths being implemented
         switch ((Setting)i) {
@@ -56,6 +51,9 @@ static void DefaultSettings()
             break;
         case Setting::GAME_FEN:
             s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::STRING, {.s = DEFAULT_FEN.data()}};
+            break;
+        case Setting::GAME_MOVES:
+            s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::STRING, {.s = ""}};
             break;
         case Setting::BOARD_TILE_DARK: {
             Color dark = {100, 75, 60, 255};

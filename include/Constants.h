@@ -125,7 +125,7 @@ namespace Enums {
          * @date 2026-07-01
          */
         constexpr const char* Setting[] = {
-            "GAME_LOAD", "GAME_FEN",
+            "GAME_LOAD", "GAME_FEN", "GAME_MOVES",
             "BOARD_TILE_DARK", "BOARD_TILE_LIGHT",
             "TOTAL_SETTINGS",
         };
