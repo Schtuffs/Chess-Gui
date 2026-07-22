@@ -153,50 +153,53 @@ Enums::Colour Board::Player() const noexcept
 bool Board::MakeMove(std::string_view move)
 {
     // Validate input
+    move = Convert::CastleToMove(move, m_playerColour);
     if (move.length() < 4) {
         return false;
     }
     
-    // Prepare move data
-    move = Convert::CastleToMove(move, m_playerColour);
     Index startPos = Convert::MoveToIndex(move);
     Index endPos = Convert::MoveToIndex(move.substr(2));
-    char promotion = (move.length() > 4 ? move[4] : '\0');
-
+    
     // Attempt to play the move
     if (!ValidateMove(startPos, endPos)) {
         InfoPrintln("Board::MakeMove: Could not play move.");
         return false;
     }
     
+    // Perform pawn functions
+    MoveEnPassant(move);
+    
+    // Perform king functions
+    MoveCastling(move);
+    
     // Play the move and swap turns
-    Piece other = MovePiece(startPos, endPos);
-    const Piece& piece = m_pieces[endPos];
+    Piece piece = m_pieces[startPos];
+    Piece other = MovePiece(move);
+    piece = m_pieces[endPos];
     m_playerColour = (
         m_playerColour == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White
     );
 
     // Update fen data
-    char player = RecalculatePlayer();
-    std::string castling = RecalculateCastling(startPos, endPos);
-    std::string enPassant = RecalculateEnPassant(startPos, endPos);
-    u32 halfMoves = RecalculateHalfMoves((piece.Type() == Enums::Type::Pawn) | (other.IsValid()));
-    u32 fullMoves = RecalculateFullMoves();
-    m_fen = Fen::GenerateFen(m_pieces, player, castling, enPassant, halfMoves, fullMoves);
+    m_fen = RecalculateFen((piece.Type() == Enums::Type::Pawn) | (other.IsValid() | other.IsEnPassant()));
     DebugPrintln("Board::MakeMove: Fen: {}", m_fen);
     
     return true;
 }
 
-
 bool Board::PromotePawn(Index index, Enums::Type type)
 {
-    DebugPrintln("Promoting: {}, {}", index, Enums::ToString::Type[(u8)type]);
-    // In index
     if (index >= 64) {
         return false;
     }
-
+    
+    // Piece must be pawn
+    Piece& piece = m_pieces[index];
+    if (!piece.IsValid() || piece.Type() != Enums::Type::Pawn) {
+        return false;
+    }
+    
     // Valid promotion type
     if (type != Enums::Type::Bishop &&
         type != Enums::Type::Knight &&
@@ -205,15 +208,10 @@ bool Board::PromotePawn(Index index, Enums::Type type)
     ) {
         return false;
     }
-
-    // Promote pawn
-    if (m_pieces[index].Type() != Enums::Type::Pawn) {
-        return false;
-    }
-
+    
     // Add the piece
-    Enums::Colour colour = m_pieces[index].Colour();
-    m_pieces[index] = Piece(colour, type, index);
+    InfoPrintln("Board::PromotePawn: Promoting: {} to {}", piece.ToString(), Enums::ToString::Type[(u8)type]);
+    piece = Piece(piece.Colour(), type, piece.Position());
 
     return true;
 }
@@ -222,27 +220,33 @@ bool Board::PromotePawn(Index index, Enums::Type type)
 
 bool Board::ValidateMove(Index start, Index end)
 {
+    // Check indexes
     if (start >= 64 || end >= 64) {
         WarningPrintln("Board::ValidateMove: Invalid start or end pos: {}, {}", start, end);
         return false;
     }
     
+    // Piece returned to start square
     if (start == end) {
         InfoPrintln("Board::ValidateMove: Piece returned to starting position.");
         return false;
     }
 
+    // Check piece validity
     const Piece& piece = m_pieces[start];
     if (piece.Colour() != m_playerColour) {
+        WarningPrintln("Board::ValidateMove: Invalid piece selected at start position: {}", piece.ToString());
         return false;
     }
     
-    BitBoard movesBB = m_moveGen.Generate(m_pieces, start, m_castling);
+    // Ensure valid move generation
+    BitBoard movesBB = m_moveGen.Generate(m_pieces.data(), start, m_castling);
     if (!movesBB) {
-        WarningPrintln("Board::ValidateMove: Invalid piece at start position.");
+        WarningPrintln("Board::ValidateMove: Could not generate moves for piece: {}", piece.ToString());
         return false;
     }
     
+    // Check valid end position selection
     BitBoard indexBB = Convert::IndexToBitBoard(end);
     if ((indexBB & movesBB) == 0) {
         InfoPrintln("Board::ValidateMove: End position was invalid.");
@@ -252,92 +256,63 @@ bool Board::ValidateMove(Index start, Index end)
     return true;
 }
 
-Piece Board::MovePiece(Index start, Index end)
+Piece Board::MovePiece(std::string_view move)
 {
-    Piece piece = m_pieces[start];
+    Index start = Convert::MoveToIndex(move);
+    Index end = Convert::MoveToIndex(move.substr(2));
+
+    Piece& piece = m_pieces[start];
     Piece other = m_pieces[end];
 
-    // Check en passant
-    if (piece.Type() == Enums::Type::Pawn) {
-        MoveEnPassant(piece, other);
-    }
-
-    // Check castling
+    // Swap pieces
     piece.Position(end);
     m_pieces[end] = piece;
     m_pieces[start] = Piece();
     return other;
 }
 
-void Board::MoveEnPassant(const Piece& piece, const Piece& other)
+void Board::MoveEnPassant(std::string_view move)
 {
-    // Must be taking en passant square
-    if (!other.IsEnPassant() || piece.Position() != m_enPassant) {
+    // Reset en passant
+    Index enPassant = m_enPassant;
+    m_enPassant = INVALID_ENPASSANT;
+
+    // Calculate information
+    Index start = Convert::MoveToIndex(move);
+    Index end = Convert::MoveToIndex(move.substr(2));
+    Piece& piece = m_pieces[start];
+    Piece& other = m_pieces[end];
+
+    if (piece.Type() != Enums::Type::Pawn) {
         return;
     }
 
-    i8 offset = (piece.Colour() == Enums::Colour::White ? -8 : 8);
-    m_pieces[piece.Position() + offset] = Piece();
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Remove old en passant
-if (m_enPassant != INVALID_ENPASSANT) {
-    if (m_pieces[m_enPassant].IsValid()) {
-        i8 offset = (m_pieces[m_enPassant].Colour() == Enums::Colour::White ? -(i8)(8) : (i8)(8));
-        m_pieces[m_enPassant + offset] = Piece();
-    } else {
-        m_pieces[m_enPassant] = Piece();
+    // Update en passant square (if necessary)
+    i8 offset = (piece.Colour() == Enums::Colour::White ? 8 : -8);
+    if ((piece.Position() + (offset * 2)) == end) {
+        m_enPassant = piece.Position() + offset;
     }
-    m_enPassant = INVALID_ENPASSANT;
-}
 
-// Check new en passant
-Piece& piece = m_pieces[end];
-if (piece.Type() != Enums::Type::Pawn) {
-    return "-";
-}
-
-if (piece.Colour() == Enums::Colour::White) {
-    if (start + (2 * 8) == end) {
-        m_enPassant = start + 8;
-        m_pieces[m_enPassant] = Piece(m_enPassant);
+    // Must be taking en passant square
+    if (!other.IsEnPassant() || end != enPassant) {
+        return;
     }
-}
-else if (piece.Colour() == Enums::Colour::Black) {
-    if (start - (2 * 8) == end) {
-        m_enPassant = start - 8;
-        m_pieces[m_enPassant] = Piece(m_enPassant);
-    }
+
+    // Eliminate the peasant
+    m_pieces[enPassant] = Piece();
 }
 
-char Board::RecalculatePlayer()
+void Board::MoveCastling(std::string_view move)
 {
-    return (m_playerColour == Enums::Colour::White ? 'w' : 'b');
-}
+    if (move.length() < 4) {
+        ErrorPrintln("Board::MoveCastling: move ({}) was too short: {}", move, move.length());
+        return;
+    }
 
-std::string Board::RecalculateCastling(Index start, Index end)
-{
-    Piece& piece = m_pieces[end];
+    Index start = Convert::MoveToIndex(move);
+    Index end = Convert::MoveToIndex(move.substr(2));
+
+    Piece& piece = m_pieces[start];
     if (piece.Type() == Enums::Type::King) {
         // Short castle
         if (start + 2 == end) {
@@ -354,7 +329,29 @@ std::string Board::RecalculateCastling(Index start, Index end)
             m_pieces[end - 2] = Piece();
         }
     }
+}
 
+
+
+// ----- Fen -----
+
+std::string Board::RecalculateFen(bool isCaptureOrPawn)
+{
+    char player = RecalculatePlayer();
+    std::string castling = RecalculateCastling();
+    std::string enPassant = RecalculateEnPassant();
+    u32 halfMoves = RecalculateHalfMoves(isCaptureOrPawn);
+    u32 fullMoves = RecalculateFullMoves();
+    return Fen::GenerateFen(m_pieces, player, castling, enPassant, halfMoves, fullMoves);
+}
+
+char Board::RecalculatePlayer()
+{
+    return (m_playerColour == Enums::Colour::White ? 'w' : 'b');
+}
+
+std::string Board::RecalculateCastling()
+{
     std::string castle = "";
 
     // Remove all castling if king moved
@@ -399,10 +396,8 @@ std::string Board::RecalculateCastling(Index start, Index end)
     return castle;
 }
 
-std::string Board::RecalculateEnPassant(Index start, Index end)
+std::string Board::RecalculateEnPassant()
 {
-    
-
     std::string enPassant = "-";
     if (m_enPassant != INVALID_ENPASSANT) {
         enPassant = Convert::IndexToMove(m_enPassant);

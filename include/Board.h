@@ -53,14 +53,19 @@ private:
     Enums::Colour m_playerColour;
     MoveGen m_moveGen;
 
+    // ----- Update -----
+    
     bool ValidateMove(Index start, Index end);
-    Piece MovePiece(Index start, Index end);
-    void MoveEnPassant(const Piece& piece, const Piece& other);
-    void MoveCastling();
+    Piece MovePiece(std::string_view move);
+    void MoveEnPassant(std::string_view move);
+    void MoveCastling(std::string_view move);
+    
+    // ----- Fen -----
 
+    std::string RecalculateFen(bool isCaptureOrPawn);
     char RecalculatePlayer();
-    std::string RecalculateCastling(Index start, Index end);
-    std::string RecalculateEnPassant(Index start, Index end);
+    std::string RecalculateCastling();
+    std::string RecalculateEnPassant();
     u32 RecalculateHalfMoves(bool isCaptureOrPawn);
     u32 RecalculateFullMoves();
 };

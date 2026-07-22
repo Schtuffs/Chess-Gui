@@ -27,6 +27,27 @@ Index Convert::BitBoardToIndex(BitBoard bb)
     return (Index)std::round(std::log2(bb));
 }
 
+Enums::Type Convert::CharToType(char c)
+{
+    c = tolower(c);
+    switch (c) {
+    case 'b':
+        return Enums::Type::Bishop;
+    case 'k':
+        return Enums::Type::King;
+    case 'n':
+        return Enums::Type::Knight;
+    case 'p':
+        return Enums::Type::Pawn;
+    case 'q':
+        return Enums::Type::Queen;
+    case 'r':
+        return Enums::Type::Rook;
+    default:
+        return Enums::Type::Invalid;
+    }
+}
+
 std::string_view Convert::CastleToMove(std::string_view move, Enums::Colour player)
 {
     // Short castle

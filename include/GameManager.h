@@ -69,12 +69,15 @@ private:
     Index m_promotionSquare;
     bool m_isWhiteTurn, m_isWhiteAI, m_isBlackAI;
 
+    void Update(std::string_view move, bool tryReselect);
+
     bool CheckMove(std::string& move);
     bool CheckPieceSelectable(Index index);
-    void OnButtonPress(std::string_view passedMove, bool tryReselect);
     void OnValidMove(std::string_view move);
 
     void CheckForPromotion(std::string_view move);
+    void ManagePromotion(std::string_view move);
+    
     void CheckForCheckmate();
 };
 

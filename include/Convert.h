@@ -30,6 +30,9 @@ namespace Convert {
      */
     Color U32ToColor(u32 val);
 
+    // Converts a letter to a piece type.
+    Enums::Type CharToType(char c);
+
     // Convert given castling move to actual move.
     std::string_view CastleToMove(std::string_view move, Enums::Colour player);
 

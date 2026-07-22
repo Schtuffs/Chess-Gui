@@ -27,7 +27,7 @@ void BoardTests(void)
         TestSuite::assertEqual(expected, actual);
     });
     
-    TEST("Board::MakeMove opening Kings Indian", [](){
+    TEST("Board::MakeMove: opening Kings Indian", [](){
         Board b(DEFAULT_FEN);
         std::string expected = "rnbq1rk1/ppp2pbp/3p1np1/4p3/2PPP3/2N2N2/PP2BPPP/R1BQK2R w KQ e6 0 6";
         
