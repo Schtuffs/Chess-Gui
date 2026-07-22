@@ -107,7 +107,7 @@ BitBoard MoveGen::GenAttacks()
     const Piece* pieces = m_pieceList;
     Enums::Colour currentColour = m_pieceList[m_pieceIndex].Colour();
     
-    for (Index i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+    for (Index i = 0; i < 64; i++) {
         m_pinningPiece = false;
         m_currentMoves = 0;
         
@@ -268,10 +268,10 @@ void MoveGen::UpdatePin(int pinDir)
 
 static int CalculatePinDir(Index lhs, Index rhs)
 {
-    Index lFile = lhs % GRID_SIZE;
-    Index lRank = lhs / GRID_SIZE;
-    Index rFile = rhs % GRID_SIZE;
-    Index rRank = rhs / GRID_SIZE;
+    Index lFile = lhs % 8;
+    Index lRank = lhs / 8;
+    Index rFile = rhs % 8;
+    Index rRank = rhs / 8;
 
     if (lRank == rRank) { return PIN_HORZ; }
     if (lFile == rFile) { return PIN_VERT; }
@@ -291,7 +291,7 @@ static int CalculatePinDir(Index lhs, Index rhs)
 
 int MoveGen::AddMove(const Piece& piece, Index index)
 {
-    if (index >= GRID_SIZE * GRID_SIZE) {
+    if (index >= 64) {
         WarningPrintln("MoveGen::AddMove: Index out of bounds: {}", index);
     }
 
@@ -342,8 +342,8 @@ int MoveGen::AddPawnMove(const Piece& piece, Index index)
         return MOVE_END;
     }
 
-    Index pFile = piece.Position() % GRID_SIZE;
-    Index oFile = index % GRID_SIZE;
+    Index pFile = piece.Position() % 8;
+    Index oFile = index % 8;
     bool equalFile = pFile == oFile;
     
     // Only get attacks
@@ -391,15 +391,15 @@ BitBoard MoveGen::GenSliding(const Piece& piece, i32 offset, Index mod)
     BitBoard bb = 0;
     
     bool untilNext = false;
-    for (Index i = 1; i < GRID_SIZE; i++) {
+    for (Index i = 1; i < 8; i++) {
         Index index = piece.Position();
         index += (i32)i * offset;
-        if (index >= GRID_SIZE * GRID_SIZE) {
+        if (index >= 64) {
             DebugPrintln("MoveGen::GenSliding: Index out of bounds: {}", index);
             break;
         }
 
-        if ((index % (Index)GRID_SIZE) == mod) {
+        if ((index % (Index)8) == mod) {
             DebugPrintln("MoveGen::GenSliding: Index is mod");
             break;
         }
@@ -501,24 +501,24 @@ BitBoard MoveGen::GenKing(const Piece& piece)
     BitBoard bb = 0;
 
     for (int rank = -1; rank < 2; rank++) {
-        if (rank == -1 && (pos / GRID_SIZE) == 0) {
+        if (rank == -1 && (pos / 8) == 0) {
             continue;
         }
 
-        if (rank == 1 && (pos / GRID_SIZE) == GRID_SIZE - 1) {
+        if (rank == 1 && (pos / 8) == 8 - 1) {
             continue;
         }
         
         for (int file = -1; file < 2; file++) {
-            if (file == -1 && (pos % GRID_SIZE) == 0) {
+            if (file == -1 && (pos % 8) == 0) {
                 continue;
             }
     
-            if (file == 1 && (pos % GRID_SIZE) == GRID_SIZE - 1) {
+            if (file == 1 && (pos % 8) == 8 - 1) {
                 continue;
             }
 
-            Index index = (Index)((Index)pos + (rank * (Index)GRID_SIZE) + file);
+            Index index = (Index)((Index)pos + (rank * (Index)8) + file);
             if (m_generatingAttacks) {
                 if (!(file == 0 && rank == 0)) {
                     AddMove(piece, index);
@@ -555,7 +555,7 @@ BitBoard MoveGen::GenKnight(const Piece& piece)
     }
 
     int moves[8] = {-17, -10, 6, 15, 17, 10, -6, -15};
-    int file = pos % (int)GRID_SIZE;
+    int file = pos % (int)8;
     if (file <= 1) {
         moves[1] = HOP_INVALID;
         moves[2] = HOP_INVALID;
@@ -564,10 +564,10 @@ BitBoard MoveGen::GenKnight(const Piece& piece)
             moves[3] = HOP_INVALID;
         }
     }
-    if (file >= ((int)GRID_SIZE - 2)) {
+    if (file >= ((int)8 - 2)) {
         moves[5] = HOP_INVALID;
         moves[6] = HOP_INVALID;
-        if (file == ((int)GRID_SIZE - 1)) {
+        if (file == ((int)8 - 1)) {
             moves[4] = HOP_INVALID;
             moves[7] = HOP_INVALID;
         }
@@ -575,7 +575,7 @@ BitBoard MoveGen::GenKnight(const Piece& piece)
 
     for (int i = 0; i < 8; i++) {
         Index index = moves[i] + pos;
-        if (index >= GRID_SIZE * GRID_SIZE) {
+        if (index >= 64) {
             continue;
         }
 
@@ -591,8 +591,8 @@ BitBoard MoveGen::GenPawn(const Piece& piece)
 {
     ResetAttackPiece();
     
-    const i8 offset = ((piece.Colour() == Enums::Colour::White) ? (i8)GRID_SIZE : (-(i8)GRID_SIZE));
-    const Index rank = ((piece.Colour() == Enums::Colour::White) ? 1 : (GRID_SIZE - 2));
+    const i8 offset = ((piece.Colour() == Enums::Colour::White) ? (i8)8 : (-(i8)8));
+    const Index rank = ((piece.Colour() == Enums::Colour::White) ? 1 : (8 - 2));
 
     BitBoard bb = 0;
     Index pos = piece.Position();
@@ -600,7 +600,7 @@ BitBoard MoveGen::GenPawn(const Piece& piece)
 
     // Forward moves
     if (AddPawnMove(piece, checkIndex) == MOVE_CONTINUE) {
-        if ((pos / GRID_SIZE) == rank) {
+        if ((pos / 8) == rank) {
             checkIndex += offset;
             AddPawnMove(piece, checkIndex);
         }

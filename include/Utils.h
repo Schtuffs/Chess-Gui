@@ -73,8 +73,8 @@ namespace Utils {
 
     /**
      * @brief Calculates `Rectangle` data for given indexes.
-     * @param x The x value between 0..(GRID_SIZE - 1)
-     * @param y The y value between 0..(GRID_SIZE - 1)
+     * @param x The x value between 0..(8 - 1)
+     * @param y The y value between 0..(8 - 1)
      * @param width How many grid tiles the `Rectangle` should cover horizontally.
      * @param height How many grid tiles the `Rectangle` should cover vertically.
      * @return The position of the `Rectangle`.

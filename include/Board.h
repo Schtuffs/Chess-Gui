@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+#include <span>
 #include <string>
 #include <string_view>
 
@@ -15,78 +17,46 @@ class Board {
 public:
     // ----- Creation / Destruction -----
 
-    /**
-     * @brief Create board with given fen.
-     * @param fen The fen position to start the game with.
-     * @date 2026-06-14
-     */
+    // Create board with given fen.
     Board(std::string_view fen);
 
-    /**
-     * @brief Frees memory.
-     * @date 2026-06-14
-     */
+    // Free memory.
     ~Board();
 
     // ----- Read -----
     
-    /**
-     * @brief Get the castling rights for specified `Enums::Colour`.
-     * @param colour The `Enums::Colour` castling rights to get.
-     * @return The current castling rights for the king masked with `Enums::Castling`.
-     * @date 2026-07-03
-     */
+    // Gets castling rights for given king colour.
     u8 Castling(Enums::Colour colour) const noexcept;
     
-    /**
-     * @brief Get the current fen gamestate.
-     * @return The current game fen.
-     * @date 2026-06-14
-     */
+    // Get current gamestate fen.
     std::string_view Fen() const noexcept;
     
-    /**
-     * @brief Get the boards `Piece` list, including invalid.
-     * @return The `Piece` list.
-     * @date 2026-06-14
-     */
-    const Piece* Pieces() const noexcept;
+    // Get the board's piece list.
+    std::span<const Piece, 64> Pieces() const noexcept;
     
-    /**
-     * @brief Get the current player to move.
-     * @return The current players `Enums::Colour`.
-     * @date 2026-07-03
-     */
+    // Get current board player colour.
     Enums::Colour Player() const noexcept;
 
     // ----- Update -----
     
-    /**
-     * @brief Attempt to make a move on the board.
-     * @param move A move in long algebraic notation.
-     * @return `true` on move successfully made.
-     * @date 2026-06-14
-     */
+    // Try to play given move (long algebraic notation).
     bool MakeMove(std::string_view move);
     
-    /**
-     * @brief Attempt to make a move on the board.
-     * @param index The index of the piece to promote.
-     * @param type The type of piece to promote the pawn to.
-     * @return `true` on piece successfully promoted.
-     * @date 2026-07-20
-     */
-    bool PromotePiece(Index index, Enums::Type type);
+    // Promotes a pawn on the board to given type.
+    bool PromotePawn(Index index, Enums::Type type);
     
 private:
     std::string m_fen;
-    Piece m_pieces[64];
-    u8 m_castling, m_enPassant;
+    std::array<Piece, 64> m_pieces;
+    u8 m_castling;
+    Index m_enPassant;
     Enums::Colour m_playerColour;
     MoveGen m_moveGen;
 
-    Piece MovePiece(Index start, Index end);
     bool ValidateMove(Index start, Index end);
+    Piece MovePiece(Index start, Index end);
+    void MoveEnPassant(const Piece& piece, const Piece& other);
+    void MoveCastling();
 
     char RecalculatePlayer();
     std::string RecalculateCastling(Index start, Index end);

@@ -58,11 +58,11 @@ Vector3 Utils::GridPositioning()
     // Make square
     int width = GetScreenWidth();
     int height = GetScreenHeight();
-    float size = Utils::Min(width, height) / GRID_SIZE;
+    float size = Utils::Min(width, height) / 8;
 
     // Calculate start position
-    int sizeX  = width  - size * GRID_SIZE;
-    int sizeY  = height - size * GRID_SIZE;
+    int sizeX  = width  - size * 8;
+    int sizeY  = height - size * 8;
     float startX = sizeX / 2;
     float startY = sizeY / 2;
 

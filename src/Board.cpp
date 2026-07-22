@@ -7,7 +7,7 @@
 #include "MoveGen.h"
 #include "Utils.h"
 
-constexpr Index INVALID_ENPASSANT   = UINT8_MAX;
+constexpr Index INVALID_ENPASSANT   = 64;
 
 
 
@@ -25,9 +25,9 @@ Board::Board(std::string_view fen)
     DebugPrintln("Board::Board: Fen: {}", m_fen);
     
     u8 index = 0;
-    for (u64 rank = GRID_SIZE - 1; rank < GRID_SIZE; rank--) {
-        for (u64 file = 0; file < GRID_SIZE; file++) {
-            u64 i = rank * GRID_SIZE + file;
+    for (u64 rank = 8 - 1; rank < 8; rank--) {
+        for (u64 file = 0; file < 8; file++) {
+            u64 i = rank * 8 + file;
             char c = m_fen[index++];
 
             if (isdigit(c)) {
@@ -136,7 +136,7 @@ std::string_view Board::Fen() const noexcept
     return m_fen;
 }
 
-const Piece* Board::Pieces() const noexcept
+std::span<const Piece, 64> Board::Pieces() const noexcept
 {
     return m_pieces;
 }
@@ -152,40 +152,31 @@ Enums::Colour Board::Player() const noexcept
 
 bool Board::MakeMove(std::string_view move)
 {
-    // Short castle
-    if (move == "O-O") {
-        if (m_playerColour == Enums::Colour::White) {
-            move = "e1g1";
-        }
-        else if (m_playerColour == Enums::Colour::Black) {
-            move = "e8g8";
-        }
+    // Validate input
+    if (move.length() < 4) {
+        return false;
     }
-    // Long castle
-    else if (move == "O-O-O") {
-        if (m_playerColour == Enums::Colour::White) {
-            move = "e1c1";
-        }
-        else if (m_playerColour == Enums::Colour::Black) {
-            move = "e8c8";
-        }
-    }
-
+    
+    // Prepare move data
+    move = Convert::CastleToMove(move, m_playerColour);
     Index startPos = Convert::MoveToIndex(move);
     Index endPos = Convert::MoveToIndex(move.substr(2));
+    char promotion = (move.length() > 4 ? move[4] : '\0');
 
+    // Attempt to play the move
     if (!ValidateMove(startPos, endPos)) {
         InfoPrintln("Board::MakeMove: Could not play move.");
         return false;
     }
-
+    
+    // Play the move and swap turns
+    Piece other = MovePiece(startPos, endPos);
+    const Piece& piece = m_pieces[endPos];
     m_playerColour = (
         m_playerColour == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White
     );
 
-    Piece other = MovePiece(startPos, endPos);
-    const Piece& piece = m_pieces[endPos];
-    
+    // Update fen data
     char player = RecalculatePlayer();
     std::string castling = RecalculateCastling(startPos, endPos);
     std::string enPassant = RecalculateEnPassant(startPos, endPos);
@@ -197,11 +188,12 @@ bool Board::MakeMove(std::string_view move)
     return true;
 }
 
-bool Board::PromotePiece(Index index, Enums::Type type)
+
+bool Board::PromotePawn(Index index, Enums::Type type)
 {
     DebugPrintln("Promoting: {}, {}", index, Enums::ToString::Type[(u8)type]);
     // In index
-    if (index >= GRID_SIZE * GRID_SIZE) {
+    if (index >= 64) {
         return false;
     }
 
@@ -230,7 +222,7 @@ bool Board::PromotePiece(Index index, Enums::Type type)
 
 bool Board::ValidateMove(Index start, Index end)
 {
-    if (start >= GRID_SIZE * GRID_SIZE || end >= GRID_SIZE * GRID_SIZE) {
+    if (start >= 64 || end >= 64) {
         WarningPrintln("Board::ValidateMove: Invalid start or end pos: {}, {}", start, end);
         return false;
     }
@@ -262,12 +254,80 @@ bool Board::ValidateMove(Index start, Index end)
 
 Piece Board::MovePiece(Index start, Index end)
 {
-    Piece p = m_pieces[start];
-    p.Position(end);
-    Piece toRet = m_pieces[end];
-    m_pieces[end] = p;
+    Piece piece = m_pieces[start];
+    Piece other = m_pieces[end];
+
+    // Check en passant
+    if (piece.Type() == Enums::Type::Pawn) {
+        MoveEnPassant(piece, other);
+    }
+
+    // Check castling
+    piece.Position(end);
+    m_pieces[end] = piece;
     m_pieces[start] = Piece();
-    return toRet;
+    return other;
+}
+
+void Board::MoveEnPassant(const Piece& piece, const Piece& other)
+{
+    // Must be taking en passant square
+    if (!other.IsEnPassant() || piece.Position() != m_enPassant) {
+        return;
+    }
+
+    i8 offset = (piece.Colour() == Enums::Colour::White ? -8 : 8);
+    m_pieces[piece.Position() + offset] = Piece();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Remove old en passant
+if (m_enPassant != INVALID_ENPASSANT) {
+    if (m_pieces[m_enPassant].IsValid()) {
+        i8 offset = (m_pieces[m_enPassant].Colour() == Enums::Colour::White ? -(i8)(8) : (i8)(8));
+        m_pieces[m_enPassant + offset] = Piece();
+    } else {
+        m_pieces[m_enPassant] = Piece();
+    }
+    m_enPassant = INVALID_ENPASSANT;
+}
+
+// Check new en passant
+Piece& piece = m_pieces[end];
+if (piece.Type() != Enums::Type::Pawn) {
+    return "-";
+}
+
+if (piece.Colour() == Enums::Colour::White) {
+    if (start + (2 * 8) == end) {
+        m_enPassant = start + 8;
+        m_pieces[m_enPassant] = Piece(m_enPassant);
+    }
+}
+else if (piece.Colour() == Enums::Colour::Black) {
+    if (start - (2 * 8) == end) {
+        m_enPassant = start - 8;
+        m_pieces[m_enPassant] = Piece(m_enPassant);
+    }
 }
 
 char Board::RecalculatePlayer()
@@ -341,35 +401,7 @@ std::string Board::RecalculateCastling(Index start, Index end)
 
 std::string Board::RecalculateEnPassant(Index start, Index end)
 {
-    // Remove old en passant
-    if (m_enPassant != INVALID_ENPASSANT) {
-        if (m_pieces[m_enPassant].IsValid()) {
-            i8 offset = (m_pieces[m_enPassant].Colour() == Enums::Colour::White ? -(i8)(GRID_SIZE) : (i8)(GRID_SIZE));
-            m_pieces[m_enPassant + offset] = Piece();
-        } else {
-            m_pieces[m_enPassant] = Piece();
-        }
-        m_enPassant = INVALID_ENPASSANT;
-    }
-
-    // Check new en passant
-    Piece& piece = m_pieces[end];
-    if (piece.Type() != Enums::Type::Pawn) {
-        return "-";
-    }
-
-    if (piece.Colour() == Enums::Colour::White) {
-        if (start + (2 * GRID_SIZE) == end) {
-            m_enPassant = start + GRID_SIZE;
-            m_pieces[m_enPassant] = Piece(m_enPassant);
-        }
-    }
-    else if (piece.Colour() == Enums::Colour::Black) {
-        if (start - (2 * GRID_SIZE) == end) {
-            m_enPassant = start - GRID_SIZE;
-            m_pieces[m_enPassant] = Piece(m_enPassant);
-        }
-    }
+    
 
     std::string enPassant = "-";
     if (m_enPassant != INVALID_ENPASSANT) {

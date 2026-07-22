@@ -14,8 +14,8 @@ static void UpdateButtons(std::vector<Button>& buttons)
 {
     Vector3 grid = Utils::GridPositioning();
     for (int i = 0; i < 64; i++) {
-        buttons[i].Dimension(Rectangle{grid.x + grid.z * (i % GRID_SIZE), grid.y + grid.z * (GRID_SIZE - (i / GRID_SIZE) - 1), grid.z, grid.z});
-        buttons[i].ColourInside((i + (i / GRID_SIZE)) % 2 == 1 ? BOARD_SQUARE_DARK_ALPHA : BOARD_SQUARE_LIGHT_ALPHA);
+        buttons[i].Dimension(Rectangle{grid.x + grid.z * (i % 8), grid.y + grid.z * (8 - (i / 8) - 1), grid.z, grid.z});
+        buttons[i].ColourInside((i + (i / 8)) % 2 == 1 ? BOARD_SQUARE_DARK_ALPHA : BOARD_SQUARE_LIGHT_ALPHA);
         buttons[i].Thickness(DefaultButtonThickness());
     }
 }
@@ -27,7 +27,7 @@ static void UpdateButtonWithMove(Button& button, u64 moves, u8 index)
         button.Thickness(DefaultButtonThickness());
     }
     else {
-        button.ColourInside((index + (index / GRID_SIZE)) % 2 == 1 ? BOARD_SQUARE_DARK_ALPHA : BOARD_SQUARE_LIGHT_ALPHA);
+        button.ColourInside((index + (index / 8)) % 2 == 1 ? BOARD_SQUARE_DARK_ALPHA : BOARD_SQUARE_LIGHT_ALPHA);
         button.Thickness(0.f);
     }
 }
@@ -39,11 +39,11 @@ Renderer::Renderer()
     // Make texture size square
     int width = GetScreenWidth();
     int height = GetScreenHeight();
-    m_textureSize = Utils::Min(width, height) / GRID_SIZE;
+    m_textureSize = Utils::Min(width, height) / 8;
 
     // Calculate start position
-    u32 sizeX  = width  - m_textureSize * GRID_SIZE;
-    u32 sizeY  = height - m_textureSize * GRID_SIZE;
+    u32 sizeX  = width  - m_textureSize * 8;
+    u32 sizeY  = height - m_textureSize * 8;
     m_startX = sizeX / 2;
     m_startY = sizeY / 2;
 
@@ -61,12 +61,12 @@ Renderer::Renderer()
         }
     }
     
-    m_buttons.reserve(GRID_SIZE * GRID_SIZE);
+    m_buttons.reserve(64);
     Vector3 grid = Utils::GridPositioning();
-    for (u64 rank = 0; rank < GRID_SIZE; rank++) {
-        for (u64 file = 0; file < GRID_SIZE; file++) {
+    for (u64 rank = 0; rank < 8; rank++) {
+        for (u64 file = 0; file < 8; file++) {
             Color col = (((rank + file) % 2) == 0 ? BOARD_SQUARE_DARK_ALPHA : BOARD_SQUARE_LIGHT_ALPHA);
-            m_buttons.emplace_back("", FontData{}, Rectangle{grid.x + grid.z * file, grid.y + grid.z * (GRID_SIZE - rank - 1), grid.z, grid.z}, col);
+            m_buttons.emplace_back("", FontData{}, Rectangle{grid.x + grid.z * file, grid.y + grid.z * (8 - rank - 1), grid.z, grid.z}, col);
             m_buttons.back().Thickness(DefaultButtonThickness());
         }
     }
@@ -108,8 +108,8 @@ std::string Renderer::CheckMove(bool isWhitePerspective) const noexcept
 
 void Renderer::RenderBoard(Color dark, Color light) const noexcept
 {
-    for (uint64_t i = 0; i < GRID_SIZE; i++) {
-        for (uint64_t j = 0; j < GRID_SIZE; j++) {
+    for (uint64_t i = 0; i < 8; i++) {
+        for (uint64_t j = 0; j < 8; j++) {
             Color colour = dark;
             if ((i + j) % 2 == 0) {
                 colour = light;
@@ -148,8 +148,8 @@ void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective) const
         inc = 1;
     }
     else {
-        file = GRID_SIZE - 1;
-        rank = GRID_SIZE - 1;
+        file = 8 - 1;
+        rank = 8 - 1;
         inc = -1;
     }
 
@@ -179,7 +179,7 @@ void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective) const
 
         // Change rank
         if (cur == '/') {
-            file = (isWhitePerspective ? 0 : (GRID_SIZE - 1));
+            file = (isWhitePerspective ? 0 : (8 - 1));
             rank += inc;
             continue;
         }

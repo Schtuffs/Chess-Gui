@@ -183,22 +183,22 @@ bool Fen::IsValidFen(const char* data)
 
 
 
-static std::string GenPieces(const Piece* pieces)
+static std::string GenPieces(std::span<const Piece, 64> pieces)
 {
     std::string fen;
     u8 extra = 0;
-    for (u64 rank = GRID_SIZE - 1; rank < GRID_SIZE; rank--) {
+    for (u64 rank = 8 - 1; rank < 8; rank--) {
         if (extra > 0) {
             fen += std::to_string(extra);
             extra = 0;
         }
 
-        if (rank != GRID_SIZE - 1) {
+        if (rank != 8 - 1) {
             fen += "/";
         }
 
-        for (u64 file = 0; file < GRID_SIZE; file++) {
-            u64 i = rank * GRID_SIZE + file;
+        for (u64 file = 0; file < 8; file++) {
+            u64 i = rank * 8 + file;
             
             const Piece& piece = pieces[i];
             char p = piece.AsChar();
@@ -264,7 +264,7 @@ static std::string GenFullMoves(u32 fullMoves)
     return fen;
 }
 
-std::string Fen::GenerateFen(const Piece* pieces, char player, std::string_view castling, std::string_view enPassant, u32 halfMoves, u32 fullMoves)
+std::string Fen::GenerateFen(std::span<const Piece, 64> pieces, char player, std::string_view castling, std::string_view enPassant, u32 halfMoves, u32 fullMoves)
 {
     std::string fen = "";
 

@@ -30,6 +30,9 @@ namespace Convert {
      */
     Color U32ToColor(u32 val);
 
+    // Convert given castling move to actual move.
+    std::string_view CastleToMove(std::string_view move, Enums::Colour player);
+
     /**
      * @brief Changes an `Index` to a string move.
      * @param index The `Index` to convert.
@@ -74,7 +77,7 @@ namespace Convert {
     
     /**
      * @brief Changes a `Piece` list to a printable string.
-     * @param pieces The `Piece` list to convert. Must be GRID_SIZE * GRID_SIZE in size.
+     * @param pieces The `Piece` list to convert. Must be 64 in size.
      * @return The string representation.
      * @date 2026-07-07
      */

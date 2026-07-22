@@ -20,7 +20,7 @@ void BoardTests(void)
         
         std::vector<std::string> moves = {"d2d4", "d7d5", "g1f3", "g8f6", "c1f4", "b8c6", "e2e3", "e7e6", "f3e5", "f8b4", "c2c3", "b4a5"};
         for (const auto& move : moves) {
-            b.MakeMove(move);
+            TestSuite::assertTrue(b.MakeMove(move));
         }
         std::string actual = b.Fen().data();
         
@@ -33,7 +33,7 @@ void BoardTests(void)
         
         std::vector<std::string> moves = {"d2d4", "g8f6", "c2c4", "g7g6", "b1c3", "f8g7", "e2e4", "d7d6", "g1f3", "O-O", "f1e2", "e7e5"};
         for (const auto& move : moves) {
-            b.MakeMove(move);
+            TestSuite::assertTrue(b.MakeMove(move));
         }
         std::string actual = b.Fen().data();
         

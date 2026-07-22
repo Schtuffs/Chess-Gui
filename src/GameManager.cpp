@@ -11,7 +11,7 @@ GameManager::GameManager(std::string_view fen)
   : m_board(fen),
     m_moveGen(),
     m_possibleMoves(0),
-    m_promotionSquare(GRID_SIZE * GRID_SIZE),
+    m_promotionSquare(64),
     m_isWhiteTurn(true), m_isWhiteAI(false), m_isBlackAI(false)
 {
     fen = m_board.Fen();
@@ -90,19 +90,19 @@ void GameManager::OnButtonPress(std::string_view passedMove, bool tryReselect)
         return;
     }
 
-    if (m_promotionSquare < GRID_SIZE * GRID_SIZE) {
+    if (m_promotionSquare < 64) {
         constexpr u8 TOTAL_PROMOTIONS = 4;
         constexpr Enums::Type PROMOTIONS[TOTAL_PROMOTIONS]  = {Enums::Type::Bishop, Enums::Type::Knight, Enums::Type::Queen, Enums::Type::Rook};
         constexpr const char* PROMOTIONS_CHAR               = "bkqr";
         Index movePos = Convert::MoveToIndex(passedMove);
-        i8 sign = (m_promotionSquare / GRID_SIZE == 0 ? 1 : -1);
+        i8 sign = (m_promotionSquare / 8 == 0 ? 1 : -1);
 
         for (u8 i = 0; i < TOTAL_PROMOTIONS; i++) {
-            Index index = m_promotionSquare + (sign * (i8)(i * GRID_SIZE));
+            Index index = m_promotionSquare + (sign * (i8)(i * 8));
             if (index == movePos) {
                 if (m_board.PromotePiece(m_promotionSquare, PROMOTIONS[i])) {
                     m_moves[m_moves.size() - 1] += PROMOTIONS_CHAR[i];
-                    m_promotionSquare = GRID_SIZE * GRID_SIZE;
+                    m_promotionSquare = 64;
                 }
                 return;
             }
@@ -166,10 +166,10 @@ void GameManager::CheckForPromotion(std::string_view move)
         return;
     }
 
-    if (index / GRID_SIZE == 0 && piece.Colour() == Enums::Colour::Black) {
+    if (index / 8 == 0 && piece.Colour() == Enums::Colour::Black) {
         m_promotionSquare = index;
     }
-    else if (index / GRID_SIZE == (GRID_SIZE - 1) && piece.Colour() == Enums::Colour::White) {
+    else if (index / 8 == (8 - 1) && piece.Colour() == Enums::Colour::White) {
         m_promotionSquare = index;
     }
 }
