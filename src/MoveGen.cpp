@@ -201,7 +201,7 @@ void MoveGen::AddCheck()
 void MoveGen::AddCheckMoves(const Piece& piece)
 {
     m_checkSquares |= Convert::IndexToBitBoard(piece.Position());
-    if (piece.Type() != Enums::Type::Knight && piece.Type() != Enums::Type::Pawn) {
+    if (piece.Type() != Enums::Type::Knight) {
         m_checkSquares |= m_currentMoves;
     }
 }
@@ -388,13 +388,19 @@ int MoveGen::AddMove(const Piece& piece, Index index)
 
 int MoveGen::AddPawnMove(const Piece& piece, Index index)
 {
-    if (m_inCheck && !IsBlockCheck(index)) {
+    // Check pawn can actually block check
+    if (!m_generatingAttacks && m_inCheck && !IsBlockCheck(index)) {
         return MOVE_END;
     }
 
     Index pFile = piece.Position() % 8;
     Index oFile = index % 8;
     bool equalFile = pFile == oFile;
+
+    // Check file wraps
+    if (std::abs((i8)pFile - (i8)oFile) > 1) {
+        return MOVE_END;
+    }
 
     // Only get attacks
     if (m_generatingAttacks && equalFile) {
@@ -411,16 +417,16 @@ int MoveGen::AddPawnMove(const Piece& piece, Index index)
 
     // Attacks
     const Piece& other = m_pieceList[index];
-    if (m_generatingAttacks && other.Type() == Enums::Type::King) {
-        AddCheck();
-        AddCheckMoves(piece);
+    if (m_generatingAttacks) {
+        if (other.Type() == Enums::Type::King) {
+            AddCheck();
+            AddCheckMoves(piece);
+        }
+        return MOVE_END;
     }
     else if (other.IsValid() || other.IsEnPassant()) {
         if (!equalFile && PieceCompare(piece, other) != 0) {
-            // Check file wraps
-            if (std::abs(pFile - oFile) == 1) {
-                m_currentMoves |= Convert::IndexToBitBoard(index);
-            }
+            m_currentMoves |= Convert::IndexToBitBoard(index);
         }
         return MOVE_END;
     }

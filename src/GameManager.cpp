@@ -153,7 +153,7 @@ void GameManager::OnValidMove(std::string_view move)
 {
     m_isWhiteTurn = !m_isWhiteTurn;
     m_moves.push_back(move.data());
-    
+
     Settings::s(Setting::GAME_FEN, Fen().data());
     Settings::s(Setting::GAME_MOVES, AllMoves());
 

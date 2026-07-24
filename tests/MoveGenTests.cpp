@@ -229,6 +229,49 @@ static void CheckTests()
     });
 }
 
+static void DoubleCheckTests()
+{
+    TEST("MoveGen::Generate: double check - king", [](){
+        BitBoard expected = 0xc0'c0'c0'00'00'00'00'00;
+        Board b("rnbq1r2/ppp1pp1k/3p2P1/6N1/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 0 9");
+
+        MoveGen gen;
+        BitBoard actual = gen.Generate(b.Pieces().data(), 55, b.Castling(b.Player()));
+
+        TestSuite::assertEqual(expected, actual);
+    });
+
+    TEST("MoveGen::Generate: double check defended pawn - king", [](){
+        BitBoard expected = 0xc0'c0'80'00'00'00'00'00;
+        Board b("rnbq1r2/ppp1pp1k/3p2P1/6N1/2P4N/4b3/PP3PPP/R1BQKB1R b KQ - 0 9");
+
+        MoveGen gen;
+        BitBoard actual = gen.Generate(b.Pieces().data(), 55, b.Castling(b.Player()));
+
+        TestSuite::assertEqual(expected, actual);
+    });
+
+    TEST("MoveGen::Generate: double check - bishop", [](){
+        BitBoard expected = 0x00'00'00'00'00'10'00'00;
+        Board b("rnbq1r2/ppp1pp1k/3p2P1/6N1/2P4N/4b3/PP3PPP/R1BQKB1R b KQ - 0 9");
+
+        MoveGen gen;
+        BitBoard actual = gen.Generate(b.Pieces().data(), 20, b.Castling(b.Player()));
+
+        TestSuite::assertEqual(expected, actual);
+    });
+
+    TEST("MoveGen::Generate: double check - pawn", [](){
+        BitBoard expected = 0x00'20'00'00'00'00'00'00;
+        Board b("rnbq1r2/ppp1pp1k/3p2P1/6N1/2P4N/4b3/PP3PPP/R1BQKB1R b KQ - 0 9");
+
+        MoveGen gen;
+        BitBoard actual = gen.Generate(b.Pieces().data(), 53, b.Castling(b.Player()));
+
+        TestSuite::assertEqual(expected, actual);
+    });
+}
+
 static void MiscTests()
 {
     TEST("MoveGen::Generate: kings indian piece movements - move white on black turn", [](){
@@ -287,5 +330,6 @@ void MoveGenTests()
 
     MiscTests();
     CheckTests();
+    DoubleCheckTests();
 }
 
