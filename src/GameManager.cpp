@@ -81,8 +81,6 @@ void GameManager::Update(std::string_view move)
 
 void GameManager::Update(std::string_view passedMove, bool tryReselect)
 {
-    static std::string move;
-
     // Move requires file and rank
     if (passedMove.length() < 2) {
         WarningPrintln("GameManager::Update: passed move too small: \"{}\"", passedMove);
@@ -91,20 +89,20 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
 
     // Manage the promotion taking place
     if (Utils::IsValidIndex(m_promotionSquare)) {
-        move.clear();
+        m_currentMove.clear();
         ManagePromotion(passedMove);
         return;
     }
 
     // Prepare state information
-    bool isSameIndex = (move == passedMove);
     if (passedMove.length() >= 4) {
-        move = passedMove;
+        m_currentMove = passedMove;
     } else {
-        move += passedMove;
+        m_currentMove += passedMove;
     }
-
-    if (move.length() == 2) {
+    
+    
+    if (m_currentMove.length() == 2) {
         // Current move not complete, add it in
         Index index = Convert::MoveToIndex(passedMove);
         if (CheckPieceSelectable(index)) {
@@ -113,23 +111,24 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
 
         // Failed to generate moves
         if (m_possibleMoves == MoveGen::INVALID) {
-            move.clear();
+            m_currentMove.clear();
         }
 
         return;
     }
 
     // Try to play the move
-    bool moveCheck = CheckMove(move);
+    bool moveCheck = CheckMove(m_currentMove);
     if (moveCheck) {
-        OnValidMove(move);
+        OnValidMove(m_currentMove);
     }
 
     // Clear old data
-    move.clear();
+    m_currentMove.clear();
     m_possibleMoves = MoveGen::INVALID;
 
     // Try to reselect
+    bool isSameIndex = (m_currentMove == passedMove);
     if (!moveCheck && tryReselect && !isSameIndex) {
         Update(passedMove, false);
     }
