@@ -177,16 +177,34 @@ static bool IsValidTestName(std::string_view name)
         return true;
     }
 
+    if (s_testNameRequirements[0] != "*" && !name.starts_with(s_testNameRequirements[0])) {
+        return false;
+    }
+
     uint64_t index = 0;
-    for (const auto& requirement : s_testNameRequirements) {
+    bool canContinue = true;
+    for (uint64_t i = 0; i < s_testNameRequirements.size(); i++) {
+        bool finalEndsWith = (i == s_testNameRequirements.size() - 1);
+        const auto& requirement = s_testNameRequirements[i];
         if (requirement == "*") {
+            canContinue = true;
             continue;
+        }
+
+        if (!canContinue) {
+            return false;
+        }
+        
+        if (finalEndsWith && !name.ends_with(requirement)) {
+            return false;
         }
 
         index = name.find(requirement, index);
         if (index == std::string_view::npos) {
             return false;
         }
+
+        canContinue = false;
     }
 
     return true;

@@ -3,6 +3,7 @@
 #include <array>
 #include <cstring>
 #include <fstream>
+#include <mutex>
 #include <sstream>
 #include <iostream>
 #include <print>
@@ -255,12 +256,15 @@ bool Settings::d(Setting setting, double value)
 
 bool Settings::s(Setting setting, const std::string& value)
 {
+    static std::mutex mtx;
     u64 index = static_cast<u64>(setting);
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::STRING) {
         return false;
     }
 
+    mtx.lock();
     (s_settingData[index]).second.s = std::string(value);
+    mtx.unlock();
     return true;
 }
 
