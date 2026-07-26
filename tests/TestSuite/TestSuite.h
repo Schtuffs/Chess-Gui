@@ -1,11 +1,8 @@
 #pragma once
 
-#include <cstring>
+#include <cstdint>
 #include <functional>
-#include <iostream>
 #include <sstream>
-#include <utility>
-#include <vector>
 
 #define TEST_FAIL(_text) throw std::string(_text)
 #define TEST_SUCCESS
@@ -17,7 +14,11 @@
  */
 namespace TestSuite {
 
-    int RunTests(int argc, char** argv);
+    // Prepare test suite with necessary data
+    void Setup(int argc, char** argv);
+
+    // Runs the tests
+    uint64_t RunTests();
 
     // ----- Asserts -----
 

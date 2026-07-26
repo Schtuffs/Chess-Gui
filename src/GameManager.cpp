@@ -100,8 +100,7 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
     } else {
         m_currentMove += passedMove;
     }
-    
-    
+
     if (m_currentMove.length() == 2) {
         // Current move not complete, add it in
         Index index = Convert::MoveToIndex(passedMove);
