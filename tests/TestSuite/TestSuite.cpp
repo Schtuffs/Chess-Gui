@@ -112,10 +112,6 @@ static void AdjustName(const std::string& arg)
     if (index != arg.size() - 1) {
         s_testNameRequirements.push_back(arg.substr(index + 1));
     }
-
-    for (const auto& str : s_testNameRequirements) {
-        std::println("Arg: {}", str);
-    }
 }
 
 static void ParseArgs(int argc, char** argv)
@@ -194,7 +190,7 @@ static bool IsValidTestName(std::string_view name)
         if (!canContinue) {
             return false;
         }
-        
+
         if (finalEndsWith && !name.ends_with(requirement)) {
             return false;
         }
