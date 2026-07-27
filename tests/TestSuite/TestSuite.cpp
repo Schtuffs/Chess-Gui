@@ -129,7 +129,6 @@ static void ParseArgs(int argc, char** argv)
 
     bool validArgFound = false;
     std::pair<const char*, std::function<void(const std::string&)>> prevArg;
-    char s_firstPrint = '\n';
     for (const auto& arg : args) {
         if (validArgFound){ 
             validArgFound = false;
@@ -238,6 +237,7 @@ static bool RunTest(const std::pair<const char*, std::function<void()>>& test)
     catch (...) {
         mtx.lock();
         std::println(stderr, "{}Test ({}) failed! Uncaught exception!", s_firstPrint, test.first);
+        s_firstPrint = '\0';
         mtx.unlock();
     }
     return false;
