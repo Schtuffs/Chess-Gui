@@ -73,6 +73,9 @@ public:
      */
     void RenderPromotion(Index promotionSquare, Enums::Colour colour, bool isWhitePerspective);
 
+    // Renders (check/stale)mate screen based on given winner
+    void RenderCheckmate(Enums::Colour winner, bool isCheckmate) const noexcept;
+
     // ----- Update -----
 
     /**

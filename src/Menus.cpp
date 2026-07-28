@@ -163,5 +163,8 @@ void Menu::InGame(Enums::Screen& screen)
     renderer.RenderMoves(gameManager->Moves(), isWhitePerspective);
     renderer.RenderPieces(gameManager->Fen(), isWhitePerspective);
     renderer.RenderPromotion(gameManager->Promotion(), gameManager->Player(), isWhitePerspective);
+    if (gameManager->InCheckmate() || gameManager->InStalemate()) {
+        renderer.RenderCheckmate(gameManager->Player(), gameManager->InCheckmate());
+    }
 }
 

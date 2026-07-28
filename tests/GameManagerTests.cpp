@@ -69,6 +69,62 @@ static void GameManagerSuccess()
 
         TestSuite::assertEqual(expected, actual);
     });
+
+    TEST("GameManager::Update: white short castle", [](){
+        std::string_view expected = "rnbqk2r/ppppppbp/5np1/8/8/5NP1/PPPPPPBP/RNBQ1RK1 b kq - 3 4";
+        GameManager game("rnbqk2r/ppppppbp/5np1/8/8/5NP1/PPPPPPBP/RNBQK2R w KQkq - 2 3");
+
+        game.Update("O-O");
+        std::string_view actual = game.Fen();
+
+        TestSuite::assertEqual(expected, actual);
+    });
+
+    TEST("GameManager::Update: black short castle", [](){
+        std::string_view expected = "rnbq1rk1/ppppppbp/5np1/8/8/5NP1/PPPPPPBP/RNBQ1RK1 w - - 4 4";
+        GameManager game("rnbqk2r/ppppppbp/5np1/8/8/5NP1/PPPPPPBP/RNBQ1RK1 b kq - 3 4");
+
+        game.Update("O-O");
+        std::string_view actual = game.Fen();
+
+        TestSuite::assertEqual(expected, actual);
+    });
+
+    TEST("GameManager::Update: white long castle", [](){
+        std::string_view expected = "r3kbnr/ppp1pppp/2nqb3/3p4/3P4/2NQB3/PPP1PPPP/2KR1BNR b kq - 7 5";
+        GameManager game("r3kbnr/ppp1pppp/2nqb3/3p4/3P4/2NQB3/PPP1PPPP/R3KBNR w KQkq - 6 4");
+
+        game.Update("O-O-O");
+        std::string_view actual = game.Fen();
+
+        TestSuite::assertEqual(expected, actual);
+    });
+
+    TEST("GameManager::Update: black long castle", [](){
+        std::string_view expected = "2kr1bnr/ppp1pppp/2nqb3/3p4/3P4/2NQB3/PPP1PPPP/2KR1BNR w - - 8 5";
+        GameManager game("r3kbnr/ppp1pppp/2nqb3/3p4/3P4/2NQB3/PPP1PPPP/2KR1BNR b kq - 7 5");
+
+        game.Update("O-O-O");
+        std::string_view actual = game.Fen();
+
+        TestSuite::assertEqual(expected, actual);
+    });
+
+    TEST("GameManager::Update: Checkmate", [](){
+        GameManager game("k7/2Q5/2K5/8/8/8/8/8 w - - 12 34");
+
+        game.Update("c7b7");
+
+        TestSuite::assertTrue(game.InCheckmate());
+    });
+
+    TEST("GameManager::Update: Stalemate", [](){
+        GameManager game("k7/3Q4/2K5/8/8/8/8/8 w - - 12 34");
+
+        game.Update("d7c7");
+
+        TestSuite::assertTrue(game.InStalemate());
+    });
 }
 
 static void GameManagerFailure()

@@ -1,6 +1,7 @@
 #include "Renderer.h"
 
 #include <cctype>
+#include <cstring>
 
 #include "Convert.h"
 #include "Utils.h"
@@ -107,7 +108,7 @@ std::string Renderer::CheckMove(bool isWhitePerspective) const noexcept
 
         // Player is making moves
         if (button.IsClicked()) {
-            Index index = (u8)(isWhitePerspective ? i : 63 - i);
+            Index index = (Index)(isWhitePerspective ? i : 63 - i);
             move = Convert::IndexToMove(index);
         }
     }
@@ -220,6 +221,24 @@ void Renderer::RenderPromotion(Index promotionSquare, Enums::Colour colour, bool
         int rank = 7 - (i / 8);
         RenderPiece(m_textures[tex], rank * 8 + file);
     }
+}
+
+void Renderer::RenderCheckmate(Enums::Colour colour, bool isCheckmate) const noexcept
+{
+    char text[15];
+    int fontSize = Utils::Max(GetScreenWidth() / 50, 20);
+
+    if (isCheckmate) {
+        snprintf(text, sizeof(text), "%s has won!", Enums::ToString::Colour[(u8)colour]);
+    }
+    else {
+        strcpy(text, "Stalemate :|");
+    }
+
+    Font font = GetFontDefault();
+    Vector2 pos = Utils::CenterText(text, font, fontSize, {GetScreenWidth() / 2.f, GetScreenHeight() / 2.f});
+
+    DrawText(text, pos.x, pos.y, fontSize, WHITE);
 }
 
 

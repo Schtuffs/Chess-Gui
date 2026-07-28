@@ -38,6 +38,12 @@ public:
      */
     std::string AllMoves() const noexcept;
 
+    // Checks if the current player has been checkmated.
+    bool InCheckmate() const noexcept;
+
+    // Checks if the game is in stalemate.
+    bool InStalemate() const noexcept;
+
     /**
      * @brief Get the game fen state.
      * @return The fen state of the game.
@@ -74,7 +80,7 @@ private:
     std::string m_currentMove;
     BitBoard m_possibleMoves;
     Index m_promotionSquare;
-    bool m_isWhiteTurn, m_isWhiteAI, m_isBlackAI;
+    bool m_isWhiteTurn, m_isWhiteAI, m_isBlackAI, m_inCheckmate, m_inStalemate;
 
     void Update(std::string_view move, bool tryReselect);
 
