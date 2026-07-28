@@ -100,7 +100,7 @@ public:
     std::string ToString() const noexcept;
 
 private:
-    Enums::Colour m_colour; 
+    Enums::Colour m_colour;
     Enums::Type m_type;
     Index m_pos;
     bool m_isValid;

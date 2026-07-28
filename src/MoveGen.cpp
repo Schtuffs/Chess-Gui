@@ -335,7 +335,7 @@ static int CalculatePinDir(Index lhs, Index rhs)
 
 int MoveGen::AddMove(const Piece& piece, Index index)
 {
-    // Valid index
+    // Validate index
     if (!Utils::IsValidIndex(index)) {
         WarningPrintln("MoveGen::AddMove: Index out of bounds: {}", index);
         return MOVE_END;
@@ -388,6 +388,11 @@ int MoveGen::AddMove(const Piece& piece, Index index)
 
 int MoveGen::AddPawnMove(const Piece& piece, Index index)
 {
+    // Validate index
+    if (!Utils::IsValidIndex(index)) {
+        return MOVE_END;
+    }
+
     // Check pawn can actually block check
     if (!m_generatingAttacks && m_inCheck && !IsBlockCheck(index)) {
         return MOVE_END;
