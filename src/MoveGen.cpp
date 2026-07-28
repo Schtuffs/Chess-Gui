@@ -393,6 +393,10 @@ int MoveGen::AddPawnMove(const Piece& piece, Index index)
         return MOVE_END;
     }
 
+    if (!Utils::IsValidIndex(index)) {
+        return MOVE_END;
+    }
+
     Index pFile = piece.Position() % 8;
     Index oFile = index % 8;
     bool equalFile = pFile == oFile;
