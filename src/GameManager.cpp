@@ -22,6 +22,18 @@ GameManager::GameManager(std::string_view fen)
     if (player[0] == 'b') {
         m_isWhiteTurn = false;
     }
+
+    // Load moves from settings
+    if (m_board.Fen() != DEFAULT_FEN) {
+        int i = 50;
+        std::string moves = Settings::s(Setting::GAME_MOVES);
+        u64 start = 0, end = 0;
+        while ((end = moves.find(" ", start)) != std::string::npos && (i--) > 0) {
+            m_moves.push_back(moves.substr(start, end - start));
+            start = end + 1;
+        }
+        m_moves.push_back(moves.substr(start));
+    }
 }
 
 GameManager::~GameManager()
