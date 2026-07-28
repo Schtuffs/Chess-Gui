@@ -17,8 +17,6 @@ int main(int argc, char** argv) {
     GameManagerTests();
     MoveGenTests();
 
-    TestSuite::RunTests();
-
-    return 0;
+    return TestSuite::RunTests();
 }
 

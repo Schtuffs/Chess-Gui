@@ -180,7 +180,7 @@ bool Utils::Detail::LockPrint(Utils::LogLevel ll)
         mtxPrint.lock();
         return true;
     default:
-        ErrorPrintln("Invalid filetype lock: {}", (int)ll);
+        ErrorPrintln("Utils::LockPrint: Invalid filetype lock: {}", (int)ll);
         return false;
     }
 #endif
@@ -209,7 +209,7 @@ void Utils::Detail::UnlockPrint(Utils::LogLevel ll)
         mtxWarning.unlock();
         break;
     default:
-        ErrorPrintln("Invalid filetype unlock: {}", (int)ll);
+        ErrorPrintln("Utils::UnlockPrint: Invalid filetype unlock: {}", (int)ll);
         break;
     }
 #endif

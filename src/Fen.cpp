@@ -28,7 +28,7 @@ static bool ValidatePieces(std::string_view fen)
         // Marks end of rank data, validate
         if (c == '/') {
             if (files != 8) {
-                WarningPrintln("Invalid number of files in fen: {}", files);
+                WarningPrintln("Fen::ValidatePieces: Invalid number of files in fen: {}", files);
                 return false;
             }
             files = 0;
@@ -38,7 +38,7 @@ static bool ValidatePieces(std::string_view fen)
         // Marks end of all ranks, validate
         else if (c == ' ') {
             if (files != 8 && ranks != 8) {
-                WarningPrintln("Invalid number of files or ranks in fen: {}, {}", files, ranks);
+                WarningPrintln("Fen::ValidatePieces: Invalid number of files or ranks in fen: {}, {}", files, ranks);
                 return false;
             }
             break;
@@ -60,7 +60,7 @@ static bool ValidatePieces(std::string_view fen)
         }
 
         else {
-            WarningPrintln("Invalid char in fen: {}", c);
+            WarningPrintln("Fen::ValidatePieces: Invalid char in fen: {}", c);
             return false;
         }
 
@@ -77,7 +77,7 @@ static bool ValidateMove(std::string_view fen)
 {
     char c = fen[0];
     if (fen.length() != 1 && c != 'w' && c != 'b') {
-        WarningPrintln("Invalid player-to-move argument in fen: {}", c);
+        WarningPrintln("Fen::ValidateMove: Invalid player-to-move argument in fen: {}", c);
         return false;
     }
 
@@ -105,7 +105,7 @@ static bool ValidateCastling(std::string_view fen)
         }
 
         if (strPos == str.length()) {
-            ErrorPrintln("Invalid castling data in fen: {}", fen);
+            ErrorPrintln("Fen::ValidateCastling: Invalid castling data in fen: {}", fen);
             return false;
         }
         strPos++;
@@ -129,13 +129,13 @@ static bool ValidateEnPassant(std::string_view fen)
 
     char c = fen[0];
     if ('a' > c || c > 'h') {
-        ErrorPrintln("Invalid file in fen: {}", c);
+        ErrorPrintln("Fen::ValidateEnPassant: Invalid file in fen: {}", c);
         return false;
     }
 
     c = fen[1];
     if (c != '3' && c != '6') {
-        ErrorPrintln("Invalid rank in fen: {}", c);
+        ErrorPrintln("Fen::ValidateEnPassant: Invalid rank in fen: {}", c);
         return false;
     }
 
@@ -159,22 +159,22 @@ bool Fen::IsValidFen(const char* data)
 {
     std::istringstream ss(data);
     if (!NextCheck(ss, ValidatePieces)) {
-        ErrorPrintln("Invalid pieces in fen");
+        ErrorPrintln("Fen::IsValidFen: Invalid pieces in fen");
         return false;
     }
 
     if (!NextCheck(ss, ValidateMove)) {
-        ErrorPrintln("Invalid player to move in fen");
+        ErrorPrintln("Fen::IsValidFen: Invalid player to move in fen");
         return false;
     }
 
     if (!NextCheck(ss, ValidateCastling)) {
-        ErrorPrintln("Invalid castling rights in fen");
+        ErrorPrintln("Fen::IsValidFen: Invalid castling rights in fen");
         return false;
     }
 
     if (!NextCheck(ss, ValidateEnPassant)) {
-        ErrorPrintln("Invalid en passant in fen");
+        ErrorPrintln("Fen::IsValidFen: Invalid en passant in fen");
         return false;
     }
 
@@ -281,6 +281,7 @@ std::string Fen::GenerateFen(std::span<const Piece, 64> pieces, char player, std
     fen += GenFullMoves(fullMoves);
 
     if (!IsValidFen(fen.c_str())) {
+        WarningPrintln("Fen::GenerateFen: Could not generate valid fen.");
         return "";
     }
 

@@ -24,11 +24,12 @@ GameManager::GameManager(std::string_view fen)
     }
 
     // Load moves from settings
-    if (m_board.Fen() != DEFAULT_FEN) {
-        int i = 50;
+    std::string defaultNoLastMove = DEFAULT_FEN.data();
+    defaultNoLastMove[defaultNoLastMove.size() - 1] = '0';
+    if (m_board.Fen() != defaultNoLastMove) {
         std::string moves = Settings::s(Setting::GAME_MOVES);
         u64 start = 0, end = 0;
-        while ((end = moves.find(" ", start)) != std::string::npos && (i--) > 0) {
+        while ((end = moves.find(" ", start)) != std::string::npos) {
             m_moves.push_back(moves.substr(start, end - start));
             start = end + 1;
         }
@@ -288,7 +289,7 @@ void GameManager::CheckForCheckmate()
 
     // Something has gone wrong
     if (kingPos == 0) {
-        ErrorPrintln("No {} king found.", Enums::ToString::Colour[(u8)Player()]);
+        ErrorPrintln("GameManager::CheckForCheckmate: No {} king found.", Enums::ToString::Colour[(u8)Player()]);
         exit(1);
     }
 
