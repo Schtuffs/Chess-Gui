@@ -21,7 +21,7 @@ namespace Convert {
      * @date 2026-07-03
      */
     u32 ColorToU32(Color col);
-    
+
     /**
      * @brief Converts a ABGR u32 to a `Color`.
      * @param val The ABGR u32 to convert.
@@ -30,6 +30,12 @@ namespace Convert {
      */
     Color U32ToColor(u32 val);
 
+    // Converts a letter to a piece type.
+    Enums::Type CharToType(char c);
+
+    // Convert given castling move to actual move.
+    std::string_view CastleToMove(std::string_view move, Enums::Colour player);
+
     /**
      * @brief Changes an `Index` to a string move.
      * @param index The `Index` to convert.
@@ -37,7 +43,7 @@ namespace Convert {
      * @date 2026-07-01
      */
     std::string IndexToMove(Index index);
-    
+
     /**
      * @brief Changes a string move to an `Index`.
      * @param move The move to convert.
@@ -45,7 +51,7 @@ namespace Convert {
      * @date 2026-07-01
      */
     Index MoveToIndex(std::string_view move);
-    
+
     /**
      * @brief Changes a `BitBoard` to an `Index`.
      * @param bb The `BitBoard` to convert.
@@ -61,7 +67,7 @@ namespace Convert {
      * @date 2026-07-07
      */
     BitBoard IndexToBitBoard(Index index);
-    
+
     /**
      * @brief Changes a `BitBoard` to a printable string.
      * @param bb The `BitBoard` to convert.
@@ -71,10 +77,10 @@ namespace Convert {
      * @date 2026-07-07
      */
     std::string BitBoardToString(BitBoard bb, char on = 'X', char off = ' ');
-    
+
     /**
      * @brief Changes a `Piece` list to a printable string.
-     * @param pieces The `Piece` list to convert. Must be GRID_SIZE * GRID_SIZE in size.
+     * @param pieces The `Piece` list to convert. Must be 64 in size.
      * @return The string representation.
      * @date 2026-07-07
      */

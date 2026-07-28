@@ -58,11 +58,11 @@ Vector3 Utils::GridPositioning()
     // Make square
     int width = GetScreenWidth();
     int height = GetScreenHeight();
-    float size = Utils::Min(width, height) / GRID_SIZE;
+    float size = Utils::Min(width, height) / 8;
 
     // Calculate start position
-    int sizeX  = width  - size * GRID_SIZE;
-    int sizeY  = height - size * GRID_SIZE;
+    int sizeX  = width  - size * 8;
+    int sizeY  = height - size * 8;
     float startX = sizeX / 2;
     float startY = sizeY / 2;
 
@@ -79,7 +79,7 @@ Rectangle Utils::ButtonPos(u8 x, u8 y, u8 width, u8 height)
     pos.y += y * grid.z;
     pos.width  += (width - 1)  * grid.z;
     pos.height += (height - 1) * grid.z;
-    
+
     return pos;
 }
 
@@ -95,7 +95,7 @@ Texture2D Utils::LoadTexture(Enums::Colour colour, Enums::Type type, int size)
         ErrorPrintln("Utils::LoadTexture: Received invalid size: {}", size);
         return Texture2D{};
     }
-    
+
     // Get pair data
     int index = CalculateIndex(colour, type);
     TextureValuePair& pair = s_textureValuePairs[index];
@@ -110,7 +110,7 @@ Texture2D Utils::LoadTexture(Enums::Colour colour, Enums::Type type, int size)
             ErrorPrintln("Utils::LoadTexture: Failed to load image.");
             return Texture2D{};
         }
-        
+
         // Change image size and load to texture
         ImageResizeNN(&image, size, size);
         Texture2D texture = LoadTextureFromImage(image);
@@ -135,13 +135,20 @@ void Utils::UnloadTexture(Texture2D& texture, Enums::Colour colour, Enums::Type 
         int index = CalculateIndex(colour, type);
         TextureValuePair& pair = s_textureValuePairs[index];
         pair.count--;
-        
+
         if (pair.count == 0) {
             ::UnloadTexture(texture);
             texture.id = 0;
         }
     }
 }
+
+bool Utils::IsValidIndex(Index index)
+{
+    return (index < 64);
+}
+
+
 
 static std::mutex mtxPrint, mtxDebug, mtxError, mtxInfo, mtxWarning;
 static std::atomic<Utils::LogLevel> s_logLevel = Utils::LogLevel::ERROR;

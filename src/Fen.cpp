@@ -24,7 +24,7 @@ static bool ValidatePieces(std::string_view fen)
     size_t index = 0;
     while (index < fen.size()) {
         char c = fen[index];
-    
+
         // Marks end of rank data, validate
         if (c == '/') {
             if (files != 8) {
@@ -34,7 +34,7 @@ static bool ValidatePieces(std::string_view fen)
             files = 0;
             ranks++;
         }
-    
+
         // Marks end of all ranks, validate
         else if (c == ' ') {
             if (files != 8 && ranks != 8) {
@@ -43,7 +43,7 @@ static bool ValidatePieces(std::string_view fen)
             }
             break;
         }
-    
+
         else if (
             c == 'b' || c == 'B' ||
             c == 'k' || c == 'K' ||
@@ -54,7 +54,7 @@ static bool ValidatePieces(std::string_view fen)
         ) {
             files++;
         }
-    
+
         else if (isdigit(c)) {
             files += c - '0';
         }
@@ -63,7 +63,7 @@ static bool ValidatePieces(std::string_view fen)
             WarningPrintln("Invalid char in fen: {}", c);
             return false;
         }
-    
+
         index++;
     }
 
@@ -103,14 +103,14 @@ static bool ValidateCastling(std::string_view fen)
         while (strPos < str.length() && c != str[strPos]) {
             strPos++;
         }
-        
+
         if (strPos == str.length()) {
             ErrorPrintln("Invalid castling data in fen: {}", fen);
             return false;
         }
         strPos++;
     }
-    
+
     return true;
 }
 
@@ -132,7 +132,7 @@ static bool ValidateEnPassant(std::string_view fen)
         ErrorPrintln("Invalid file in fen: {}", c);
         return false;
     }
-    
+
     c = fen[1];
     if (c != '3' && c != '6') {
         ErrorPrintln("Invalid rank in fen: {}", c);
@@ -162,44 +162,44 @@ bool Fen::IsValidFen(const char* data)
         ErrorPrintln("Invalid pieces in fen");
         return false;
     }
-    
+
     if (!NextCheck(ss, ValidateMove)) {
         ErrorPrintln("Invalid player to move in fen");
         return false;
     }
-    
+
     if (!NextCheck(ss, ValidateCastling)) {
         ErrorPrintln("Invalid castling rights in fen");
         return false;
     }
-    
+
     if (!NextCheck(ss, ValidateEnPassant)) {
         ErrorPrintln("Invalid en passant in fen");
         return false;
     }
-    
+
     return true;
 }
 
 
 
-static std::string GenPieces(const Piece* pieces)
+static std::string GenPieces(std::span<const Piece, 64> pieces)
 {
     std::string fen;
     u8 extra = 0;
-    for (u64 rank = GRID_SIZE - 1; rank < GRID_SIZE; rank--) {
+    for (u64 rank = 8 - 1; rank < 8; rank--) {
         if (extra > 0) {
             fen += std::to_string(extra);
             extra = 0;
         }
 
-        if (rank != GRID_SIZE - 1) {
+        if (rank != 8 - 1) {
             fen += "/";
         }
 
-        for (u64 file = 0; file < GRID_SIZE; file++) {
-            u64 i = rank * GRID_SIZE + file;
-            
+        for (u64 file = 0; file < 8; file++) {
+            u64 i = rank * 8 + file;
+
             const Piece& piece = pieces[i];
             char p = piece.AsChar();
             if (!p) {
@@ -216,13 +216,18 @@ static std::string GenPieces(const Piece* pieces)
         }
     }
 
+    if (extra > 0) {
+        fen += std::to_string(extra);
+        extra = 0;
+    }
+
     return fen;
 }
 
 static std::string GenPlayer(char player)
 {
     std::string fen = " ";
-    
+
     fen += player;
 
     return fen;
@@ -264,7 +269,7 @@ static std::string GenFullMoves(u32 fullMoves)
     return fen;
 }
 
-std::string Fen::GenerateFen(const Piece* pieces, char player, std::string_view castling, std::string_view enPassant, u32 halfMoves, u32 fullMoves)
+std::string Fen::GenerateFen(std::span<const Piece, 64> pieces, char player, std::string_view castling, std::string_view enPassant, u32 halfMoves, u32 fullMoves)
 {
     std::string fen = "";
 
@@ -278,7 +283,7 @@ std::string Fen::GenerateFen(const Piece* pieces, char player, std::string_view 
     if (!IsValidFen(fen.c_str())) {
         return "";
     }
-    
+
     return fen;
 }
 

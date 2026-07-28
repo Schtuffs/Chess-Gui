@@ -29,7 +29,7 @@ namespace Menu
      * @date 2026-06-28
      */
     void Settings(Enums::Screen& screen);
-    
+
     /**
      * @brief The in game screen.
      * @param screen The screen state which can be changed by this `Menu`.

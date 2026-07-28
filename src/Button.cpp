@@ -38,7 +38,7 @@ void Button::Render() const noexcept
     if (!m_isValid) {
         return;
     }
-    
+
     DrawRectangleRec(m_rect, m_colour);
     DrawRectangleLinesEx(m_rect, m_borderThickness, m_colourBorder);
 

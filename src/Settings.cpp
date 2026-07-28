@@ -3,6 +3,7 @@
 #include <array>
 #include <cstring>
 #include <fstream>
+#include <mutex>
 #include <sstream>
 #include <iostream>
 #include <print>
@@ -43,11 +44,6 @@ static void SetSetting(Setting setting, ActualType type, const std::string& valu
 
 static void DefaultSettings()
 {
-    if (s_settingData.size() != (u64)Setting::TOTAL_SETTINGS) {
-        ErrorPrintln("Settings::DefaultSettings: Settings data not all initialized to default values");
-        exit(1);
-    }
-    
     for (u64 i = 0; i < (u64)Setting::TOTAL_SETTINGS; i++) {
         // This is used so the compiler warns about not all paths being implemented
         switch ((Setting)i) {
@@ -56,6 +52,9 @@ static void DefaultSettings()
             break;
         case Setting::GAME_FEN:
             s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::STRING, {.s = DEFAULT_FEN.data()}};
+            break;
+        case Setting::GAME_MOVES:
+            s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::STRING, {.s = ""}};
             break;
         case Setting::BOARD_TILE_DARK: {
             Color dark = {100, 75, 60, 255};
@@ -117,7 +116,7 @@ bool Settings::SaveSettings()
         return false;
     }
     DebugPrintln("Settings::SaveSettings: Saving settings.");
-    
+
     for (size_t i = 0; i < s_settingData.size(); i++) {
         file << Enums::ToString::Setting[i] << SETTINGS_DELIM;
 
@@ -145,7 +144,7 @@ bool Settings::SaveSettings()
 
         file << "\n";
     }
-    
+
     DebugPrintln("Settings::SaveSettings: Saved settings.");
     file.close();
     return true;
@@ -192,7 +191,7 @@ static Setting DetermineSetting(const std::string& key)
             return static_cast<Setting>(i);
         }
     }
-    
+
     return Setting::TOTAL_SETTINGS;
 }
 
@@ -206,7 +205,7 @@ bool Settings::b(Setting setting, u8 value)
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::U8) {
         return false;
     }
-    
+
     (s_settingData[index]).second.b = value;
     return true;
 }
@@ -217,7 +216,7 @@ bool Settings::i(Setting setting, u32 value)
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::U32) {
         return false;
     }
-    
+
     (s_settingData[index]).second.i = value;
     return true;
 }
@@ -228,7 +227,7 @@ bool Settings::l(Setting setting, u64 value)
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::U64) {
         return false;
     }
-    
+
     (s_settingData[index]).second.l = value;
     return true;
 }
@@ -239,7 +238,7 @@ bool Settings::f(Setting setting, float value)
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::FLOAT) {
         return false;
     }
-    
+
     (s_settingData[index]).second.f = value;
     return true;
 }
@@ -250,19 +249,22 @@ bool Settings::d(Setting setting, double value)
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::DOUBLE) {
         return false;
     }
-    
+
     (s_settingData[index]).second.d = value;
     return true;
 }
 
 bool Settings::s(Setting setting, const std::string& value)
 {
+    static std::mutex mtx;
     u64 index = static_cast<u64>(setting);
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::STRING) {
         return false;
     }
-    
+
+    mtx.lock();
     (s_settingData[index]).second.s = std::string(value);
+    mtx.unlock();
     return true;
 }
 

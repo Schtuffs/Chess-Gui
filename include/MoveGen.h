@@ -12,16 +12,16 @@ class MoveGen {
 public:
     static const BitBoard INVALID      = 0x00'00'00'00'00'00'00'00;
     static const BitBoard CHECKMATE    = 0xff'ff'ff'ff'ff'ff'ff'ff;
-    
+
     // ----- Creation / Destruction -----
 
     MoveGen();
     ~MoveGen() = default;
-    
+
     // ----- Read -----
 
     // ----- Update -----
-    
+
     /**
      * @brief Generates moves for a given `Piece`.
      * @param pieces The current `Piece` list.
@@ -44,33 +44,45 @@ private:
 
     void Reset();
 
-    void AddCheck();
-    void AddCheckMoves(const Piece& piece);
-    bool CheckForCheck(Index index);
-    
-    int GetPin(const Piece& piece);
-    int CheckPin(const Piece& piece, const Piece& other, int pinDir);
-    void UpdatePin(int pinDir);
-
-    int AddMove(const Piece& piece, Index index);
-    int AddPawnMove(const Piece& piece, Index index);
+    // Attacks
 
     bool IsSquareAttacked(Index index);
     BitBoard GenAttacks();
     void ResetAttackPiece();
 
+    // Checks
+
+    void AddCheck();
+    void AddCheckMoves(const Piece& piece);
+    bool IsBlockCheck(Index index);
+
+    // Pins
+
+    void AddPiecePin(int pinDir);
+    int IsNewPin(const Piece& piece, const Piece& other, int pinDir);
+    int IsPiecePinned(const Piece& piece);
+
+    // Verifying moves
+
+    int AddMove(const Piece& piece, Index index);
+    int AddPawnMove(const Piece& piece, Index index);
+
+    // Move generation - standard
+
     BitBoard GenMoves(const Piece& piece);
 
-    BitBoard GenSliding(const Piece& piece, i32 offset, Index mod);
     BitBoard GenBishop(const Piece& piece);
-    BitBoard GenRook(const Piece& piece);
-    BitBoard GenQueen(const Piece& piece);
-
-    bool IsValidForCastle(Index index);
-    BitBoard GenCastling(const Piece& piece);
     BitBoard GenKing(const Piece& piece);
-
     BitBoard GenKnight(const Piece& piece);
     BitBoard GenPawn(const Piece& piece);
+    BitBoard GenQueen(const Piece& piece);
+    BitBoard GenRook(const Piece& piece);
+
+    // Move generation - special
+
+    BitBoard GenCastling(const Piece& piece);
+    bool IsValidForCastle(Index index);
+    BitBoard GenSliding(const Piece& piece, i32 offset, Index mod);
+
 };
 

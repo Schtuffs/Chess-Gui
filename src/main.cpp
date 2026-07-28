@@ -70,7 +70,7 @@ int main(void)
         if (IsKeyPressed(KEY_ESCAPE)) {
             currentScreen = Enums::Screen::Menu;
         }
-        
+
         switch(currentScreen) {
             case Enums::Screen::Quit: {
                 shouldExitGame = true;
@@ -111,12 +111,12 @@ int main(void)
 
         EndDrawing();
     }
-    
+
     // Cleanup
     CloseWindow();
-    
+
     Settings::SaveSettings();
-    
+
     return 0;
 }
 

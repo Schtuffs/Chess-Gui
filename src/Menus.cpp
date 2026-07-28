@@ -13,7 +13,7 @@
 #include "Settings.h"
 #include "Utils.h"
 
-static Renderer board;
+static Renderer renderer;
 
 std::array defaultGuiStyle {
     std::tuple { DEFAULT, (int)TEXT_SIZE, 0 },
@@ -46,17 +46,17 @@ void Menu::Main(Enums::Screen& screen)
 {
     Color dark  = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
-    
-    board.FixSize();
-    board.RenderBoard(dark, light);
+
+    renderer.FixSize();
+    renderer.RenderBoard(dark, light);
     Rectangle startPos = Utils::ButtonPos(1, 1, 6, 1);
-    
+
     PushDefaultGuiStyle();
-    
+
     if (Utils::ClickableButton(startPos, "Start new game", 1)) { screen = Enums::Screen::NewGame; }
     if (Utils::ClickableButton(MoveDown(startPos, 4), "Settings", 2)) { screen = Enums::Screen::Settings; }
     if (Utils::ClickableButton(MoveDown(startPos, 1), "Quit", 3)) { screen = Enums::Screen::Quit; }
-    
+
     PopDefaultGuiStyle();
 }
 
@@ -65,12 +65,12 @@ void Menu::NewGame(Enums::Screen& screen)
     Color dark  = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
 
-    board.FixSize();
-    board.RenderBoard(dark, light);
+    renderer.FixSize();
+    renderer.RenderBoard(dark, light);
     Rectangle startPos = Utils::ButtonPos(1, 1, 6, 1);
-    
+
     PushDefaultGuiStyle();
-    
+
     int id = 1;
     if (Utils::ClickableButton(startPos, "New game", id++)) {
         screen = Enums::Screen::Game;
@@ -81,7 +81,7 @@ void Menu::NewGame(Enums::Screen& screen)
         Settings::b(Setting::GAME_LOAD, 2);
     }
     if (Utils::ClickableButton(MoveDown(startPos, 4), "Back", id++)) { screen = Enums::Screen::Menu; }
-    
+
     PopDefaultGuiStyle();
 }
 
@@ -98,18 +98,18 @@ void Menu::Settings(Enums::Screen& screen)
         darkHSV  = ColorToHSV(dark);
         lightHSV = ColorToHSV(light);
     }
-    
+
     float barSize = GuiGetStyle(COLORPICKER, HUEBAR_WIDTH) + GuiGetStyle(COLORPICKER, HUEBAR_PADDING);
     Rectangle  darkPicker = Utils::ButtonPos(1, 1, 2, 2);
     Rectangle lightPicker = Utils::ButtonPos(5, 1, 2, 2);
     darkPicker.width -= barSize;
     lightPicker.width -= barSize;
-    
-    board.FixSize();
-    board.RenderBoard(ColorFromHSV(darkHSV.x, darkHSV.y, darkHSV.z), ColorFromHSV(lightHSV.x, lightHSV.y, lightHSV.z));
-    
+
+    renderer.FixSize();
+    renderer.RenderBoard(ColorFromHSV(darkHSV.x, darkHSV.y, darkHSV.z), ColorFromHSV(lightHSV.x, lightHSV.y, lightHSV.z));
+
     PushDefaultGuiStyle();
-    
+
     GuiColorPickerHSV(darkPicker,  nullptr, &darkHSV);
     GuiColorPickerHSV(lightPicker, nullptr, &lightHSV);
 
@@ -119,13 +119,13 @@ void Menu::Settings(Enums::Screen& screen)
 
         Settings::i(Setting::BOARD_TILE_DARK,  Convert::ColorToU32(ColorFromHSV(darkHSV.x, darkHSV.y, darkHSV.z)));
         Settings::i(Setting::BOARD_TILE_LIGHT, Convert::ColorToU32(ColorFromHSV(lightHSV.x, lightHSV.y, lightHSV.z)));
-        
+
         DebugPrintln("Menu::Settings: Saved settings.");
     }
 
     Rectangle returnButton = Utils::ButtonPos(4, 6, 3, 1);
     if (Utils::ClickableButton(returnButton, "Return", 2)) { settingsLoaded = false; screen = Enums::Screen::Menu; }
-    
+
     PopDefaultGuiStyle();
 }
 
@@ -146,21 +146,25 @@ void Menu::InGame(Enums::Screen& screen)
             gameManager = new GameManager(Settings::s(Setting::GAME_FEN));
         }
         screen = Enums::Screen::Game;
-        board.RenderMoves(0, true);
+        renderer.RenderMoves(0, true);
     }
-    
+
     if (IsKeyPressed(KEY_F)) {
         isWhitePerspective = !isWhitePerspective;
     }
-    
+
     Color dark = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
-    
-    std::string move = board.CheckMove(isWhitePerspective);
-    board.FixSize();
+
+    std::string move = renderer.CheckMove(isWhitePerspective);
+    renderer.FixSize();
     gameManager->Update(move);
-    board.RenderBoard(dark, light);
-    board.RenderMoves(gameManager->Moves(), isWhitePerspective);
-    board.RenderPieces(gameManager->Fen(), isWhitePerspective);
+    renderer.RenderBoard(dark, light);
+    renderer.RenderMoves(gameManager->Moves(), isWhitePerspective);
+    renderer.RenderPieces(gameManager->Fen(), isWhitePerspective);
+    renderer.RenderPromotion(gameManager->Promotion(), gameManager->Player(), isWhitePerspective);
+    if (gameManager->InCheckmate() || gameManager->InStalemate()) {
+        renderer.RenderCheckmate(gameManager->Player(), gameManager->InCheckmate());
+    }
 }
 

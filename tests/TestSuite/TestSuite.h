@@ -1,11 +1,8 @@
 #pragma once
 
-#include <cstring>
+#include <cstdint>
 #include <functional>
-#include <iostream>
 #include <sstream>
-#include <utility>
-#include <vector>
 
 #define TEST_FAIL(_text) throw std::string(_text)
 #define TEST_SUCCESS
@@ -17,8 +14,12 @@
  */
 namespace TestSuite {
 
-    int RunTests(int argc, char** argv);
-    
+    // Prepare test suite with necessary data
+    void Setup(int argc, char** argv);
+
+    // Runs the tests
+    uint64_t RunTests();
+
     // ----- Asserts -----
 
     /**
@@ -28,14 +29,14 @@ namespace TestSuite {
      */
     // Checks if the value is true
     void assertTrue(bool val);
-    
+
     /**
      * @brief Checks if the value is false.
      * @param val a hopefully false value.
      * @date 2025-11-27
      */
     void assertFalse(bool val);
-    
+
     /**
      * @brief Checks if the expected value is equal to the actual value. Bytes length required.
      * @param expected the expected bytes to be receiving.
@@ -44,7 +45,7 @@ namespace TestSuite {
      * @date 2025-11-27
      */
     void assertEqual(const void* expected, const void* actual, int length);
-    
+
     /**
      * @brief Checks if the expected value is equal to the actual value. Type T must have operator ==.
      * @param expected the expected value.
@@ -62,7 +63,7 @@ namespace TestSuite {
             TEST_FAIL(str.str());
         }
     }
-    
+
     /**
      * @brief Checks if the expected value is not equal to the actual value. Bytes length required.
      * @param expected the expected bytes to be receiving.
@@ -71,7 +72,7 @@ namespace TestSuite {
      * @date 2026-07-15
      */
     void assertNotEqual(const void* expected, const void* actual, int length);
-    
+
     /**
      * @brief Checks if the expected value is not equal to the actual value. Type T must have operator ==.
      * @param expected the expected value.
@@ -87,7 +88,7 @@ namespace TestSuite {
         }
         TEST_SUCCESS;
     }
-    
+
     /**
      * @brief Adds a test function to the list of tests.
      * @param testName The name of the test for easier debugging.

@@ -33,12 +33,6 @@ struct Vec2 {
 constexpr std::string_view DEFAULT_FEN  = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 /**
- * @brief Grid size in files and ranks.
- * @date 2026-06-11
- */
-constexpr u64 GRID_SIZE = 8;
-
-/**
  * @brief Resource path for piece textures.
  * @date 2026-06-08
  */
@@ -72,7 +66,7 @@ namespace Enums {
         White,      /**< Piece colour white */
         Invalid,    /**< Invalid piece. */
     };
-    
+
     /**
      * @brief Screen state information.
      * @enum Screen
@@ -86,7 +80,7 @@ namespace Enums {
         Multiplayer,    /**< Setup multiplayer screen. */
         Settings,       /**< Settings screen. */
     };
-    
+
     /**
      * @brief Holds information for the type of piece.
      * @enum Type
@@ -101,7 +95,7 @@ namespace Enums {
         Rook,       /**< Rook type. */
         Invalid,    /**< Invalid piece. */
     };
-    
+
     /**
      * @brief Convert an enum variable to a string via indexing with enum value.
      * @namespace ToString
@@ -115,7 +109,7 @@ namespace Enums {
         constexpr const char* Colour[] = {
             "black", "white", "invalid",
         };
-        
+
         /**
          * @brief Convert `Enums::Type` to string.
          * @date 2026-06-08
@@ -125,13 +119,13 @@ namespace Enums {
             "pawn", "queen", "rook",
             "invalid",
         };
-        
+
         /**
          * @brief Convert `Utils::Setting` to string.
          * @date 2026-07-01
          */
         constexpr const char* Setting[] = {
-            "GAME_LOAD", "GAME_FEN",
+            "GAME_LOAD", "GAME_FEN", "GAME_MOVES",
             "BOARD_TILE_DARK", "BOARD_TILE_LIGHT",
             "TOTAL_SETTINGS",
         };

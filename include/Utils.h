@@ -73,8 +73,8 @@ namespace Utils {
 
     /**
      * @brief Calculates `Rectangle` data for given indexes.
-     * @param x The x value between 0..(GRID_SIZE - 1)
-     * @param y The y value between 0..(GRID_SIZE - 1)
+     * @param x The x value between 0..(8 - 1)
+     * @param y The y value between 0..(8 - 1)
      * @param width How many grid tiles the `Rectangle` should cover horizontally.
      * @param height How many grid tiles the `Rectangle` should cover vertically.
      * @return The position of the `Rectangle`.
@@ -100,6 +100,14 @@ namespace Utils {
      * @date 2026-06-06
      */
     void UnloadTexture(Texture2D& texture, Enums::Colour colour, Enums::Type type);
+
+    /**
+     * @brief Checks if an `Index` is valid.
+     * @param index The `Index` to check.
+     * @return `true` on valid.
+     * @date 2026-07-22
+     */
+    bool IsValidIndex(Index index);
 
     /**
      * @brief Specify the level of logging.
@@ -138,7 +146,7 @@ namespace Utils {
          * @date 2026-06-20
          */
         bool LockPrint(Utils::LogLevel ll);
-        
+
         /**
          * @brief Unlocks printing to allow another thread to print.
          * @param ll The desired output stream to stop writing to.

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <span>
 #include <string>
 #include <string_view>
 
@@ -19,7 +20,7 @@ namespace Fen {
      * @date 2026-07-01
      */
     bool IsValidFen(const char* data);
-    
+
     /**
      * @brief Generates fen string from given data.
      * @param pieces The `Piece` list to generate board `Piece` locations.
@@ -31,6 +32,6 @@ namespace Fen {
      * @return The generated fen or an empty string on invalid data.
      * @date 2026-07-01
      */
-    std::string GenerateFen(const Piece* pieces, char player, std::string_view castling, std::string_view enPassant, u32 halfMoves, u32 fullMoves);
+    std::string GenerateFen(std::span<const Piece, 64> pieces, char player, std::string_view castling, std::string_view enPassant, u32 halfMoves, u32 fullMoves);
 }
 

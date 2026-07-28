@@ -16,13 +16,13 @@ class GameManager {
 public:
 
     // ----- Creation / Destruction -----
-    
+
     /**
      * @brief Constructor.
      * @date 2026-07-01
      */
     GameManager(std::string_view fen);
-    
+
     /**
      * @brief Deconstructor.
      * @date 2026-07-01
@@ -38,6 +38,12 @@ public:
      */
     std::string AllMoves() const noexcept;
 
+    // Checks if the current player has been checkmated.
+    bool InCheckmate() const noexcept;
+
+    // Checks if the game is in stalemate.
+    bool InStalemate() const noexcept;
+
     /**
      * @brief Get the game fen state.
      * @return The fen state of the game.
@@ -51,7 +57,13 @@ public:
      * @date 2026-07-08
      */
     BitBoard Moves() const noexcept;
-    
+
+    // Get the current player colour.
+    Enums::Colour Player() const noexcept;
+
+    // Check if `Board` is in state of attempting to promote a `Piece`.
+    Index Promotion() const noexcept;
+
     // ----- Update -----
 
     /**
@@ -65,16 +77,20 @@ private:
     std::vector<std::string> m_moves;
     Board m_board;
     MoveGen m_moveGen;
+    std::string m_currentMove;
     BitBoard m_possibleMoves;
     Index m_promotionSquare;
-    bool m_isWhiteTurn, m_isWhiteAI, m_isBlackAI;
+    bool m_isWhiteTurn, m_isWhiteAI, m_isBlackAI, m_inCheckmate, m_inStalemate;
+
+    void Update(std::string_view move, bool tryReselect);
 
     bool CheckMove(std::string& move);
     bool CheckPieceSelectable(Index index);
-    void OnButtonPress(std::string_view passedMove, bool tryReselect);
     void OnValidMove(std::string_view move);
 
     void CheckForPromotion(std::string_view move);
+    void ManagePromotion(std::string_view move);
+
     void CheckForCheckmate();
 };
 

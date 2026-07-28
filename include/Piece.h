@@ -27,7 +27,7 @@ public:
      * @date 2026-06-28
      */
     Piece(Index index);
-    
+
     /**
      * @brief Creates a `Piece` with a given `Enums::Type` and `Enums::Colour`.
      * @param `Colour` The `Colour` of the `Piece`.
@@ -36,20 +36,20 @@ public:
      * @date 2026-06-08
      */
     Piece(Enums::Colour colour, Enums::Type type, Index index);
-    
+
     /**
      * @brief Frees any allocated memory associated with the `Piece`.
      * @date 2026-06-08
      */
     ~Piece();
-    
+
     /**
      * @brief Set the position of the `Piece`.
      * @param index The index of the `Piece`.
      * @date 2026-06-08
      */
     void Position(Index index);
-    
+
     /**
      * @brief Get the `Enums::Colour` of the `Piece`.
      * @return The `Enums::Colour` of the `Piece`.
@@ -70,14 +70,14 @@ public:
      * @date 2026-06-29
      */
     bool IsValid() const noexcept;
-    
+
     /**
      * @brief Get the `Index` position of the `Piece`.
      * @return The `Index` of the `Piece`.
      * @date 2026-06-29
      */
     Index Position() const noexcept;
-    
+
     /**
      * @brief Get the `Enums::Type` of the `Piece`.
      * @return The `Enums::Type` of the `Piece`.
@@ -91,7 +91,7 @@ public:
      * @date 2026-06-29
      */
     char AsChar() const noexcept;
-    
+
     /**
      * @brief Get the string representation of the `Piece`.
      * @return The string representation of the `Piece`.

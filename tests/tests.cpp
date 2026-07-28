@@ -9,13 +9,15 @@ void GameManagerTests(void);
 void MoveGenTests(void);
 
 int main(int argc, char** argv) {
+    TestSuite::Setup(argc, argv);
+
     Settings::LoadSettings();
-    
+
     BoardTests();
     GameManagerTests();
     MoveGenTests();
 
-    TestSuite::RunTests(argc, argv);
+    TestSuite::RunTests();
 
     return 0;
 }

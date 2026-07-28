@@ -27,14 +27,59 @@ Index Convert::BitBoardToIndex(BitBoard bb)
     return (Index)std::round(std::log2(bb));
 }
 
+Enums::Type Convert::CharToType(char c)
+{
+    c = tolower(c);
+    switch (c) {
+    case 'b':
+        return Enums::Type::Bishop;
+    case 'k':
+        return Enums::Type::King;
+    case 'n':
+        return Enums::Type::Knight;
+    case 'p':
+        return Enums::Type::Pawn;
+    case 'q':
+        return Enums::Type::Queen;
+    case 'r':
+        return Enums::Type::Rook;
+    default:
+        return Enums::Type::Invalid;
+    }
+}
+
+std::string_view Convert::CastleToMove(std::string_view move, Enums::Colour player)
+{
+    // Short castle
+    if (move == "O-O") {
+        if (player == Enums::Colour::White) {
+            return "e1g1";
+        }
+        else if (player == Enums::Colour::Black) {
+            return "e8g8";
+        }
+    }
+    // Long castle
+    else if (move == "O-O-O") {
+        if (player == Enums::Colour::White) {
+            return "e1c1";
+        }
+        else if (player == Enums::Colour::Black) {
+            return "e8c8";
+        }
+    }
+
+    return move;
+}
+
 std::string Convert::IndexToMove(Index index)
 {
-    return ((char)((index % (Index)GRID_SIZE) + 'a') + std::to_string((index / (Index)GRID_SIZE) + 1));
+    return ((char)((index % (Index)8) + 'a') + std::to_string((index / (Index)8) + 1));
 }
 
 Index Convert::MoveToIndex(std::string_view move)
 {
-    return (Index)((move[1] - '1') * GRID_SIZE) + (move[0] - 'a');
+    return (Index)((move[1] - '1') * 8) + (move[0] - 'a');
 }
 
 std::string Convert::BitBoardToString(BitBoard val, char on, char off)
@@ -42,7 +87,7 @@ std::string Convert::BitBoardToString(BitBoard val, char on, char off)
     const std::string VERT_SPACE = "\n +---+---+---+---+---+---+---+---+\n";
     const std::string HORZ_SPACE = " | ";
     std::string ret = "\n", line = HORZ_SPACE;
-    
+
     for (int i = 0; i < 64; i++) {
         if ((val & ((BitBoard)1 << i)) > 0) {
             line += on + HORZ_SPACE;
@@ -66,7 +111,7 @@ std::string Convert::PiecesToString(const Piece* pieces)
     const std::string VERT_SPACE = "\n +---+---+---+---+---+---+---+---+\n";
     const std::string HORZ_SPACE = " | ";
     std::string ret = "\n", line = HORZ_SPACE;
-    
+
     for (int i = 0; i < 64; i++) {
         const Piece& piece = pieces[i];
         if (!piece.IsValid()) {
