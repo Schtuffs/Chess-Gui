@@ -4,6 +4,7 @@
 #include <cstring>
 #include <fstream>
 #include <mutex>
+#include <shared_mutex>
 #include <sstream>
 #include <iostream>
 #include <utility>
@@ -33,6 +34,7 @@ typedef struct ManyType {
 } ManyType;
 
 static std::array<std::pair<ActualType, ManyType>, (u64)Setting::TOTAL_SETTINGS> s_settingData;
+static std::shared_mutex bMtx, iMtx, lMtx, fMtx, dMtx, sMtx;
 
 static Setting DetermineSetting(const std::string& key);
 static void SetSetting(Setting setting, ActualType type, const std::string& value);
@@ -155,32 +157,50 @@ bool Settings::SaveSettings()
 
 u8 Settings::b(Setting setting)
 {
-    return (s_settingData[(u64)setting]).second.b;
+    bMtx.lock_shared();
+    auto val = (s_settingData[(u64)setting]).second.b;
+    bMtx.unlock_shared();
+    return val;
 }
 
 u32 Settings::i(Setting setting)
 {
-    return (s_settingData[(u64)setting]).second.i;
+    iMtx.lock_shared();
+    auto val = (s_settingData[(u64)setting]).second.i;
+    iMtx.unlock_shared();
+    return val;
 }
 
 u64 Settings::l(Setting setting)
 {
-    return (s_settingData[(u64)setting]).second.l;
+    lMtx.lock_shared();
+    auto val = (s_settingData[(u64)setting]).second.l;
+    lMtx.unlock_shared();
+    return val;
 }
 
 float Settings::f(Setting setting)
 {
-    return (s_settingData[(u64)setting]).second.f;
+    fMtx.lock_shared();
+    auto val = (s_settingData[(u64)setting]).second.f;
+    fMtx.unlock_shared();
+    return val;
 }
 
 double Settings::d(Setting setting)
 {
-    return (s_settingData[(u64)setting]).second.d;
+    dMtx.lock_shared();
+    auto val = (s_settingData[(u64)setting]).second.d;
+    dMtx.unlock_shared();
+    return val;
 }
 
 std::string Settings::s(Setting setting)
 {
-    return (s_settingData[(u64)setting]).second.s;
+    sMtx.lock_shared();
+    auto val = (s_settingData[(u64)setting]).second.s;
+    sMtx.unlock_shared();
+    return val;
 }
 
 static Setting DetermineSetting(const std::string& key)
@@ -205,7 +225,9 @@ bool Settings::b(Setting setting, u8 value)
         return false;
     }
 
+    bMtx.lock();
     (s_settingData[index]).second.b = value;
+    bMtx.unlock();
     return true;
 }
 
@@ -215,8 +237,10 @@ bool Settings::i(Setting setting, u32 value)
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::U32) {
         return false;
     }
-
+    
+    iMtx.lock();
     (s_settingData[index]).second.i = value;
+    iMtx.unlock();
     return true;
 }
 
@@ -226,8 +250,10 @@ bool Settings::l(Setting setting, u64 value)
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::U64) {
         return false;
     }
-
+    
+    lMtx.lock();
     (s_settingData[index]).second.l = value;
+    lMtx.unlock();
     return true;
 }
 
@@ -237,8 +263,10 @@ bool Settings::f(Setting setting, float value)
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::FLOAT) {
         return false;
     }
-
+    
+    fMtx.lock();
     (s_settingData[index]).second.f = value;
+    fMtx.unlock();
     return true;
 }
 
@@ -248,22 +276,23 @@ bool Settings::d(Setting setting, double value)
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::DOUBLE) {
         return false;
     }
-
+    
+    dMtx.lock();
     (s_settingData[index]).second.d = value;
+    dMtx.unlock();
     return true;
 }
 
 bool Settings::s(Setting setting, const std::string& value)
 {
-    static std::mutex mtx;
     u64 index = static_cast<u64>(setting);
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::STRING) {
         return false;
     }
-
-    mtx.lock();
-    (s_settingData[index]).second.s = std::string(value);
-    mtx.unlock();
+    
+    sMtx.lock();
+    (s_settingData[index]).second.s = value;
+    sMtx.unlock();
     return true;
 }
 
