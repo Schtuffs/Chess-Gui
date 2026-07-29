@@ -179,7 +179,6 @@ void MoveGen::CheckForCheckmate(Enums::Colour friendly)
         
         BitBoard moves = GenMoves(piece);
         if (moves != Convert::IndexToBitBoard(piece.Position())) {
-            std::println("Piece: {}{}", piece.ToString(), Convert::BitBoardToString(moves));
             DebugPrintln("GameManager::CheckForCheckmate: Not in checkmate");
             return;
         }
