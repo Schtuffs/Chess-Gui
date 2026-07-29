@@ -21,7 +21,6 @@ FetchContent_MakeAvailable(raylib)
 
 add_executable(${PROJECT_NAME}
     ${SRC}/Board.cpp
-    ${SRC}/Button.cpp
     ${SRC}/Convert.cpp
     ${SRC}/Fen.cpp
     ${SRC}/GameManager.cpp

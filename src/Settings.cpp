@@ -237,7 +237,7 @@ bool Settings::i(Setting setting, u32 value)
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::U32) {
         return false;
     }
-    
+
     iMtx.lock();
     (s_settingData[index]).second.i = value;
     iMtx.unlock();
@@ -250,7 +250,7 @@ bool Settings::l(Setting setting, u64 value)
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::U64) {
         return false;
     }
-    
+
     lMtx.lock();
     (s_settingData[index]).second.l = value;
     lMtx.unlock();
@@ -263,7 +263,7 @@ bool Settings::f(Setting setting, float value)
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::FLOAT) {
         return false;
     }
-    
+
     fMtx.lock();
     (s_settingData[index]).second.f = value;
     fMtx.unlock();
@@ -276,7 +276,7 @@ bool Settings::d(Setting setting, double value)
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::DOUBLE) {
         return false;
     }
-    
+
     dMtx.lock();
     (s_settingData[index]).second.d = value;
     dMtx.unlock();
@@ -289,7 +289,7 @@ bool Settings::s(Setting setting, const std::string& value)
     if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::STRING) {
         return false;
     }
-    
+
     sMtx.lock();
     (s_settingData[index]).second.s = value;
     sMtx.unlock();

@@ -6,7 +6,6 @@
 
 #include "raylib.h"
 
-#include "Button.h"
 #include "Constants.h"
 
 /**
@@ -32,62 +31,33 @@ public:
 
     // ----- Read -----
 
-    /**
-     * @brief Check if player clicked board and attempted to make a move.
-     * @param isWhitePerspective Determines if checking clicks from whites perspective or blacks perspective.
-     * @return The grid square the player clicked or "".
-     * @date 2026-06-11
-     */
-    std::string CheckMove(bool isWhitePerspective) const noexcept;
-
-    /**
-     * @brief Renders the board for the background.
-     * @param dark The `Color` for the dark tiles.
-     * @param light The `Color` for the light tiles.
-     * @date 2026-06-11
-     */
-    void RenderBoard(Color dark, Color light) const noexcept;
-
-    /**
-     * @brief Renders the potential moves.
-     * @param moves The `BitBoard` representation of the valid moves for a `Piece`.
-     * @param isWhitePerspective Determines if rendering moves from whites perspective or blacks perspective.
-     * @date 2026-07-08
-     */
-    void RenderMoves(BitBoard moves, bool isWhitePerspective);
-
-    /**
-     * @brief Renders the pieces based on a fen.
-     * @param fen The fen state to render the board in.
-     * @param isWhitePerspective Determines if rendering pieces from whites perspective or blacks perspective.
-     * @date 2026-06-11
-     */
-    void RenderPieces(std::string_view fen, bool isWhitePerspective) const noexcept;
-
-    /**
-     * @brief Renders board promotion (if occuring).
-     * @param promotionSquare The square of the promotion.
-     * @param colour The `Enums::Colour` of the `Piece` being promoted.
-     * @param isWhitePerspective Determines if rendering promotion from whites perspective or blacks perspective.
-     * @date 2026-07-22
-     */
-    void RenderPromotion(Index promotionSquare, Enums::Colour colour, bool isWhitePerspective);
-
-    // Renders (check/stale)mate screen based on given winner
-    void RenderCheckmate(Enums::Colour winner, bool isCheckmate) const noexcept;
-
-    // ----- Update -----
-
-    /**
-     * @brief Fixes window and UI elements size.
-     * @date 2026-06-15
-     */
-    void FixSize();
+    void Update();
+    std::string Render(std::string_view fen, BitBoard moves, Index promoSquare, bool isWhitePerspective) const noexcept;
+    void RenderMate(Enums::Colour winner, bool isCheckmate) const noexcept;
 
 private:
     Texture2D m_textures[12];
-    std::vector<Button> m_buttons;
+    Color m_dark, m_light;
     int m_textureSize, m_startX, m_startY;
+
+    // Render workflow
+
+    void RenderBoard() const noexcept;
+    void RenderHover() const noexcept;
+    void RenderMoves(BitBoard moves, bool isWhitePerspective) const noexcept;
+    void RenderPieces(std::string_view fen, bool isWhitePerspective) const noexcept;
+    void RenderPromotion(Index index, bool isWhitePerspective) const noexcept;
+
+    // Helper functions
+
+    Index DetectClick(bool isWhitePerspective) const noexcept;
+    void FixSize();
+    Rectangle GetRect(Index index) const noexcept;
+    Color GetHoverColour(Index index) const noexcept;
+    bool IsClicked(Index index) const noexcept;
+    bool IsHovered(Index index) const noexcept;
+    void RenderPiece(Texture2D texture, Index index) const noexcept;
+    void RenderSquare(Color colour, Index index) const noexcept;
 
     /**
      * @brief Determines a pieces `Color`.
@@ -104,14 +74,5 @@ private:
      * @date 2026-06-11
      */
     int CheckType(char cur) const noexcept;
-
-
-    /**
-     * @brief Renders a `Piece`.
-     * @param texture The `Texture2D` to render.
-     * @param index The `Index` of the `Piece`.
-     * @date 2026-06-11
-     */
-    void RenderPiece(Texture2D texture, Index index) const noexcept;
 };
 

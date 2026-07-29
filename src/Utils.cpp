@@ -124,7 +124,9 @@ Texture2D Utils::LoadTexture(Enums::Colour colour, Enums::Type type, int size)
     }
 
     // Account and return
-    pair.count++;
+    if (IsTextureValid(pair.texture)) {
+        pair.count++;
+    }
     return pair.texture;
 }
 
