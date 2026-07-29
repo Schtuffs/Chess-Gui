@@ -116,17 +116,9 @@ Board::~Board()
 
 // ----- Read -----
 
-u8 Board::Castling(Enums::Colour colour) const noexcept
+u8 Board::Castling() const noexcept
 {
-    if (colour == Enums::Colour::White) {
-        return (m_castling & ((u8)Enums::Castling::White_King | (u8)Enums::Castling::White_Queen));
-    }
-    else if (colour == Enums::Colour::Black) {
-        return (m_castling & ((u8)Enums::Castling::Black_King | (u8)Enums::Castling::Black_Queen));
-    }
-    else {
-        return 0;
-    }
+    return m_castling;
 }
 
 std::string_view Board::Fen() const noexcept
@@ -137,11 +129,6 @@ std::string_view Board::Fen() const noexcept
 std::span<const Piece, 64> Board::Pieces() const noexcept
 {
     return m_pieces;
-}
-
-Enums::Colour Board::Player() const noexcept
-{
-    return m_playerColour;
 }
 
 
@@ -155,7 +142,6 @@ bool Board::MakeMove(std::string_view move)
     if (move.length() < 4) {
         return false;
     }
-
     Index startPos = Convert::MoveToIndex(move);
     Index endPos = Convert::MoveToIndex(move.substr(2));
 
@@ -165,13 +151,9 @@ bool Board::MakeMove(std::string_view move)
         return false;
     }
 
-    // Perform pawn functions
+    // Perform specific piece based functions
     MoveEnPassant(move);
-
-    // Check promotion
     MovePromotion(move);
-
-    // Perform king functions
     MoveCastling(move);
 
     // Play the move and swap turns
@@ -238,7 +220,7 @@ bool Board::PromotePawn(Index index, Enums::Type type)
     return true;
 }
 
-// ----- Hidden -----
+// ----- Update ----- Hidden -----
 
 bool Board::ValidateMove(Index start, Index end)
 {
@@ -260,10 +242,11 @@ bool Board::ValidateMove(Index start, Index end)
         WarningPrintln("Board::ValidateMove: Invalid piece selected at start position: {}", piece.ToString());
         return false;
     }
-
-    // Ensure valid move generation
-    BitBoard movesBB = m_moveGen.Generate(m_pieces.data(), start, Castling(Player()));
-    if (!movesBB) {
+    
+    // Generate the moves
+    m_moveGen.Generate(m_pieces, start, m_castling);
+    BitBoard movesBB = m_moveGen.GetMoves();
+    if (movesBB == MoveGen::INVALID) {
         WarningPrintln("Board::ValidateMove: Could not generate moves for piece: {}", piece.ToString());
         return false;
     }

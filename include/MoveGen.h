@@ -1,5 +1,7 @@
 #pragma once
 
+#include <span>
+
 #include "Constants.h"
 #include "Piece.h"
 
@@ -10,8 +12,8 @@
  */
 class MoveGen {
 public:
+    // Useful for determining if generated moves are invalid.
     static const BitBoard INVALID      = 0x00'00'00'00'00'00'00'00;
-    static const BitBoard CHECKMATE    = 0xff'ff'ff'ff'ff'ff'ff'ff;
 
     // ----- Creation / Destruction -----
 
@@ -20,29 +22,48 @@ public:
 
     // ----- Read -----
 
+    // Returns the generated move bitboard.
+    BitBoard GetMoves() const noexcept;
+
+    // Determines if previous move generation results in checkmate.
+    bool IsCheckmate() const noexcept;
+    
+    // Determines if previous move generation results in stalemate.
+    bool IsStalemate() const noexcept;
+
     // ----- Update -----
 
     /**
      * @brief Generates moves for a given `Piece`.
      * @param pieces The current `Piece` list.
      * @param index The `Index` of the `Piece` to generate moves for.
-     * @param castling The castling rights of the current player's king.
-     * @return The `BitBoard` representation of the moves.
+     * @param castling The castling rights of the board.
      * @date 2026-06-29
      */
-    BitBoard Generate(const Piece* pieces, Index index, u8 castling);
+    void Generate(std::span<const Piece, 64> pieces, Index index, u8 castling);
 
 private:
+    // Data taken in
     const Piece* m_pieceList;
     Index m_pieceIndex;
     u8 m_castling;
 
+    // Calculation data
     bool m_generatingAttacks, m_inCheck, m_inDoubleCheck, m_pinningPiece;
     Index m_pinIndex;
     BitBoard m_attacks, m_pins, m_pinsHorz, m_pinsVert, m_pinsDiagUp, m_pinsDiagDown;
     BitBoard m_checkSquares, m_currentMoves;
 
+    // Result data
+    BitBoard m_validMoves;
+    bool m_isCheckmate, m_isStalemate;
+
+    // General
+
     void Reset();
+    int PieceCompare(const Piece& lhs, const Piece& rhs);
+    void CheckForCheckmate(Enums::Colour friendly);
+    // void CheckForStalemate();
 
     // Attacks
 

@@ -25,17 +25,14 @@ public:
 
     // ----- Read -----
 
-    // Gets castling rights for given king colour.
-    u8 Castling(Enums::Colour colour) const noexcept;
+    // Get board castling rights
+    u8 Castling() const noexcept;
 
     // Get current gamestate fen.
     std::string_view Fen() const noexcept;
 
     // Get the board's piece list.
     std::span<const Piece, 64> Pieces() const noexcept;
-
-    // Get current board player colour.
-    Enums::Colour Player() const noexcept;
 
     // ----- Update -----
 
