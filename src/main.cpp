@@ -14,7 +14,6 @@ Board:
 
 #include <cstdio>
 #include <cstring>
-#include <print>
 #include <vector>
 
 #include "raylib.h"

@@ -130,7 +130,7 @@ static void ParseArgs(int argc, char** argv)
     bool validArgFound = false;
     std::pair<const char*, std::function<void(const std::string&)>> prevArg;
     for (const auto& arg : args) {
-        if (validArgFound){ 
+        if (validArgFound){
             validArgFound = false;
             prevArg.second(arg);
             continue;

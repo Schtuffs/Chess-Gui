@@ -142,7 +142,7 @@ void Renderer::RenderMoves(BitBoard bb, bool isWhitePerspective)
             button.Render();
         }
 
-        if ((bb >> index) & 1){ 
+        if ((bb >> index) & 1){
             button.Render();
         }
     }

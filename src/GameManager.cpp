@@ -22,6 +22,19 @@ GameManager::GameManager(std::string_view fen)
     if (player[0] == 'b') {
         m_isWhiteTurn = false;
     }
+
+    // Load moves from settings
+    std::string defaultNoLastMove = DEFAULT_FEN.data();
+    defaultNoLastMove[defaultNoLastMove.size() - 1] = '0';
+    if (m_board.Fen() != defaultNoLastMove) {
+        std::string moves = Settings::s(Setting::GAME_MOVES);
+        u64 start = 0, end = 0;
+        while ((end = moves.find(" ", start)) != std::string::npos) {
+            m_moves.push_back(moves.substr(start, end - start));
+            start = end + 1;
+        }
+        m_moves.push_back(moves.substr(start));
+    }
 }
 
 GameManager::~GameManager()
@@ -49,12 +62,12 @@ std::string GameManager::AllMoves() const noexcept
 
 bool GameManager::InCheckmate() const noexcept
 {
-    return m_inCheckmate;
+    return m_moveGen.IsCheckmate();
 }
 
 bool GameManager::InStalemate() const noexcept
 {
-    return m_inStalemate;
+    return m_moveGen.IsStalemate();
 }
 
 std::string_view GameManager::Fen() const noexcept
@@ -121,7 +134,8 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
         // Current move not complete, add it in
         Index index = Convert::MoveToIndex(passedMove);
         if (CheckPieceSelectable(index)) {
-            m_possibleMoves = m_moveGen.Generate(m_board.Pieces().data(), index, m_board.Castling(m_board.Player()));
+            m_moveGen.Generate(m_board.Pieces(), index, m_board.Castling());
+            m_possibleMoves = m_moveGen.GetMoves();
         }
 
         // Failed to generate moves
@@ -260,6 +274,9 @@ void GameManager::ManagePromotion(std::string_view move)
 
 void GameManager::CheckForCheckmate()
 {
+    m_inCheckmate = m_moveGen.IsCheckmate();
+    m_inStalemate = m_moveGen.IsStalemate();
+    return;
     Enums::Colour attackers = (
         Player() == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White
     );
@@ -276,7 +293,7 @@ void GameManager::CheckForCheckmate()
 
     // Something has gone wrong
     if (kingPos == 0) {
-        ErrorPrintln("No {} king found.", Enums::ToString::Colour[(u8)Player()]);
+        ErrorPrintln("GameManager::CheckForCheckmate: No {} king found.", Enums::ToString::Colour[(u8)Player()]);
         exit(1);
     }
 
@@ -288,7 +305,8 @@ void GameManager::CheckForCheckmate()
             continue;
         }
 
-        BitBoard moves = m_moveGen.Generate(m_board.Pieces().data(), piece.Position(), 0);
+        m_moveGen.Generate(m_board.Pieces(), piece.Position(), 0);
+        BitBoard moves = m_moveGen.GetMoves();
         if (moves & kingPos) {
             // Check
             inCheck = true;
@@ -304,7 +322,8 @@ void GameManager::CheckForCheckmate()
             continue;
         }
 
-        BitBoard moves = m_moveGen.Generate(m_board.Pieces().data(), piece.Position(), 0);
+        m_moveGen.Generate(m_board.Pieces(), piece.Position(), 0);
+        BitBoard moves = m_moveGen.GetMoves();
         if (moves != Convert::IndexToBitBoard(piece.Position())) {
             DebugPrintln("GameManager::CheckForCheckmate: Not in checkmate");
             return;

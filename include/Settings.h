@@ -8,7 +8,7 @@
 /**
  * @brief A specific settings.
  * @enum Setting
- * @date 2026-07-01 
+ * @date 2026-07-01
  */
 enum class Setting {
     GAME_LOAD,
@@ -22,7 +22,7 @@ enum class Setting {
 /**
  * @brief Stores settings about the game.
  * @namespace Settings
- * @date 2026-07-01 
+ * @date 2026-07-01
  */
 namespace Settings {
 

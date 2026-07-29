@@ -133,7 +133,7 @@
 *       #define RAYGUI_CUSTOM_ICONS
 *           Includes custom ricons.h header defining a set of custom icons,
 *           this file can be generated using rGuiIcons tool
-* 
+*
 *       #define RAYGUI_FONT_ICONS_BAKING
 *           On gui font loading from style file, append the icons to font atlas image, so,
 *           icons can be drawn along the text as a texture, instead of using shapes to draw them
@@ -5170,10 +5170,10 @@ void GuiDrawIcon(int iconId, int posX, int posY, int pixelSize, Color color)
     {
         int maxIconsPerLine = guiFont.texture.width/(RAYGUI_ICON_SIZE + 2*RAYGUI_ICON_FONT_ATLAS_PADDING);
         int x = iconId%maxIconsPerLine;
-        int y = iconId/maxIconsPerLine; 
+        int y = iconId/maxIconsPerLine;
 
-        Rectangle srcRec = { (float)x*(RAYGUI_ICON_SIZE + 2*RAYGUI_ICON_FONT_ATLAS_PADDING) + RAYGUI_ICON_FONT_ATLAS_PADDING, 
-            guiIconFontOffsetY + (float)y*(RAYGUI_ICON_SIZE + 2*RAYGUI_ICON_FONT_ATLAS_PADDING) + RAYGUI_ICON_FONT_ATLAS_PADDING, 
+        Rectangle srcRec = { (float)x*(RAYGUI_ICON_SIZE + 2*RAYGUI_ICON_FONT_ATLAS_PADDING) + RAYGUI_ICON_FONT_ATLAS_PADDING,
+            guiIconFontOffsetY + (float)y*(RAYGUI_ICON_SIZE + 2*RAYGUI_ICON_FONT_ATLAS_PADDING) + RAYGUI_ICON_FONT_ATLAS_PADDING,
             RAYGUI_ICON_SIZE, RAYGUI_ICON_SIZE };
         Rectangle dstRec = { posX, posY, RAYGUI_ICON_SIZE*pixelSize, RAYGUI_ICON_SIZE*pixelSize };
 
@@ -5189,7 +5189,7 @@ void GuiDrawIcon(int iconId, int posX, int posY, int pixelSize, Color color)
             {
                 if (BIT_CHECK(guiIconsPtr[iconId*RAYGUI_ICON_DATA_ELEMENTS + i], k))
                 {
-                    GuiDrawRectangle(RAYGUI_CLITERAL(Rectangle){ (float)posX + (k%RAYGUI_ICON_SIZE)*pixelSize, 
+                    GuiDrawRectangle(RAYGUI_CLITERAL(Rectangle){ (float)posX + (k%RAYGUI_ICON_SIZE)*pixelSize,
                         (float)posY + y*pixelSize, (float)pixelSize, (float)pixelSize }, 0, BLANK, color);
                 }
 
@@ -5667,7 +5667,7 @@ static void GuiTooltip(Rectangle controlRec)
 {
     if (!guiLocked && guiTooltip && (guiTooltipPtr != NULL) && !guiControlExclusiveMode)
     {
-        Vector2 textSize = MeasureTextEx(guiFont, guiTooltipPtr, (float)GuiGetStyle(DEFAULT, TEXT_SIZE), 
+        Vector2 textSize = MeasureTextEx(guiFont, guiTooltipPtr, (float)GuiGetStyle(DEFAULT, TEXT_SIZE),
             (float)GuiGetStyle(DEFAULT, TEXT_SPACING));
 
         if ((controlRec.x + textSize.x + 16) > GetScreenWidth()) controlRec.x -= (textSize.x + 16 - controlRec.width);
@@ -5872,13 +5872,13 @@ static int GuiFontIconBaking(Image *imFont, Font font, Rectangle *whiteRec)
     int maxGlyphRecY = 0;
     for (int i = 0; i < font.glyphCount; i++)
     {
-        if ((font.recs[i].y + font.recs[i].height) > maxGlyphRecY) 
+        if ((font.recs[i].y + font.recs[i].height) > maxGlyphRecY)
             maxGlyphRecY = (int)font.recs[i].y + (int)font.recs[i].height;
     }
 
     int maxIconsPerLine = imFont->width/(RAYGUI_ICON_SIZE + 2*RAYGUI_ICON_FONT_ATLAS_PADDING);
     int reqIconLines = RAYGUI_ICON_MAX_FONT_BACKED/maxIconsPerLine + RAYGUI_ICON_MAX_FONT_BACKED%maxIconsPerLine + 1; // One extra line
-    int reqHeight = reqIconLines*(RAYGUI_ICON_SIZE + 2*RAYGUI_ICON_FONT_ATLAS_PADDING); 
+    int reqHeight = reqIconLines*(RAYGUI_ICON_SIZE + 2*RAYGUI_ICON_FONT_ATLAS_PADDING);
 
     // Check if image requires scaling and how much
     if ((maxGlyphRecY + reqHeight) > imFont->height)

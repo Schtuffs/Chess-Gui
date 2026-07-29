@@ -6,35 +6,13 @@
 
 static void BreakMoveGen()
 {
-    TEST("MoveGen::Generate: null pieces", [](){
-        BitBoard expected = MoveGen::INVALID;
-        MoveGen gen;
-
-        BitBoard actual = gen.Generate(nullptr, 3, 12);
-
-        TestSuite::assertEqual(expected, actual);
-    });
-
     TEST("MoveGen::Generate: index out of bounds", [](){
         BitBoard expected = MoveGen::INVALID;
         Piece pieces[64];
         MoveGen gen;
 
-        BitBoard actual = gen.Generate(pieces, 64, 12);
-
-        TestSuite::assertEqual(expected, actual);
-    });
-
-    TEST("MoveGen::Generate: too much castling", [](){
-        BitBoard expected = MoveGen::INVALID;
-        Board b(DEFAULT_FEN);
-        MoveGen gen;
-        constexpr u8 castling = (
-            (u8)Enums::Castling::Black_King | (u8)Enums::Castling::Black_Queen |
-            (u8)Enums::Castling::White_King | (u8)Enums::Castling::White_Queen
-        );
-
-        BitBoard actual = gen.Generate(b.Pieces().data(), 3, castling);
+        gen.Generate(pieces, 64, 12);
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -51,7 +29,8 @@ static void WhiteLondonTests()
         BitBoard expected = 0x00'00'00'00'00'00'18'70;
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 4, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 4, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -61,7 +40,8 @@ static void WhiteLondonTests()
         BitBoard expected = 0x00'00'00'80'41'22'1c'0c;
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 3, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 3, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -71,7 +51,8 @@ static void WhiteLondonTests()
         BitBoard expected = 0x00'00'00'00'00'04'00'00;
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 18, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 18, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -86,7 +67,8 @@ static void WhitePuzzleTests()
         const Board b(fen);
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 48, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 48, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -96,7 +78,8 @@ static void WhitePuzzleTests()
         const Board b(fen);
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 17, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 17, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -106,7 +89,8 @@ static void WhitePuzzleTests()
         const Board b(fen);
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 6, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 6, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -116,7 +100,8 @@ static void WhitePuzzleTests()
         const Board b(fen);
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 5, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 5, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -133,7 +118,8 @@ static void BlackLondonTests()
         const Board b(fen);
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 62, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 62, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -143,7 +129,8 @@ static void BlackLondonTests()
         const Board b(fen);
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 54, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 54, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -153,7 +140,8 @@ static void BlackLondonTests()
         const Board b(fen);
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 18, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 18, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -173,7 +161,8 @@ static void CheckTests()
         Board b("rnbq1r2/ppp1pp1k/3p2p1/6N1/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 20, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 20, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -183,7 +172,8 @@ static void CheckTests()
         Board b("rnbq1r2/ppp1pp1k/3p2p1/6N1/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 52, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 52, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -193,7 +183,8 @@ static void CheckTests()
         Board b("rnbq1r2/ppp1pp1k/3p2p1/6N1/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 55, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 55, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -203,7 +194,8 @@ static void CheckTests()
         Board b("rnbq1r2/ppp1pp1k/3p2P1/8/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 55, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 55, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -213,7 +205,8 @@ static void CheckTests()
         Board b("rnbq1r2/ppp1pp1k/3p2P1/8/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 53, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 53, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -223,7 +216,8 @@ static void CheckTests()
         Board b("rnbq1r2/ppp1pp1k/3p2P1/8/2P2N2/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 55, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 55, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -236,7 +230,8 @@ static void DoubleCheckTests()
         Board b("rnbq1r2/ppp1pp1k/3p2P1/6N1/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 0 9");
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 55, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 55, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -246,7 +241,8 @@ static void DoubleCheckTests()
         Board b("rnbq1r2/ppp1pp1k/3p2P1/6N1/2P4N/4b3/PP3PPP/R1BQKB1R b KQ - 0 9");
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 55, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 55, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -256,7 +252,8 @@ static void DoubleCheckTests()
         Board b("rnbq1r2/ppp1pp1k/3p2P1/6N1/2P4N/4b3/PP3PPP/R1BQKB1R b KQ - 0 9");
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 20, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 20, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -266,7 +263,8 @@ static void DoubleCheckTests()
         Board b("rnbq1r2/ppp1pp1k/3p2P1/6N1/2P4N/4b3/PP3PPP/R1BQKB1R b KQ - 0 9");
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 53, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 53, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -279,7 +277,8 @@ static void MiscTests()
         Board b("r1bq1rk1/ppp2ppB/2n1pn2/b2pN3/3P1B2/2P1P3/PP3PPP/RN1QK2R b KQ - 0 7");
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 9, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 9, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -289,7 +288,8 @@ static void MiscTests()
         Board b(DEFAULT_FEN);
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 34, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 34, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -299,7 +299,8 @@ static void MiscTests()
         Board b("rnbqkbnr/pppp1ppp/8/3Pp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 2");
 
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 35, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 35, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -312,7 +313,8 @@ static void MiscTests()
             TestSuite::assertTrue(b.MakeMove(move));
         }
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 36, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 36, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
@@ -325,7 +327,8 @@ static void MiscTests()
             TestSuite::assertTrue(b.MakeMove(move));
         }
         MoveGen gen;
-        BitBoard actual = gen.Generate(b.Pieces().data(), 37, b.Castling(b.Player()));
+        gen.Generate(b.Pieces(), 37, b.Castling());
+        BitBoard actual = gen.GetMoves();
 
         TestSuite::assertEqual(expected, actual);
     });
