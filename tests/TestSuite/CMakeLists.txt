@@ -4,6 +4,7 @@ set(CMAKE_CXX_STANDARD 23)
 project(TestSuite LANGUAGES C CXX)
 
 add_library(${PROJECT_NAME} STATIC
+    Assert.cpp
     TestSuite.cpp
 )
 

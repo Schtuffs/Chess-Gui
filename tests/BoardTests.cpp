@@ -1,3 +1,4 @@
+#include "TestSuite/Assert.h"
 #include "TestSuite/TestSuite.h"
 
 #include "Board.h"
@@ -8,10 +9,10 @@ void BoardTests(void)
         Board b(DEFAULT_FEN);
         std::string expected = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
 
-        TestSuite::assertTrue(b.MakeMove("e2e4"));
+        Assert::True(b.MakeMove("e2e4"));
         std::string actual = b.Fen().data();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("Board::MakeMove: opening London", [](){
@@ -20,11 +21,11 @@ void BoardTests(void)
 
         std::vector<std::string> moves = {"d2d4", "d7d5", "g1f3", "g8f6", "c1f4", "b8c6", "e2e3", "e7e6", "f3e5", "f8b4", "c2c3", "b4a5"};
         for (const auto& move : moves) {
-            TestSuite::assertTrue(b.MakeMove(move));
+            Assert::True(b.MakeMove(move));
         }
         std::string actual = b.Fen().data();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("Board::MakeMove: opening Kings Indian", [](){
@@ -33,11 +34,11 @@ void BoardTests(void)
 
         std::vector<std::string> moves = {"d2d4", "g8f6", "c2c4", "g7g6", "b1c3", "f8g7", "e2e4", "d7d6", "g1f3", "O-O", "f1e2", "e7e5"};
         for (const auto& move : moves) {
-            TestSuite::assertTrue(b.MakeMove(move));
+            Assert::True(b.MakeMove(move));
         }
         std::string actual = b.Fen().data();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("Board::MakeMove: simple en passant", [](){
@@ -45,11 +46,11 @@ void BoardTests(void)
         std::string expected = "rnbqkbnr/ppp1p1pp/5P2/3p4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 3";
         std::vector<std::string> moves = {"e2e4", "d7d5", "e4e5", "f7f5", "e5f6"};
         for (const auto& move : moves) {
-            TestSuite::assertTrue(b.MakeMove(move));
+            Assert::True(b.MakeMove(move));
         }
         std::string actual = b.Fen().data();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 }
 

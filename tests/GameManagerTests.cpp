@@ -1,6 +1,7 @@
 #include <string>
 
 #include "TestSuite/TestSuite.h"
+#include "TestSuite/Assert.h"
 
 #include "GameManager.h"
 
@@ -15,7 +16,7 @@ static void GameManagerSuccess()
             game.Update(move);
         }
 
-        TestSuite::assertEqual(expected, game.AllMoves());
+        Assert::Equal(expected, game.AllMoves());
     });
 
     TEST("GameManager::Update: full - white promotion - queen", [](){
@@ -28,7 +29,7 @@ static void GameManagerSuccess()
         }
         std::string_view actual = game.Fen();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("GameManager::Update: full - black promotion - bishop", [](){
@@ -41,7 +42,7 @@ static void GameManagerSuccess()
         }
         std::string_view actual = game.Fen();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("GameManager::Update: partial - white promotion - queen", [](){
@@ -54,7 +55,7 @@ static void GameManagerSuccess()
         }
         std::string_view actual = game.Fen();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("GameManager::Update: partial - black promotion - bishop", [](){
@@ -67,7 +68,7 @@ static void GameManagerSuccess()
         }
         std::string_view actual = game.Fen();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("GameManager::Update: white short castle", [](){
@@ -77,7 +78,7 @@ static void GameManagerSuccess()
         game.Update("O-O");
         std::string_view actual = game.Fen();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("GameManager::Update: black short castle", [](){
@@ -87,7 +88,7 @@ static void GameManagerSuccess()
         game.Update("O-O");
         std::string_view actual = game.Fen();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("GameManager::Update: white long castle", [](){
@@ -97,7 +98,7 @@ static void GameManagerSuccess()
         game.Update("O-O-O");
         std::string_view actual = game.Fen();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("GameManager::Update: black long castle", [](){
@@ -107,7 +108,7 @@ static void GameManagerSuccess()
         game.Update("O-O-O");
         std::string_view actual = game.Fen();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("GameManager::Update: Checkmate", [](){
@@ -115,7 +116,7 @@ static void GameManagerSuccess()
 
         game.Update("c7b7");
 
-        TestSuite::assertTrue(game.InCheckmate());
+        Assert::True(game.InCheckmate());
     });
 
     TEST("GameManager::Update: Stalemate", [](){
@@ -123,7 +124,7 @@ static void GameManagerSuccess()
 
         game.Update("d7c7");
 
-        TestSuite::assertTrue(game.InStalemate());
+        Assert::True(game.InStalemate());
     });
 }
 
@@ -138,7 +139,7 @@ static void GameManagerFailure()
             game.Update(move);
         }
 
-        TestSuite::assertEqual(expected, game.AllMoves());
+        Assert::Equal(expected, game.AllMoves());
     });
 
     TEST("GameManager::AllMoves: london - one failure - mid", [](){
@@ -150,7 +151,7 @@ static void GameManagerFailure()
             game.Update(move);
         }
 
-        TestSuite::assertEqual(expected, game.AllMoves());
+        Assert::Equal(expected, game.AllMoves());
     });
 
     TEST("GameManager::AllMoves: london - three failures - mid", [](){
@@ -162,7 +163,7 @@ static void GameManagerFailure()
             game.Update(move);
         }
 
-        TestSuite::assertEqual(expected, game.AllMoves());
+        Assert::Equal(expected, game.AllMoves());
     });
 }
 

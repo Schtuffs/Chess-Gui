@@ -109,7 +109,7 @@ void MoveGen::Generate(std::span<const Piece, 64> pieces, Index index, u8 castli
         CheckForCheckmate(m_pieceList[index].Colour());
         return;
     }
-    
+
     // Generate moves normally
     BitBoard bb = GenMoves(piece);
     DebugPrintln("MoveGen::Generate: Moves: {}", Convert::BitBoardToString(bb, 'X', ' '));
@@ -166,8 +166,6 @@ int MoveGen::PieceCompare(const Piece& lhs, const Piece& rhs)
 
 void MoveGen::CheckForCheckmate(Enums::Colour friendly)
 {
-    Reset();
-
     // In check, check for any valid moves
     bool isFirst = true;
     for (Index i = 0; i < 64; i++) {

@@ -1,10 +1,6 @@
 #include "TestSuite.h"
 
-#include <array>
 #include <chrono>
-#include <cstring>
-#include <cstdint>
-#include <iostream>
 #include <mutex>
 #include <print>
 #include <span>
@@ -308,41 +304,5 @@ uint64_t TestSuite::RunTests() {
 
     // Exit program with the number of fails
     return (sFails);
-}
-
-
-
-// ----- Asserts -----
-
-void TestSuite::assertTrue(bool value) {
-    if (value == false) {
-        TEST_FAIL("Expected <true>, received <false>");
-    }
-    TEST_SUCCESS;
-}
-
-void TestSuite::assertFalse(bool value) {
-    if (value == true) {
-        TEST_FAIL("Expected <false>, received <true>");
-    }
-    TEST_SUCCESS;
-}
-
-void TestSuite::assertEqual(const void* expected, const void* actual, int length) {
-    if (memcmp(expected, actual, length) != 0) {
-        std::stringstream str;
-        str << "<" << expected << "> is not equal to <" << actual << ">";
-        TEST_FAIL(str.str());
-    }
-    TEST_SUCCESS;
-}
-
-void TestSuite::assertNotEqual(const void* expected, const void* actual, int length) {
-    if (memcmp(expected, actual, length) == 0) {
-        std::stringstream str;
-        str << "<" << expected << "> is equal to <" << actual << ">";
-        TEST_FAIL(str.str());
-    }
-    TEST_SUCCESS;
 }
 

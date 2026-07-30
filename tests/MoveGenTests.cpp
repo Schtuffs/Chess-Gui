@@ -1,4 +1,8 @@
 #include "TestSuite/TestSuite.h"
+#include "TestSuite/Assert.h"
+
+#include <chrono>
+#include <print>
 
 #include "Board.h"
 #include "Convert.h"
@@ -14,7 +18,7 @@ static void BreakMoveGen()
         gen.Generate(pieces, 64, 12);
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 }
 
@@ -32,7 +36,7 @@ static void WhiteLondonTests()
         gen.Generate(b.Pieces(), 4, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("MoveGen::Generate: london piece movements - white queen", [&fen](){
@@ -43,7 +47,7 @@ static void WhiteLondonTests()
         gen.Generate(b.Pieces(), 3, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("MoveGen::Generate: london piece movements - white pinned pawn e3", [&fen](){
@@ -54,7 +58,7 @@ static void WhiteLondonTests()
         gen.Generate(b.Pieces(), 18, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 }
 
@@ -70,7 +74,7 @@ static void WhitePuzzleTests()
         gen.Generate(b.Pieces(), 48, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("MoveGen::Generate: puzzle king in check - move light bishop", [&fen](){
@@ -81,7 +85,7 @@ static void WhitePuzzleTests()
         gen.Generate(b.Pieces(), 17, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("MoveGen::Generate: puzzle king in check - move king", [&fen](){
@@ -92,7 +96,7 @@ static void WhitePuzzleTests()
         gen.Generate(b.Pieces(), 6, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("MoveGen::Generate: puzzle king in check - move rook", [&fen](){
@@ -103,7 +107,7 @@ static void WhitePuzzleTests()
         gen.Generate(b.Pieces(), 5, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 }
 
@@ -121,7 +125,7 @@ static void BlackLondonTests()
         gen.Generate(b.Pieces(), 62, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("MoveGen::Generate: london piece movements - black pawn g7", [&fen](){
@@ -132,7 +136,7 @@ static void BlackLondonTests()
         gen.Generate(b.Pieces(), 54, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("MoveGen::Generate: london piece movements - black pinned pawn e3", [&fen](){
@@ -143,7 +147,7 @@ static void BlackLondonTests()
         gen.Generate(b.Pieces(), 18, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 }
 
@@ -164,7 +168,7 @@ static void CheckTests()
         gen.Generate(b.Pieces(), 20, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("MoveGen::Generate: knight check - pawn", [](){
@@ -175,7 +179,7 @@ static void CheckTests()
         gen.Generate(b.Pieces(), 52, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("MoveGen::Generate: knight check - king", [](){
@@ -186,7 +190,7 @@ static void CheckTests()
         gen.Generate(b.Pieces(), 55, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("MoveGen::Generate: pawn check - king", [](){
@@ -197,7 +201,7 @@ static void CheckTests()
         gen.Generate(b.Pieces(), 55, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("MoveGen::Generate: pawn check - pawn", [](){
@@ -208,7 +212,7 @@ static void CheckTests()
         gen.Generate(b.Pieces(), 53, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("MoveGen::Generate: pawn check defended - king", [](){
@@ -219,7 +223,7 @@ static void CheckTests()
         gen.Generate(b.Pieces(), 55, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 }
 
@@ -233,7 +237,7 @@ static void DoubleCheckTests()
         gen.Generate(b.Pieces(), 55, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: double check defended pawn - king", [](){
@@ -244,7 +248,7 @@ static void DoubleCheckTests()
         gen.Generate(b.Pieces(), 55, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: double check - bishop", [](){
@@ -255,7 +259,7 @@ static void DoubleCheckTests()
         gen.Generate(b.Pieces(), 20, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: double check - pawn", [](){
@@ -266,7 +270,7 @@ static void DoubleCheckTests()
         gen.Generate(b.Pieces(), 53, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(actual, expected);
     });
 }
 
@@ -280,7 +284,7 @@ static void MiscTests()
         gen.Generate(b.Pieces(), 9, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("MoveGen::Generate: invalid piece", [](){
@@ -291,7 +295,7 @@ static void MiscTests()
         gen.Generate(b.Pieces(), 34, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("MoveGen::Generate: en passant - from fen", [](){
@@ -302,7 +306,7 @@ static void MiscTests()
         gen.Generate(b.Pieces(), 35, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("MoveGen::Generate: en passant - make moves", [](){
@@ -310,13 +314,13 @@ static void MiscTests()
         Board b(DEFAULT_FEN);
         std::vector<std::string> moves = {"e2e4", "d7d5", "e4e5", "f7f5"};
         for (const auto& move : moves) {
-            TestSuite::assertTrue(b.MakeMove(move));
+            Assert::True(b.MakeMove(move));
         }
         MoveGen gen;
         gen.Generate(b.Pieces(), 36, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 
     TEST("MoveGen::Generate: en passant - ensure pawn gone", [](){
@@ -324,13 +328,13 @@ static void MiscTests()
         Board b(DEFAULT_FEN);
         std::vector<std::string> moves = {"e2e4", "d7d5", "e4e5", "f7f5", "e5f6"};
         for (const auto& move : moves) {
-            TestSuite::assertTrue(b.MakeMove(move));
+            Assert::True(b.MakeMove(move));
         }
         MoveGen gen;
         gen.Generate(b.Pieces(), 37, b.Castling());
         BitBoard actual = gen.GetMoves();
 
-        TestSuite::assertEqual(expected, actual);
+        Assert::Equal(expected, actual);
     });
 }
 
@@ -338,12 +342,138 @@ static void MiscTests()
 
 static void TimeTests1()
 {
-    constexpr std::string_view fen = "";
+    constexpr u64 count = 10000;
+    constexpr std::string_view fen = "8/1Q3p1k/4p1q1/7p/8/1B3p1P/P4PP1/6K1 b - - 0 34";
 
-    TEST("", [&fen](){
-        Board b(fen);
+    TEST("MoveGen::Time: 1 - index 21", [](){
+        u64 expected = 2500;
+        std::chrono::nanoseconds totalTime = {};
+
+        for (u64 i = 0; i < count; i++) {
+            Board b(fen);
+            MoveGen gen;
+
+            auto start = std::chrono::steady_clock::now();
+            gen.Generate(b.Pieces(), 21, 0);
+            auto end = std::chrono::steady_clock::now();
+
+            auto delta = std::chrono::nanoseconds(end - start);
+            totalTime += delta;
+        }
+
+        u64 actual = totalTime.count() / count;
+
+        Assert::LessThan(actual, expected);
+    });
+
+    TEST("MoveGen::Time: 1 - index 39", [](){
+        u64 expected = 2500;
+        std::chrono::nanoseconds totalTime = {};
+
+        for (u64 i = 0; i < count; i++) {
+            Board b(fen);
+            MoveGen gen;
+
+            auto start = std::chrono::steady_clock::now();
+            gen.Generate(b.Pieces(), 39, 0);
+            auto end = std::chrono::steady_clock::now();
+
+            auto delta = std::chrono::nanoseconds(end - start);
+            totalTime += delta;
+        }
+
+        u64 actual = totalTime.count() / count;
+
+        Assert::LessThan(actual, expected);
+    });
+
+    TEST("MoveGen::Time: 1 - index 44", [](){
+        u64 expected = 2500;
+        std::chrono::nanoseconds totalTime = {};
+
+        for (u64 i = 0; i < count; i++) {
+            Board b(fen);
+            MoveGen gen;
+
+            auto start = std::chrono::steady_clock::now();
+            gen.Generate(b.Pieces(), 44, 0);
+            auto end = std::chrono::steady_clock::now();
+
+            auto delta = std::chrono::nanoseconds(end - start);
+            totalTime += delta;
+        }
+
+        u64 actual = totalTime.count() / count;
+
+        Assert::LessThan(actual, expected);
+    });
+
+    TEST("MoveGen::Time: 1 - index 46", [](){
+        u64 expected = 2500;
+        std::chrono::nanoseconds totalTime = {};
+
+        for (u64 i = 0; i < count; i++) {
+            Board b(fen);
+            MoveGen gen;
+
+            auto start = std::chrono::steady_clock::now();
+            gen.Generate(b.Pieces(), 46, 0);
+            auto end = std::chrono::steady_clock::now();
+
+            auto delta = std::chrono::nanoseconds(end - start);
+            totalTime += delta;
+        }
+
+        u64 actual = totalTime.count() / count;
+
+        Assert::LessThan(actual, expected);
+    });
+
+    TEST("MoveGen::Time: 1 - index 53", [](){
+        u64 expected = 2500;
+        std::chrono::nanoseconds totalTime = {};
+
+        for (u64 i = 0; i < count; i++) {
+            Board b(fen);
+            MoveGen gen;
+
+            auto start = std::chrono::steady_clock::now();
+            gen.Generate(b.Pieces(), 53, 0);
+            auto end = std::chrono::steady_clock::now();
+
+            auto delta = std::chrono::nanoseconds(end - start);
+            totalTime += delta;
+        }
+
+        u64 actual = totalTime.count() / count;
+
+        Assert::LessThan(actual, expected);
+    });
+
+    TEST("MoveGen::Time: 1 - index 55", [](){
+        u64 expected = 2500;
+        std::chrono::nanoseconds totalTime = {};
+
+        for (u64 i = 0; i < count; i++) {
+            Board b(fen);
+            MoveGen gen;
+
+            auto start = std::chrono::steady_clock::now();
+            gen.Generate(b.Pieces(), 55, 0);
+            auto end = std::chrono::steady_clock::now();
+
+            auto delta = std::chrono::nanoseconds(end - start);
+            totalTime += delta;
+        }
+
+        u64 actual = totalTime.count() / count;
+
+        std::println("Actual: {}, total: {}", actual, totalTime);
+        Assert::LessThan(actual, expected);
     });
 }
+
+
 
 void MoveGenTests()
 {
