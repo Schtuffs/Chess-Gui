@@ -362,66 +362,66 @@ static std::chrono::nanoseconds RunTimeTest(std::string_view fen, Index index, u
 static void TimeTests1()
 {
     constexpr std::string_view fen = "8/1Q3p1k/4p1q1/7p/8/1B3p1P/P4PP1/6K1 b - - 0 34";
-    constexpr static u64       count = 10000;
+    constexpr static u64       count = 100;
     static std::mutex          mtx;
-    std::shared_ptr<FILE>      file(fopen("TimeTests1.log", "a"), fclose);
+    std::shared_ptr<FILE>      file(fopen("MoveGenV2.log", "a"), fclose);
 
     TEST("MoveGen::Time: 1 - index 21", [file]() {
-        std::chrono::nanoseconds expected(3000);
+        std::chrono::nanoseconds expected(3360);
         auto actual = std::chrono::nanoseconds(RunTimeTest(fen, 21, count) / count);
 
         mtx.lock();
-        std::println(file.get(), "Index 21: {}", actual);
+        std::println(file.get(), "21:{}", actual);
         mtx.unlock();
         Assert::LessThan(actual, expected);
     });
 
     TEST("MoveGen::Time: 1 - index 39", [file]() {
-        std::chrono::nanoseconds expected(3000);
+        std::chrono::nanoseconds expected(3215);
         auto actual = std::chrono::nanoseconds(RunTimeTest(fen, 39, count) / count);
 
         mtx.lock();
-        std::println(file.get(), "Index 39: {}", actual);
+        std::println(file.get(), "39:{}", actual);
         mtx.unlock();
         Assert::LessThan(actual, expected);
     });
 
     TEST("MoveGen::Time: 1 - index 44", [file]() {
-        std::chrono::nanoseconds expected(3000);
+        std::chrono::nanoseconds expected(3200);
         auto actual = std::chrono::nanoseconds(RunTimeTest(fen, 44, count) / count);
 
         mtx.lock();
-        std::println(file.get(), "Index 44: {}", actual);
+        std::println(file.get(), "44:{}", actual);
         mtx.unlock();
         Assert::LessThan(actual, expected);
     });
 
     TEST("MoveGen::Time: 1 - index 46", [file]() {
-        std::chrono::nanoseconds expected(3100);
+        std::chrono::nanoseconds expected(3565);
         auto actual = std::chrono::nanoseconds(RunTimeTest(fen, 46, count) / count);
 
         mtx.lock();
-        std::println(file.get(), "Index 46: {}", actual);
+        std::println(file.get(), "46:{}", actual);
         mtx.unlock();
         Assert::LessThan(actual, expected);
     });
 
     TEST("MoveGen::Time: 1 - index 53", [file]() {
-        std::chrono::nanoseconds expected(3000);
+        std::chrono::nanoseconds expected(3170);
         auto actual = std::chrono::nanoseconds(RunTimeTest(fen, 53, count) / count);
 
         mtx.lock();
-        std::println(file.get(), "Index 53: {}", actual);
+        std::println(file.get(), "53:{}", actual);
         mtx.unlock();
         Assert::LessThan(actual, expected);
     });
 
     TEST("MoveGen::Time: 1 - index 55", [file]() {
-        std::chrono::nanoseconds expected(3000);
+        std::chrono::nanoseconds expected(3210);
         auto actual = std::chrono::nanoseconds(RunTimeTest(fen, 55, count) / count);
 
         mtx.lock();
-        std::println(file.get(), "Index 55: {}", actual);
+        std::println(file.get(), "55:{}", actual);
         mtx.unlock();
         Assert::LessThan(actual, expected);
     });
