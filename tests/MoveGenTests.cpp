@@ -334,6 +334,17 @@ static void MiscTests()
     });
 }
 
+
+
+static void TimeTests1()
+{
+    constexpr std::string_view fen = "";
+
+    TEST("", [&fen](){
+        Board b(fen);
+    });
+}
+
 void MoveGenTests()
 {
     BreakMoveGen();
@@ -347,5 +358,7 @@ void MoveGenTests()
     CheckTests();
     DoubleCheckTests();
     MiscTests();
+
+    TimeTests1();
 }
 

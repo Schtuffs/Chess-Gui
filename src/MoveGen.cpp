@@ -166,15 +166,22 @@ int MoveGen::PieceCompare(const Piece& lhs, const Piece& rhs)
 
 void MoveGen::CheckForCheckmate(Enums::Colour friendly)
 {
-    Enums::Colour search = (
-        friendly == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White
-    );
+    Reset();
 
     // In check, check for any valid moves
+    bool isFirst = true;
     for (Index i = 0; i < 64; i++) {
         const Piece& piece = m_pieceList[i];
-        if (!piece.IsValid() || piece.Colour() != search) {
+        if (!piece.IsValid() || piece.Colour() == friendly) {
             continue;
+        }
+
+        if (isFirst) {
+            isFirst = false;
+            Index temp = m_pinIndex;
+            m_pieceIndex = piece.Position();
+            m_attacks = GenAttacks();
+            m_pieceIndex = temp;
         }
         
         BitBoard moves = GenMoves(piece);

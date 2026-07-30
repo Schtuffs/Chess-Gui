@@ -62,12 +62,12 @@ std::string GameManager::AllMoves() const noexcept
 
 bool GameManager::InCheckmate() const noexcept
 {
-    return m_moveGen.IsCheckmate();
+    return m_inCheckmate;
 }
 
 bool GameManager::InStalemate() const noexcept
 {
-    return m_moveGen.IsStalemate();
+    return m_inStalemate;
 }
 
 std::string_view GameManager::Fen() const noexcept
@@ -117,6 +117,7 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
 
     // Manage the promotion taking place
     if (Utils::IsValidIndex(m_promotionSquare)) {
+        DebugPrintln("GameManager::Update: Managing promotion");
         ManagePromotion(passedMove);
         return;
     }
@@ -129,21 +130,26 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
     }
 
     // Player attempting to pick up a piece
-    if (m_currentMove.length() == 2) {
-        // PickupPiece(passedMove);
+    if (m_currentMove.length() >= 2) {
         // Current move not complete, add it in
         Index index = Convert::MoveToIndex(passedMove);
         if (CheckPieceSelectable(index)) {
             m_moveGen.Generate(m_board.Pieces(), index, m_board.Castling());
             m_possibleMoves = m_moveGen.GetMoves();
+            DebugPrintln("GameManager::Update: Generated moves.");
         }
 
-        // Failed to generate moves
-        if (m_possibleMoves == MoveGen::INVALID) {
-            m_currentMove.clear();
-        }
+        if (m_currentMove.length() == 2) {
+            m_inCheckmate = false;
+            m_inStalemate = false;
 
-        return;
+            // Failed to generate moves
+            if (m_possibleMoves == MoveGen::INVALID) {
+                m_currentMove.clear();
+            }
+
+            return;
+        }
     }
 
     // Try to play the move
@@ -163,6 +169,7 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
     // Try to reselect
     bool isSameIndex = (start == end);
     if (!moveCheck && tryReselect && !isSameIndex) {
+        DebugPrintln("GameManager::Update: Attempting reselect.");
         Update(passedMove, false);
     }
 }
@@ -174,6 +181,10 @@ bool GameManager::CheckMove(std::string& move)
 
 bool GameManager::CheckPieceSelectable(Index index)
 {
+    if (!Utils::IsValidIndex(index)) {
+        return false;
+    }
+
     Enums::Colour col = m_board.Pieces()[index].Colour();
     return (
         (m_isWhiteTurn && col == Enums::Colour::White) ||
@@ -274,9 +285,6 @@ void GameManager::ManagePromotion(std::string_view move)
 
 void GameManager::CheckForCheckmate()
 {
-    m_inCheckmate = m_moveGen.IsCheckmate();
-    m_inStalemate = m_moveGen.IsStalemate();
-    return;
     Enums::Colour attackers = (
         Player() == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White
     );

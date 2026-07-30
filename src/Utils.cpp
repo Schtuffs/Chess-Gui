@@ -160,7 +160,7 @@ bool Utils::Detail::LockPrint(Utils::LogLevel ll)
         return false;
     }
 
-#ifdef FILES_ALL_CONSOLE
+#ifdef UTILS_LOG_CONSOLE
     mtxPrint.lock();
     return true;
 #else
@@ -189,7 +189,7 @@ bool Utils::Detail::LockPrint(Utils::LogLevel ll)
 
 void Utils::Detail::UnlockPrint(Utils::LogLevel ll)
 {
-#ifdef FILES_ALL_CONSOLE
+#ifdef UTILS_LOG_CONSOLE
     (void)ll;
     mtxPrint.unlock();
 #else
