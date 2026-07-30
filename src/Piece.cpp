@@ -6,48 +6,34 @@
 // ----- Creation / Destruction -----
 
 Piece::Piece()
-    : m_colour(Enums::Colour::Invalid), m_type(Enums::Type::Invalid), m_pos(UINT8_MAX), m_isValid(false)
-{}
+    : m_colour(Enums::Colour::Invalid), m_type(Enums::Type::Invalid), m_pos(UINT8_MAX),
+      m_isValid(false)
+{
+}
 
 Piece::Piece(Index index)
     : m_colour(Enums::Colour::Invalid), m_type(Enums::Type::Invalid), m_pos(index), m_isValid(false)
-{}
+{
+}
 
 Piece::Piece(Enums::Colour colour, Enums::Type type, Index pos)
     : m_colour(colour), m_type(type), m_pos(pos), m_isValid(true)
-{}
+{
+}
 
-Piece::~Piece()
-{}
-
-
+Piece::~Piece() {}
 
 // ----- Read -----
 
-Enums::Colour Piece::Colour() const noexcept
-{
-    return m_colour;
-}
+Enums::Colour Piece::Colour() const noexcept { return m_colour; }
 
-Enums::Type Piece::Type() const noexcept
-{
-    return m_type;
-}
+Enums::Type Piece::Type() const noexcept { return m_type; }
 
-Index Piece::Position() const noexcept
-{
-    return m_pos;
-}
+Index Piece::Position() const noexcept { return m_pos; }
 
-bool Piece::IsEnPassant() const noexcept
-{
-    return ((!m_isValid) && (m_pos < (64)));
-}
+bool Piece::IsEnPassant() const noexcept { return ((!m_isValid) && (m_pos < (64))); }
 
-bool Piece::IsValid() const noexcept
-{
-    return m_isValid;
-}
+bool Piece::IsValid() const noexcept { return m_isValid; }
 
 std::string Piece::ToString() const noexcept
 {
@@ -99,12 +85,6 @@ char Piece::AsChar() const noexcept
     return c;
 }
 
-
-
 // ----- Update -----
 
-void Piece::Position(Index pos)
-{
-    m_pos = pos;
-}
-
+void Piece::Position(Index pos) { m_pos = pos; }

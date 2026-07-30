@@ -3,17 +3,17 @@
 #include <array>
 #include <cstring>
 #include <fstream>
+#include <iostream>
 #include <mutex>
 #include <shared_mutex>
 #include <sstream>
-#include <iostream>
 #include <utility>
 
 #include "Convert.h"
 #include "Utils.h"
 
-constexpr const char* SETTINGS_FILE = "./settings.txt";
-constexpr char SETTINGS_DELIM       = ':';
+constexpr const char* SETTINGS_FILE  = "./settings.txt";
+constexpr char        SETTINGS_DELIM = ':';
 
 enum class ActualType {
     U8,
@@ -25,11 +25,11 @@ enum class ActualType {
 };
 
 typedef struct ManyType {
-    u8 b  =  UINT8_MAX;
-    u32 i = UINT32_MAX;
-    u64 l = UINT64_MAX;
-    float f  = FLT_MAX;
-    double d = DBL_MAX;
+    u8          b = UINT8_MAX;
+    u32         i = UINT32_MAX;
+    u64         l = UINT64_MAX;
+    float       f = FLT_MAX;
+    double      d = DBL_MAX;
     std::string s = "";
 } ManyType;
 
@@ -37,9 +37,7 @@ static std::array<std::pair<ActualType, ManyType>, (u64)Setting::TOTAL_SETTINGS>
 static std::shared_mutex bMtx, iMtx, lMtx, fMtx, dMtx, sMtx;
 
 static Setting DetermineSetting(const std::string& key);
-static void SetSetting(Setting setting, ActualType type, const std::string& value);
-
-
+static void    SetSetting(Setting setting, ActualType type, const std::string& value);
 
 // ----- Creation / Destruction -----
 
@@ -52,20 +50,21 @@ static void DefaultSettings()
             s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::U8, {.b = true}};
             break;
         case Setting::GAME_FEN:
-            s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::STRING, {.s = DEFAULT_FEN.data()}};
+            s_settingData[i] =
+                std::pair<ActualType, ManyType>{ActualType::STRING, {.s = DEFAULT_FEN.data()}};
             break;
         case Setting::GAME_MOVES:
             s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::STRING, {.s = ""}};
             break;
         case Setting::BOARD_TILE_DARK: {
-            Color dark = {100, 75, 60, 255};
-            u32 val = Convert::ColorToU32(dark);
+            Color dark       = {100, 75, 60, 255};
+            u32   val        = Convert::ColorToU32(dark);
             s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::U32, {.i = val}};
             break;
         }
         case Setting::BOARD_TILE_LIGHT: {
-            Color light = {175, 150, 120, 255};
-            u32 val = Convert::ColorToU32(light);
+            Color light      = {175, 150, 120, 255};
+            u32   val        = Convert::ColorToU32(light);
             s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::U32, {.i = val}};
             break;
         }
@@ -95,13 +94,14 @@ bool Settings::LoadSettings()
         key = token;
 
         if (!getline(ss, token)) {
-            WarningPrintln("Settings::LoadSettings: Could not get value from file for key: {}", key);
+            WarningPrintln("Settings::LoadSettings: Could not get value from file for key: {}",
+                           key);
             continue;
         }
         value = token;
 
-        Setting setting = DetermineSetting(key);
-        ActualType type = (s_settingData[(u64)setting]).first;
+        Setting    setting = DetermineSetting(key);
+        ActualType type    = (s_settingData[(u64)setting]).first;
         SetSetting(setting, type, value);
     }
 
@@ -150,8 +150,6 @@ bool Settings::SaveSettings()
     file.close();
     return true;
 }
-
-
 
 // ----- Read -----
 
@@ -213,8 +211,6 @@ static Setting DetermineSetting(const std::string& key)
 
     return Setting::TOTAL_SETTINGS;
 }
-
-
 
 // ----- Update -----
 
@@ -298,7 +294,7 @@ bool Settings::s(Setting setting, const std::string& value)
 
 static void SetSetting(Setting setting, ActualType type, const std::string& value)
 {
-    switch(type) {
+    switch (type) {
     case ActualType::U8:
         Settings::b(setting, (u8)std::stoul(value.data()));
         break;
@@ -319,4 +315,3 @@ static void SetSetting(Setting setting, ActualType type, const std::string& valu
         break;
     }
 }
-

@@ -8,15 +8,11 @@
 // ----- Creation / Destruction -----
 
 GameManager::GameManager(std::string_view fen)
-  : m_board(fen),
-    m_moveGen(),
-    m_possibleMoves(0),
-    m_promotionSquare(64),
-    m_isWhiteTurn(true), m_isWhiteAI(false), m_isBlackAI(false),
-    m_inCheckmate(false), m_inStalemate(false)
+    : m_board(fen), m_moveGen(), m_possibleMoves(0), m_promotionSquare(64), m_isWhiteTurn(true),
+      m_isWhiteAI(false), m_isBlackAI(false), m_inCheckmate(false), m_inStalemate(false)
 {
-    fen = m_board.Fen();
-    u64 index = fen.find(' ');
+    fen                     = m_board.Fen();
+    u64              index  = fen.find(' ');
     std::string_view player = fen.substr(index + 1);
 
     if (player[0] == 'b') {
@@ -24,11 +20,11 @@ GameManager::GameManager(std::string_view fen)
     }
 
     // Load moves from settings
-    std::string defaultNoLastMove = DEFAULT_FEN.data();
+    std::string defaultNoLastMove                   = DEFAULT_FEN.data();
     defaultNoLastMove[defaultNoLastMove.size() - 1] = '0';
     if (m_board.Fen() != defaultNoLastMove) {
         std::string moves = Settings::s(Setting::GAME_MOVES);
-        u64 start = 0, end = 0;
+        u64         start = 0, end = 0;
         while ((end = moves.find(" ", start)) != std::string::npos) {
             m_moves.push_back(moves.substr(start, end - start));
             start = end + 1;
@@ -37,10 +33,7 @@ GameManager::GameManager(std::string_view fen)
     }
 }
 
-GameManager::~GameManager()
-{}
-
-
+GameManager::~GameManager() {}
 
 // ----- Read -----
 
@@ -60,37 +53,20 @@ std::string GameManager::AllMoves() const noexcept
     return moves;
 }
 
-bool GameManager::InCheckmate() const noexcept
-{
-    return m_inCheckmate;
-}
+bool GameManager::InCheckmate() const noexcept { return m_inCheckmate; }
 
-bool GameManager::InStalemate() const noexcept
-{
-    return m_inStalemate;
-}
+bool GameManager::InStalemate() const noexcept { return m_inStalemate; }
 
-std::string_view GameManager::Fen() const noexcept
-{
-    return m_board.Fen();
-}
+std::string_view GameManager::Fen() const noexcept { return m_board.Fen(); }
 
-BitBoard GameManager::Moves() const noexcept
-{
-    return m_possibleMoves;
-}
+BitBoard GameManager::Moves() const noexcept { return m_possibleMoves; }
 
 Enums::Colour GameManager::Player() const noexcept
 {
     return (m_isWhiteTurn ? Enums::Colour::White : Enums::Colour::Black);
 }
 
-Index GameManager::Promotion() const noexcept
-{
-    return m_promotionSquare;
-}
-
-
+Index GameManager::Promotion() const noexcept { return m_promotionSquare; }
 
 // ----- Update -----
 
@@ -160,7 +136,7 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
 
     // Prepare indexes for reselection
     Index start = Convert::MoveToIndex(m_currentMove);
-    Index end = Convert::MoveToIndex(m_currentMove.substr(2));
+    Index end   = Convert::MoveToIndex(m_currentMove.substr(2));
 
     // Clear old data
     m_currentMove.clear();
@@ -174,10 +150,7 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
     }
 }
 
-bool GameManager::CheckMove(std::string& move)
-{
-    return (m_board.MakeMove(move));
-}
+bool GameManager::CheckMove(std::string& move) { return (m_board.MakeMove(move)); }
 
 bool GameManager::CheckPieceSelectable(Index index)
 {
@@ -186,10 +159,8 @@ bool GameManager::CheckPieceSelectable(Index index)
     }
 
     Enums::Colour col = m_board.Pieces()[index].Colour();
-    return (
-        (m_isWhiteTurn && col == Enums::Colour::White) ||
-        (!m_isWhiteTurn && col == Enums::Colour::Black)
-    );
+    return ((m_isWhiteTurn && col == Enums::Colour::White) ||
+            (!m_isWhiteTurn && col == Enums::Colour::Black));
 }
 
 void GameManager::OnValidMove(std::string_view move)
@@ -206,8 +177,8 @@ void GameManager::OnValidMove(std::string_view move)
 
 void GameManager::CheckForPromotion(std::string_view move)
 {
-    move = move.substr(2);
-    Index index = Convert::MoveToIndex(move);
+    move               = move.substr(2);
+    Index        index = Convert::MoveToIndex(move);
     const Piece& piece = m_board.Pieces()[index];
 
     if (piece.Type() != Enums::Type::Pawn) {
@@ -216,11 +187,9 @@ void GameManager::CheckForPromotion(std::string_view move)
 
     if ((index / 8) == 0 && piece.Colour() == Enums::Colour::Black) {
         m_promotionSquare = index;
-    }
-    else if ((index / 8) == 7 && piece.Colour() == Enums::Colour::White) {
+    } else if ((index / 8) == 7 && piece.Colour() == Enums::Colour::White) {
         m_promotionSquare = index;
-    }
-    else {
+    } else {
         m_promotionSquare = 64;
     }
 
@@ -229,9 +198,10 @@ void GameManager::CheckForPromotion(std::string_view move)
 
 void GameManager::ManagePromotion(std::string_view move)
 {
-    constexpr u8 TOTAL_PROMOTIONS                       = 4;
-    constexpr Enums::Type PROMOTIONS[TOTAL_PROMOTIONS]  = {Enums::Type::Queen, Enums::Type::Rook, Enums::Type::Bishop, Enums::Type::Knight};
-    constexpr const char* PROMOTIONS_CHAR               = "qrbn";
+    constexpr u8          TOTAL_PROMOTIONS             = 4;
+    constexpr Enums::Type PROMOTIONS[TOTAL_PROMOTIONS] = {Enums::Type::Queen, Enums::Type::Rook,
+                                                          Enums::Type::Bishop, Enums::Type::Knight};
+    constexpr const char* PROMOTIONS_CHAR              = "qrbn";
 
     if (move.length() == 0) {
         return;
@@ -266,7 +236,7 @@ void GameManager::ManagePromotion(std::string_view move)
     }
 
     Index clicked = Convert::MoveToIndex(move);
-    i8 sign = (m_promotionSquare / 8 == 0 ? 1 : -1);
+    i8    sign    = (m_promotionSquare / 8 == 0 ? 1 : -1);
 
     for (u8 i = 0; i < TOTAL_PROMOTIONS; i++) {
         Index index = m_promotionSquare + (sign * (i8)(i * 8));
@@ -274,8 +244,7 @@ void GameManager::ManagePromotion(std::string_view move)
             if (m_board.PromotePawn(m_promotionSquare, PROMOTIONS[i])) {
                 m_moves[m_moves.size() - 1] += PROMOTIONS_CHAR[i];
                 m_promotionSquare = 64;
-            }
-            else {
+            } else {
                 WarningPrintln("GameManager::ManagePromotion: Could not promote pawn.");
             }
             return;
@@ -285,9 +254,8 @@ void GameManager::ManagePromotion(std::string_view move)
 
 void GameManager::CheckForCheckmate()
 {
-    Enums::Colour attackers = (
-        Player() == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White
-    );
+    Enums::Colour attackers =
+        (Player() == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White);
 
     // Get king pos
     BitBoard kingPos = 0;
@@ -301,7 +269,8 @@ void GameManager::CheckForCheckmate()
 
     // Something has gone wrong
     if (kingPos == 0) {
-        ErrorPrintln("GameManager::CheckForCheckmate: No {} king found.", Enums::ToString::Colour[(u8)Player()]);
+        ErrorPrintln("GameManager::CheckForCheckmate: No {} king found.",
+                     Enums::ToString::Colour[(u8)Player()]);
         exit(1);
     }
 
@@ -349,4 +318,3 @@ void GameManager::CheckForCheckmate()
         m_inStalemate = true;
     }
 }
-

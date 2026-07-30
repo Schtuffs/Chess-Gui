@@ -1,0 +1,16 @@
+BasedOnStyle: LLVM
+
+ColumnLimit: 100
+IndentWidth: 4
+AccessModifierOffset: -4
+
+PointerAlignment: Left
+AlignConsecutiveDeclarations: Consecutive
+AlignConsecutiveAssignments: Consecutive
+
+NamespaceIndentation: All
+BreakBeforeBraces: Custom
+BraceWrapping:
+    AfterFunction: true
+    AfterClass: false
+    AfterControlStatement: false

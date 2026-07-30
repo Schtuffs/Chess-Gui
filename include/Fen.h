@@ -32,6 +32,7 @@ namespace Fen {
      * @return The generated fen or an empty string on invalid data.
      * @date 2026-07-01
      */
-    std::string GenerateFen(std::span<const Piece, 64> pieces, char player, std::string_view castling, std::string_view enPassant, u32 halfMoves, u32 fullMoves);
-}
-
+    std::string GenerateFen(std::span<const Piece, 64> pieces, char player,
+                            std::string_view castling, std::string_view enPassant, u32 halfMoves,
+                            u32 fullMoves);
+} // namespace Fen

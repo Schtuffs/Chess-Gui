@@ -12,37 +12,34 @@ static float DefaultButtonThickness()
     return (Utils::Max(Utils::Min(GetScreenWidth(), GetScreenHeight()) / 300.f, 2.f));
 }
 
-static Color DefaultButtonBorderColour()
-{
-    return BLACK;
-}
-
-
+static Color DefaultButtonBorderColour() { return BLACK; }
 
 Renderer::Renderer()
 {
     // Make texture size square
-    int width = GetScreenWidth();
-    int height = GetScreenHeight();
+    int width     = GetScreenWidth();
+    int height    = GetScreenHeight();
     m_textureSize = Utils::Min(width, height) / 8;
 
     // Calculate start position
-    u32 sizeX  = width  - m_textureSize * 8;
-    u32 sizeY  = height - m_textureSize * 8;
-    m_startX = sizeX / 2;
-    m_startY = sizeY / 2;
+    u32 sizeX = width - m_textureSize * 8;
+    u32 sizeY = height - m_textureSize * 8;
+    m_startX  = sizeX / 2;
+    m_startY  = sizeY / 2;
 
     // Loop through all piece combinations and ensure texture validity
     for (u64 col = 0; col < 2; col++) {
         for (u64 type = 0; type < 6; type++) {
-            Texture2D texture = Utils::LoadTexture(static_cast<Enums::Colour>(col), static_cast<Enums::Type>(type), m_textureSize);
+            Texture2D texture = Utils::LoadTexture(static_cast<Enums::Colour>(col),
+                                                   static_cast<Enums::Type>(type), m_textureSize);
             if (IsTextureValid(texture)) {
-                InfoPrintln("Renderer::Renderer: Loaded texture: {} {}", Enums::ToString::Colour[col], Enums::ToString::Type[type]);
-                int index = type * 2 + col;
+                InfoPrintln("Renderer::Renderer: Loaded texture: {} {}",
+                            Enums::ToString::Colour[col], Enums::ToString::Type[type]);
+                int index         = type * 2 + col;
                 m_textures[index] = texture;
-            }
-            else {
-                WarningPrintln("Renderer::Renderer: Invalid texture: {} {}", Enums::ToString::Colour[col], Enums::ToString::Type[type]);
+            } else {
+                WarningPrintln("Renderer::Renderer: Invalid texture: {} {}",
+                               Enums::ToString::Colour[col], Enums::ToString::Type[type]);
             }
         }
     }
@@ -58,13 +55,12 @@ Renderer::~Renderer()
         for (uint64_t type = 0; type < 6; type++) {
             int i = type * 2 + col;
             if (IsTextureValid(m_textures[i])) {
-                Utils::UnloadTexture(m_textures[i], static_cast<Enums::Colour>(col), static_cast<Enums::Type>(type));
+                Utils::UnloadTexture(m_textures[i], static_cast<Enums::Colour>(col),
+                                     static_cast<Enums::Type>(type));
             }
         }
     }
 }
-
-
 
 // ----- Read -----
 
@@ -101,8 +97,6 @@ int Renderer::CheckColour(char cur) const noexcept
     return static_cast<int>(isupper(cur) ? Enums::Colour::White : Enums::Colour::Black);
 }
 
-
-
 // ----- Update -----
 
 void Renderer::Update()
@@ -113,7 +107,8 @@ void Renderer::Update()
     m_light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
 }
 
-std::string Renderer::Render(std::string_view fen, BitBoard moves, Index promoSquare, bool isWhitePerspective) const noexcept
+std::string Renderer::Render(std::string_view fen, BitBoard moves, Index promoSquare,
+                             bool isWhitePerspective) const noexcept
 {
     // Render workflow
 
@@ -125,7 +120,7 @@ std::string Renderer::Render(std::string_view fen, BitBoard moves, Index promoSq
 
     Index index = DetectClick(isWhitePerspective);
     if (Utils::IsValidIndex(index)) {
-        return  Convert::IndexToMove(index);
+        return Convert::IndexToMove(index);
     }
     return "";
 }
@@ -133,17 +128,17 @@ std::string Renderer::Render(std::string_view fen, BitBoard moves, Index promoSq
 void Renderer::RenderMate(Enums::Colour colour, bool isCheckmate) const noexcept
 {
     char text[15];
-    int fontSize = Utils::Max(GetScreenWidth() / 50, 20);
+    int  fontSize = Utils::Max(GetScreenWidth() / 50, 20);
 
     if (isCheckmate) {
         snprintf(text, sizeof(text), "%s has won!", Enums::ToString::Colour[(u8)colour]);
-    }
-    else {
+    } else {
         strcpy(text, "Stalemate :|");
     }
 
-    Font font = GetFontDefault();
-    Vector2 pos = Utils::CenterText(text, font, fontSize, {GetScreenWidth() / 2.f, GetScreenHeight() / 2.f});
+    Font    font = GetFontDefault();
+    Vector2 pos =
+        Utils::CenterText(text, font, fontSize, {GetScreenWidth() / 2.f, GetScreenHeight() / 2.f});
 
     DrawText(text, pos.x, pos.y, fontSize, WHITE);
 }
@@ -157,9 +152,9 @@ void Renderer::FixSize()
     }
     DebugPrintln("Renderer::FixSize: Fixing texture sizes");
 
-    Vector3 grid = Utils::GridPositioning();
-    m_startX = grid.x;
-    m_startY = grid.y;
+    Vector3 grid  = Utils::GridPositioning();
+    m_startX      = grid.x;
+    m_startY      = grid.y;
     m_textureSize = grid.z;
 
     DebugPrintln("Renderer::FixSize: Unloading textures");
@@ -167,7 +162,8 @@ void Renderer::FixSize()
         for (uint64_t type = 0; type < 6; type++) {
             int i = type * 2 + col;
             if (IsTextureValid(m_textures[i])) {
-                Utils::UnloadTexture(m_textures[i], static_cast<Enums::Colour>(col), static_cast<Enums::Type>(type));
+                Utils::UnloadTexture(m_textures[i], static_cast<Enums::Colour>(col),
+                                     static_cast<Enums::Type>(type));
             }
         }
     }
@@ -175,13 +171,14 @@ void Renderer::FixSize()
     DebugPrintln("Renderer::FixSize: Reloading textures");
     for (u64 col = 0; col < 2; col++) {
         for (u64 type = 0; type < 6; type++) {
-            Texture2D texture = Utils::LoadTexture(static_cast<Enums::Colour>(col), static_cast<Enums::Type>(type), m_textureSize);
+            Texture2D texture = Utils::LoadTexture(static_cast<Enums::Colour>(col),
+                                                   static_cast<Enums::Type>(type), m_textureSize);
             if (IsTextureValid(texture)) {
-                int index = type * 2 + col;
+                int index         = type * 2 + col;
                 m_textures[index] = texture;
-            }
-            else {
-                ErrorPrintln("Renderer::FixSize: Could not create texture: {} {}", Enums::ToString::Colour[col], Enums::ToString::Type[type]);
+            } else {
+                ErrorPrintln("Renderer::FixSize: Could not create texture: {} {}",
+                             Enums::ToString::Colour[col], Enums::ToString::Type[type]);
             }
         }
     }
@@ -199,7 +196,8 @@ void Renderer::RenderBoard() const noexcept
                 colour = m_light;
             }
 
-            DrawRectangle(i * m_textureSize + m_startX, j * m_textureSize + m_startY, m_textureSize, m_textureSize, colour);
+            DrawRectangle(i * m_textureSize + m_startX, j * m_textureSize + m_startY, m_textureSize,
+                          m_textureSize, colour);
         }
     }
 }
@@ -223,7 +221,7 @@ void Renderer::RenderMoves(BitBoard bb, bool isWhitePerspective) const noexcept
     for (size_t i = 0; i < 64; i++) {
         Index index = (Index)(isWhitePerspective ? i : 63 - i);
 
-        if ((bb >> index) & 1){
+        if ((bb >> index) & 1) {
             RenderSquare({255, 0, 0, 255}, index);
         }
     }
@@ -241,12 +239,11 @@ void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective) const
     if (isWhitePerspective) {
         file = 0;
         rank = 0;
-        inc = 1;
-    }
-    else {
+        inc  = 1;
+    } else {
         file = 7;
         rank = 7;
-        inc = -1;
+        inc  = -1;
     }
 
     // Loop through fen
@@ -260,7 +257,7 @@ void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective) const
 
         // Alphabetical means its a piece
         if (isalpha(cur)) {
-            int type = CheckType(cur);
+            int type   = CheckType(cur);
             int colour = CheckColour(cur);
             RenderPiece(m_textures[type * 2 + colour], rank * 8 + file);
             file += inc;
@@ -292,25 +289,27 @@ void Renderer::RenderPromotion(Index promotionSquare, bool isWhitePerspective) c
     }
 
     // Prepare data
-    Index index = (isWhitePerspective ? promotionSquare : 63 - promotionSquare);
-    i8 offset = (isWhitePerspective ? 8 : -8);
-    Enums::Colour colour = ((promotionSquare / 8) == 0 ? Enums::Colour::Black : Enums::Colour::White);
-    if (colour == Enums::Colour::White) { offset *= -1; }
+    Index         index  = (isWhitePerspective ? promotionSquare : 63 - promotionSquare);
+    i8            offset = (isWhitePerspective ? 8 : -8);
+    Enums::Colour colour =
+        ((promotionSquare / 8) == 0 ? Enums::Colour::Black : Enums::Colour::White);
+    if (colour == Enums::Colour::White) {
+        offset *= -1;
+    }
 
     // Render the stuff
-    constexpr Enums::Type TYPES[] = {Enums::Type::Queen, Enums::Type::Rook, Enums::Type::Bishop, Enums::Type::Knight};
+    constexpr Enums::Type TYPES[] = {Enums::Type::Queen, Enums::Type::Rook, Enums::Type::Bishop,
+                                     Enums::Type::Knight};
     for (u8 promo = 0; promo < 4; promo++) {
         Index i = index + (offset * promo);
         // UpdateButtonWithPromotion(m_buttons[i], i, true);
         // m_buttons[i].Render();
-        Index tex = (u8)TYPES[promo] * 2 + (u8)colour;
-        int file = i % 8;
-        int rank = 7 - (i / 8);
+        Index tex  = (u8)TYPES[promo] * 2 + (u8)colour;
+        int   file = i % 8;
+        int   rank = 7 - (i / 8);
         RenderPiece(m_textures[tex], rank * 8 + file);
     }
 }
-
-
 
 // ----- Helpers -----
 
@@ -343,19 +342,16 @@ Rectangle Renderer::GetRect(Index index) const noexcept
     Index file = index % 8;
     Index rank = index / 8;
 
-    Vector3 grid = Utils::GridPositioning();
-    Rectangle rect = {
-        (grid.x + grid.z * file),
-        (grid.y + grid.z * (8 - rank - 1)),
-        (grid.z),
-        (grid.z)
-    };
+    Vector3   grid = Utils::GridPositioning();
+    Rectangle rect = {(grid.x + grid.z * file), (grid.y + grid.z * (8 - rank - 1)), (grid.z),
+                      (grid.z)};
     return rect;
 }
 
 bool Renderer::IsClicked(Index index) const noexcept
 {
-    return (CheckCollisionPointRec(GetMousePosition(), GetRect(index)) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
+    return (CheckCollisionPointRec(GetMousePosition(), GetRect(index)) &&
+            IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
 }
 
 bool Renderer::IsHovered(Index index) const noexcept
@@ -370,7 +366,8 @@ void Renderer::RenderPiece(Texture2D texture, Index index) const noexcept
         int file = index % 8;
         int rank = index / 8;
 
-        DrawTexture(texture, file * m_textureSize + m_startX, rank * m_textureSize + m_startY, WHITE);
+        DrawTexture(texture, file * m_textureSize + m_startX, rank * m_textureSize + m_startY,
+                    WHITE);
     }
 }
 
@@ -381,4 +378,3 @@ void Renderer::RenderSquare(Color colour, Index index) const noexcept
     DrawRectangleRec(rect, colour);
     DrawRectangleLinesEx(rect, DefaultButtonThickness(), DefaultButtonBorderColour());
 }
-

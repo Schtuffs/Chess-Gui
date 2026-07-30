@@ -43,12 +43,12 @@ public:
     bool PromotePawn(Index index, Enums::Type type);
 
 private:
-    std::string m_fen;
+    std::string           m_fen;
     std::array<Piece, 64> m_pieces;
-    u8 m_castling;
-    Index m_enPassant, m_promotion;
-    Enums::Colour m_playerColour;
-    MoveGen m_moveGen;
+    u8                    m_castling;
+    Index                 m_enPassant, m_promotion;
+    Enums::Colour         m_playerColour;
+    MoveGen               m_moveGen;
 
     // ----- Update -----
 
@@ -62,10 +62,9 @@ private:
 
     std::string RecalculateFen();
     std::string RecalculateFen(bool isCaptureOrPawn);
-    char RecalculatePlayer();
+    char        RecalculatePlayer();
     std::string RecalculateCastling();
     std::string RecalculateEnPassant();
-    u32 RecalculateHalfMoves(bool isCaptureOrPawn);
-    u32 RecalculateFullMoves();
+    u32         RecalculateHalfMoves(bool isCaptureOrPawn);
+    u32         RecalculateFullMoves();
 };
-

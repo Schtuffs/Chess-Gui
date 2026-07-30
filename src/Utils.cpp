@@ -7,31 +7,28 @@
 #include "raygui.h"
 
 typedef struct TextureValuePair {
-    u8 count = 0;
-    Texture2D texture {};
+    u8        count = 0;
+    Texture2D texture{};
 } TextureValuePair;
 
 static TextureValuePair s_textureValuePairs[12];
-static u8 s_clickedButton = 0;
+static u8               s_clickedButton = 0;
 
-int CalculateIndex(Enums::Colour colour, Enums::Type type)
-{
-    return ((int)type * 2) + (int)colour;
-}
+int CalculateIndex(Enums::Colour colour, Enums::Type type) { return ((int)type * 2) + (int)colour; }
 
 Vector2 Utils::CenterText(const char* text, Font font, int fontSize, Vector2 centerPoint)
 {
     Vector2 textSize = MeasureTextEx(font, text, fontSize, 1.f);
-    centerPoint.x = centerPoint.x - (textSize.x / 2);
-    centerPoint.y = centerPoint.y - (textSize.y / 2);
+    centerPoint.x    = centerPoint.x - (textSize.x / 2);
+    centerPoint.y    = centerPoint.y - (textSize.y / 2);
 
     return centerPoint;
 }
 
 bool Utils::ClickableButton(Rectangle rect, const char* text, u8 id)
 {
-    Vector2 mousePos = GetMousePosition();
-    bool isHovered = CheckCollisionPointRec(mousePos, rect);
+    Vector2 mousePos  = GetMousePosition();
+    bool    isHovered = CheckCollisionPointRec(mousePos, rect);
 
     GuiButton(rect, text);
 
@@ -55,28 +52,28 @@ bool Utils::ClickableButton(Rectangle rect, const char* text, u8 id)
 Vector3 Utils::GridPositioning()
 {
     // Make square
-    int width = GetScreenWidth();
-    int height = GetScreenHeight();
-    float size = Utils::Min(width, height) / 8;
+    int   width  = GetScreenWidth();
+    int   height = GetScreenHeight();
+    float size   = Utils::Min(width, height) / 8;
 
     // Calculate start position
-    int sizeX  = width  - size * 8;
-    int sizeY  = height - size * 8;
+    int   sizeX  = width - size * 8;
+    int   sizeY  = height - size * 8;
     float startX = sizeX / 2;
     float startY = sizeY / 2;
 
-    return { startX, startY, size };
+    return {startX, startY, size};
 }
 
 Rectangle Utils::ButtonPos(u8 x, u8 y, u8 width, u8 height)
 {
-    Vector3 grid = Utils::GridPositioning();
-    Rectangle pos = {grid.x + grid.z * 0.125f, grid.y + grid.z * 0.125f,
-        grid.z * 0.75f, grid.z * 0.75f};
+    Vector3   grid = Utils::GridPositioning();
+    Rectangle pos  = {grid.x + grid.z * 0.125f, grid.y + grid.z * 0.125f, grid.z * 0.75f,
+                      grid.z * 0.75f};
 
     pos.x += x * grid.z;
     pos.y += y * grid.z;
-    pos.width  += (width - 1)  * grid.z;
+    pos.width += (width - 1) * grid.z;
     pos.height += (height - 1) * grid.z;
 
     return pos;
@@ -96,14 +93,15 @@ Texture2D Utils::LoadTexture(Enums::Colour colour, Enums::Type type, int size)
     }
 
     // Get pair data
-    int index = CalculateIndex(colour, type);
-    TextureValuePair& pair = s_textureValuePairs[index];
+    int               index = CalculateIndex(colour, type);
+    TextureValuePair& pair  = s_textureValuePairs[index];
 
     // Determine if should load texture
     if (pair.count == 0) {
         // Load and check image
         char path[50];
-        snprintf(path, sizeof(path), "%s/%s_%s.png", PATH_PIECES.data(), Enums::ToString::Type[(int)type], Enums::ToString::Colour[(int)colour]);
+        snprintf(path, sizeof(path), "%s/%s_%s.png", PATH_PIECES.data(),
+                 Enums::ToString::Type[(int)type], Enums::ToString::Colour[(int)colour]);
         Image image = LoadImage(path);
         if (!IsImageValid(image)) {
             ErrorPrintln("Utils::LoadTexture: Failed to load image.");
@@ -133,8 +131,8 @@ Texture2D Utils::LoadTexture(Enums::Colour colour, Enums::Type type, int size)
 void Utils::UnloadTexture(Texture2D& texture, Enums::Colour colour, Enums::Type type)
 {
     if (IsTextureValid(texture)) {
-        int index = CalculateIndex(colour, type);
-        TextureValuePair& pair = s_textureValuePairs[index];
+        int               index = CalculateIndex(colour, type);
+        TextureValuePair& pair  = s_textureValuePairs[index];
         pair.count--;
 
         if (pair.count == 0) {
@@ -144,14 +142,9 @@ void Utils::UnloadTexture(Texture2D& texture, Enums::Colour colour, Enums::Type 
     }
 }
 
-bool Utils::IsValidIndex(Index index)
-{
-    return (index < 64);
-}
+bool Utils::IsValidIndex(Index index) { return (index < 64); }
 
-
-
-static std::mutex mtxPrint, mtxDebug, mtxError, mtxInfo, mtxWarning;
+static std::mutex                   mtxPrint, mtxDebug, mtxError, mtxInfo, mtxWarning;
 static std::atomic<Utils::LogLevel> s_logLevel = Utils::LogLevel::ERROR;
 
 bool Utils::Detail::LockPrint(Utils::LogLevel ll)
@@ -216,8 +209,4 @@ void Utils::Detail::UnlockPrint(Utils::LogLevel ll)
 #endif
 }
 
-void Utils::SetLogLevel(Utils::LogLevel ll)
-{
-    s_logLevel = ll;
-}
-
+void Utils::SetLogLevel(Utils::LogLevel ll) { s_logLevel = ll; }

@@ -101,8 +101,7 @@ public:
 
 private:
     Enums::Colour m_colour;
-    Enums::Type m_type;
-    Index m_pos;
-    bool m_isValid;
+    Enums::Type   m_type;
+    Index         m_pos;
+    bool          m_isValid;
 };
-

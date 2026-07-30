@@ -15,23 +15,26 @@
 
 static Renderer renderer;
 
-std::array defaultGuiStyle {
-    std::tuple { DEFAULT, (int)TEXT_SIZE, 0 },
-    std::tuple { DEFAULT, (int)BACKGROUND_COLOR, 0 },
+std::array defaultGuiStyle{
+    std::tuple{DEFAULT, (int)TEXT_SIZE, 0},
+    std::tuple{DEFAULT, (int)BACKGROUND_COLOR, 0},
 };
 
 static void PushDefaultGuiStyle()
 {
     for (size_t i = 0; i < defaultGuiStyle.size(); i++) {
-        std::get<2>(defaultGuiStyle[i]) = GuiGetStyle(std::get<0>(defaultGuiStyle[i]), std::get<1>(defaultGuiStyle[i]));
+        std::get<2>(defaultGuiStyle[i]) =
+            GuiGetStyle(std::get<0>(defaultGuiStyle[i]), std::get<1>(defaultGuiStyle[i]));
     }
-    GuiSetStyle(DEFAULT, TEXT_SIZE, Utils::Max(Utils::Min(GetScreenWidth(), GetScreenHeight()) / 50, 10));
+    GuiSetStyle(DEFAULT, TEXT_SIZE,
+                Utils::Max(Utils::Min(GetScreenWidth(), GetScreenHeight()) / 50, 10));
 }
 
 static void PopDefaultGuiStyle()
 {
     for (size_t i = 0; i < defaultGuiStyle.size(); i++) {
-        GuiSetStyle(std::get<0>(defaultGuiStyle[i]), std::get<1>(defaultGuiStyle[i]), std::get<2>(defaultGuiStyle[i]));
+        GuiSetStyle(std::get<0>(defaultGuiStyle[i]), std::get<1>(defaultGuiStyle[i]),
+                    std::get<2>(defaultGuiStyle[i]));
     }
 }
 
@@ -50,9 +53,15 @@ void Menu::Main(Enums::Screen& screen)
 
     PushDefaultGuiStyle();
 
-    if (Utils::ClickableButton(startPos, "Start new game", 1)) { screen = Enums::Screen::NewGame; }
-    if (Utils::ClickableButton(MoveDown(startPos, 4), "Settings", 2)) { screen = Enums::Screen::Settings; }
-    if (Utils::ClickableButton(MoveDown(startPos, 1), "Quit", 3)) { screen = Enums::Screen::Quit; }
+    if (Utils::ClickableButton(startPos, "Start new game", 1)) {
+        screen = Enums::Screen::NewGame;
+    }
+    if (Utils::ClickableButton(MoveDown(startPos, 4), "Settings", 2)) {
+        screen = Enums::Screen::Settings;
+    }
+    if (Utils::ClickableButton(MoveDown(startPos, 1), "Quit", 3)) {
+        screen = Enums::Screen::Quit;
+    }
 
     PopDefaultGuiStyle();
 }
@@ -74,14 +83,16 @@ void Menu::NewGame(Enums::Screen& screen)
         screen = Enums::Screen::Game;
         Settings::b(Setting::GAME_LOAD, 2);
     }
-    if (Utils::ClickableButton(MoveDown(startPos, 4), "Back", id++)) { screen = Enums::Screen::Menu; }
+    if (Utils::ClickableButton(MoveDown(startPos, 4), "Back", id++)) {
+        screen = Enums::Screen::Menu;
+    }
 
     PopDefaultGuiStyle();
 }
 
 void Menu::Settings(Enums::Screen& screen)
 {
-    static bool settingsLoaded = false;
+    static bool    settingsLoaded = false;
     static Vector3 darkHSV, lightHSV;
     if (!settingsLoaded) {
         settingsLoaded = true;
@@ -93,8 +104,9 @@ void Menu::Settings(Enums::Screen& screen)
         lightHSV = ColorToHSV(light);
     }
 
-    float barSize = GuiGetStyle(COLORPICKER, HUEBAR_WIDTH) + GuiGetStyle(COLORPICKER, HUEBAR_PADDING);
-    Rectangle  darkPicker = Utils::ButtonPos(1, 1, 2, 2);
+    float barSize =
+        GuiGetStyle(COLORPICKER, HUEBAR_WIDTH) + GuiGetStyle(COLORPICKER, HUEBAR_PADDING);
+    Rectangle darkPicker  = Utils::ButtonPos(1, 1, 2, 2);
     Rectangle lightPicker = Utils::ButtonPos(5, 1, 2, 2);
     darkPicker.width -= barSize;
     lightPicker.width -= barSize;
@@ -104,21 +116,26 @@ void Menu::Settings(Enums::Screen& screen)
 
     PushDefaultGuiStyle();
 
-    GuiColorPickerHSV(darkPicker,  nullptr, &darkHSV);
+    GuiColorPickerHSV(darkPicker, nullptr, &darkHSV);
     GuiColorPickerHSV(lightPicker, nullptr, &lightHSV);
 
     Rectangle saveButton = Utils::ButtonPos(1, 6, 3, 1);
     if (Utils::ClickableButton(saveButton, "Save", 1)) {
         DebugPrintln("Menu::Settings: Saving settings.");
 
-        Settings::i(Setting::BOARD_TILE_DARK,  Convert::ColorToU32(ColorFromHSV(darkHSV.x, darkHSV.y, darkHSV.z)));
-        Settings::i(Setting::BOARD_TILE_LIGHT, Convert::ColorToU32(ColorFromHSV(lightHSV.x, lightHSV.y, lightHSV.z)));
+        Settings::i(Setting::BOARD_TILE_DARK,
+                    Convert::ColorToU32(ColorFromHSV(darkHSV.x, darkHSV.y, darkHSV.z)));
+        Settings::i(Setting::BOARD_TILE_LIGHT,
+                    Convert::ColorToU32(ColorFromHSV(lightHSV.x, lightHSV.y, lightHSV.z)));
 
         DebugPrintln("Menu::Settings: Saved settings.");
     }
 
     Rectangle returnButton = Utils::ButtonPos(4, 6, 3, 1);
-    if (Utils::ClickableButton(returnButton, "Return", 2)) { settingsLoaded = false; screen = Enums::Screen::Menu; }
+    if (Utils::ClickableButton(returnButton, "Return", 2)) {
+        settingsLoaded = false;
+        screen         = Enums::Screen::Menu;
+    }
 
     PopDefaultGuiStyle();
 }
@@ -126,8 +143,8 @@ void Menu::Settings(Enums::Screen& screen)
 void Menu::InGame(Enums::Screen& screen)
 {
     (void)screen;
-    static bool isWhitePerspective = true;
-    static GameManager* gameManager = new GameManager(DEFAULT_FEN);
+    static bool         isWhitePerspective = true;
+    static GameManager* gameManager        = new GameManager(DEFAULT_FEN);
 
     u8 load = Settings::b(Setting::GAME_LOAD);
     if (load > 0) {
@@ -135,8 +152,7 @@ void Menu::InGame(Enums::Screen& screen)
         delete gameManager;
         if (load == 1) {
             gameManager = new GameManager(DEFAULT_FEN);
-        }
-        else {
+        } else {
             gameManager = new GameManager(Settings::s(Setting::GAME_FEN));
         }
         screen = Enums::Screen::Game;
@@ -147,10 +163,10 @@ void Menu::InGame(Enums::Screen& screen)
     }
 
     renderer.Update();
-    std::string move = renderer.Render(gameManager->Fen(), gameManager->Moves(), gameManager->Promotion(), isWhitePerspective);
+    std::string move = renderer.Render(gameManager->Fen(), gameManager->Moves(),
+                                       gameManager->Promotion(), isWhitePerspective);
     gameManager->Update(move);
     if (gameManager->InCheckmate() || gameManager->InStalemate()) {
         renderer.RenderMate(gameManager->Player(), gameManager->InCheckmate());
     }
 }
-

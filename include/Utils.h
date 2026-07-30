@@ -7,10 +7,10 @@
 
 #include "Constants.h"
 
-constexpr Color BOARD_SQUARE_LIGHT          = {175, 150, 120, 255};
-constexpr Color BOARD_SQUARE_DARK           = {100, 75, 60, 255};
-constexpr Color BOARD_SQUARE_LIGHT_ALPHA    = {175, 150, 120, 75};
-constexpr Color BOARD_SQUARE_DARK_ALPHA     = {100, 75, 60, 75};
+constexpr Color BOARD_SQUARE_LIGHT       = {175, 150, 120, 255};
+constexpr Color BOARD_SQUARE_DARK        = {100, 75, 60, 255};
+constexpr Color BOARD_SQUARE_LIGHT_ALPHA = {175, 150, 120, 75};
+constexpr Color BOARD_SQUARE_DARK_ALPHA  = {100, 75, 60, 75};
 
 #define UTILS_LOG_CONSOLE
 
@@ -27,10 +27,7 @@ namespace Utils {
      * @return The smaller of the 2. Returns value `a` on equivalent.
      * @date 2026-06-06
      */
-    template <typename T>
-    constexpr T Min(T a, T b) {
-        return (b < a) ? b : a;
-    }
+    template <typename T> constexpr T Min(T a, T b) { return (b < a) ? b : a; }
     /**
      * @brief Calculate the maximum of 2 values of type `T`.
      * @param a The first value.
@@ -38,10 +35,7 @@ namespace Utils {
      * @return The larger of the 2. Returns value `a` on equivalent.
      * @date 2026-06-06
      */
-    template <typename T>
-    constexpr T Max(T a, T b) {
-        return (b > a) ? b : a;
-    }
+    template <typename T> constexpr T Max(T a, T b) { return (b > a) ? b : a; }
 
     /**
      * @brief Creates a clickable button that only gets clicked on both press and release hovering.
@@ -115,11 +109,11 @@ namespace Utils {
      * @date 2026-06-21
      */
     enum class LogLevel {
-        INFO,       /**< Info file. */
-        DEBUG,      /**< Debug file. */
-        WARNING,    /**< Warning file. */
-        ERROR,      /**< Error file. */
-        PRINT,      /**< Print to console. */
+        INFO,    /**< Info file. */
+        DEBUG,   /**< Debug file. */
+        WARNING, /**< Warning file. */
+        ERROR,   /**< Error file. */
+        PRINT,   /**< Print to console. */
     };
 
     /**
@@ -128,15 +122,15 @@ namespace Utils {
      */
     namespace Detail {
 #ifdef UTILS_LOG_CONSOLE
-        inline FILE* debugFile      = stdout;
-        inline FILE* errorFile      = stdout;
-        inline FILE* infoFile       = stdout;
-        inline FILE* warningFile    = stdout;
+        inline FILE* debugFile   = stdout;
+        inline FILE* errorFile   = stdout;
+        inline FILE* infoFile    = stdout;
+        inline FILE* warningFile = stdout;
 #else
-        inline FILE* debugFile      = fopen("debug.log", "a");
-        inline FILE* errorFile      = fopen("error.log", "a");
-        inline FILE* infoFile       = fopen("info.log", "a");
-        inline FILE* warningFile    = fopen("warning.log", "a");
+        inline FILE* debugFile   = fopen("debug.log", "a");
+        inline FILE* errorFile   = fopen("error.log", "a");
+        inline FILE* infoFile    = fopen("info.log", "a");
+        inline FILE* warningFile = fopen("warning.log", "a");
 #endif
 
         /**
@@ -153,26 +147,40 @@ namespace Utils {
          * @date 2026-06-20
          */
         void UnlockPrint(Utils::LogLevel ll);
-    }
+    } // namespace Detail
 
-    #define FilePrintln(whichType, whichFile, initialMessage, ...) \
-        if (Utils::Detail::LockPrint(whichType)) {  \
-            std::print(whichFile, initialMessage);  \
-            std::println(whichFile, __VA_ARGS__);   \
-            Utils::Detail::UnlockPrint(whichType);  \
-        } do {} while (false)
+#define FilePrintln(whichType, whichFile, initialMessage, ...)                                     \
+    if (Utils::Detail::LockPrint(whichType)) {                                                     \
+        std::print(whichFile, initialMessage);                                                     \
+        std::println(whichFile, __VA_ARGS__);                                                      \
+        Utils::Detail::UnlockPrint(whichType);                                                     \
+    }                                                                                              \
+    do {                                                                                           \
+    } while (false)
 #ifdef UTILS_LOG_NONE
-    #define   DebugPrintln(...) /* __VA_ARGS__ */ do {} while (false)
-    #define   ErrorPrintln(...) /* __VA_ARGS__ */ do {} while (false)
-    #define    InfoPrintln(...) /* __VA_ARGS__ */ do {} while (false)
-    #define WarningPrintln(...) /* __VA_ARGS__ */ do {} while (false)
+#define DebugPrintln(...) /* __VA_ARGS__ */                                                        \
+    do {                                                                                           \
+    } while (false)
+#define ErrorPrintln(...) /* __VA_ARGS__ */                                                        \
+    do {                                                                                           \
+    } while (false)
+#define InfoPrintln(...) /* __VA_ARGS__ */                                                         \
+    do {                                                                                           \
+    } while (false)
+#define WarningPrintln(...) /* __VA_ARGS__ */                                                      \
+    do {                                                                                           \
+    } while (false)
 #else
-    #define   DebugPrintln(...) FilePrintln(Utils::LogLevel::DEBUG,     Utils::Detail::debugFile,   "DEBUG:   ",    __VA_ARGS__)
-    #define   ErrorPrintln(...) FilePrintln(Utils::LogLevel::ERROR,     Utils::Detail::errorFile,   "ERROR:   ",    __VA_ARGS__)
-    #define    InfoPrintln(...) FilePrintln(Utils::LogLevel::INFO,      Utils::Detail::infoFile,    "INFO:    ",    __VA_ARGS__)
-    #define WarningPrintln(...) FilePrintln(Utils::LogLevel::WARNING,   Utils::Detail::warningFile, "WARNING: ",    __VA_ARGS__)
+#define DebugPrintln(...)                                                                          \
+    FilePrintln(Utils::LogLevel::DEBUG, Utils::Detail::debugFile, "DEBUG:   ", __VA_ARGS__)
+#define ErrorPrintln(...)                                                                          \
+    FilePrintln(Utils::LogLevel::ERROR, Utils::Detail::errorFile, "ERROR:   ", __VA_ARGS__)
+#define InfoPrintln(...)                                                                           \
+    FilePrintln(Utils::LogLevel::INFO, Utils::Detail::infoFile, "INFO:    ", __VA_ARGS__)
+#define WarningPrintln(...)                                                                        \
+    FilePrintln(Utils::LogLevel::WARNING, Utils::Detail::warningFile, "WARNING: ", __VA_ARGS__)
 #endif
-    #define    SyncPrintln(...) FilePrintln(Utils::LogLevel::PRINT,     stdout,                     "",             __VA_ARGS__)
+#define SyncPrintln(...) FilePrintln(Utils::LogLevel::PRINT, stdout, "", __VA_ARGS__)
 
     /**
      * @brief Sets the `Utils::LogLevel` for the program.
@@ -180,5 +188,4 @@ namespace Utils {
      * @date 2026-06-20
      */
     void SetLogLevel(Utils::LogLevel ll);
-}
-
+} // namespace Utils

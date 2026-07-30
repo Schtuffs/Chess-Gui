@@ -5,16 +5,13 @@
 #include "MoveGen.h"
 #include "Utils.h"
 
-constexpr Index INVALID_ENPASSANT   = 64;
-
-
+constexpr Index INVALID_ENPASSANT = 64;
 
 // ----- Creation ----- Destruction -----
 
 Board::Board(std::string_view fen)
-  : m_fen(fen),
-    m_castling(0), m_enPassant(INVALID_ENPASSANT),
-    m_playerColour(Enums::Colour::White)
+    : m_fen(fen), m_castling(0), m_enPassant(INVALID_ENPASSANT),
+      m_playerColour(Enums::Colour::White)
 {
     if (!Fen::IsValidFen(m_fen.c_str())) {
         ErrorPrintln("Board::Board: Invalid fen: {}", m_fen);
@@ -25,7 +22,7 @@ Board::Board(std::string_view fen)
     u8 index = 0;
     for (u64 rank = 8 - 1; rank < 8; rank--) {
         for (u64 file = 0; file < 8; file++) {
-            u64 i = rank * 8 + file;
+            u64  i = rank * 8 + file;
             char c = m_fen[index++];
 
             if (isdigit(c)) {
@@ -46,24 +43,24 @@ Board::Board(std::string_view fen)
             }
             c = tolower(c);
 
-            switch(c) {
+            switch (c) {
             case 'b':
                 m_pieces[i] = Piece(colour, Enums::Type::Bishop, i);
                 break;
             case 'k':
-                m_pieces[i] = Piece(colour, Enums::Type::King,   i);
+                m_pieces[i] = Piece(colour, Enums::Type::King, i);
                 break;
             case 'n':
                 m_pieces[i] = Piece(colour, Enums::Type::Knight, i);
                 break;
             case 'q':
-                m_pieces[i] = Piece(colour, Enums::Type::Queen,  i);
+                m_pieces[i] = Piece(colour, Enums::Type::Queen, i);
                 break;
             case 'p':
-                m_pieces[i] = Piece(colour, Enums::Type::Pawn,   i);
+                m_pieces[i] = Piece(colour, Enums::Type::Pawn, i);
                 break;
             case 'r':
-                m_pieces[i] = Piece(colour, Enums::Type::Rook,   i);
+                m_pieces[i] = Piece(colour, Enums::Type::Rook, i);
                 break;
             default:
                 m_pieces[i] = Piece();
@@ -74,10 +71,10 @@ Board::Board(std::string_view fen)
 
     m_playerColour = (m_fen[index + 1] == 'w' ? Enums::Colour::White : Enums::Colour::Black);
     std::string_view castling = m_fen.substr(index + 3);
-    index = 0;
+    index                     = 0;
     char c;
     while ((c = castling[index++]) != ' ') {
-        switch(c) {
+        switch (c) {
         case 'K':
             m_castling |= (u8)Enums::Castling::White_King;
             break;
@@ -95,7 +92,7 @@ Board::Board(std::string_view fen)
 
     std::string_view enPassant = castling.substr(index);
     if (enPassant[0] != '-') {
-        m_enPassant = Convert::MoveToIndex(enPassant);
+        m_enPassant           = Convert::MoveToIndex(enPassant);
         m_pieces[m_enPassant] = Piece(m_enPassant);
     }
 
@@ -112,26 +109,13 @@ Board::~Board()
     // Nothing todo
 }
 
-
-
 // ----- Read -----
 
-u8 Board::Castling() const noexcept
-{
-    return m_castling;
-}
+u8 Board::Castling() const noexcept { return m_castling; }
 
-std::string_view Board::Fen() const noexcept
-{
-    return m_fen;
-}
+std::string_view Board::Fen() const noexcept { return m_fen; }
 
-std::span<const Piece, 64> Board::Pieces() const noexcept
-{
-    return m_pieces;
-}
-
-
+std::span<const Piece, 64> Board::Pieces() const noexcept { return m_pieces; }
 
 // ----- Update -----
 
@@ -143,7 +127,7 @@ bool Board::MakeMove(std::string_view move)
         return false;
     }
     Index startPos = Convert::MoveToIndex(move);
-    Index endPos = Convert::MoveToIndex(move.substr(2));
+    Index endPos   = Convert::MoveToIndex(move.substr(2));
 
     // Attempt to play the move
     if (!ValidateMove(startPos, endPos)) {
@@ -161,12 +145,12 @@ bool Board::MakeMove(std::string_view move)
     Piece other = m_pieces[endPos];
     MovePiece(move);
     piece = m_pieces[endPos];
-    m_playerColour = (
-        m_playerColour == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White
-    );
+    m_playerColour =
+        (m_playerColour == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White);
 
     // Update fen data
-    m_fen = RecalculateFen((piece.Type() == Enums::Type::Pawn) | (other.IsValid() | other.IsEnPassant()));
+    m_fen = RecalculateFen((piece.Type() == Enums::Type::Pawn) |
+                           (other.IsValid() | other.IsEnPassant()));
     DebugPrintln("Board::MakeMove: Fen: {}", m_fen);
 
     return true;
@@ -198,21 +182,19 @@ bool Board::PromotePawn(Index index, Enums::Type type)
     }
 
     // Valid promotion type
-    if (type != Enums::Type::Bishop &&
-        type != Enums::Type::Knight &&
-        type != Enums::Type::Queen  &&
-        type != Enums::Type::Rook
-    ) {
-        ErrorPrintln("Board::PromotePawn: Received invalid promotion type: {}", Enums::ToString::Type[(u64)type]);
+    if (type != Enums::Type::Bishop && type != Enums::Type::Knight && type != Enums::Type::Queen &&
+        type != Enums::Type::Rook) {
+        ErrorPrintln("Board::PromotePawn: Received invalid promotion type: {}",
+                     Enums::ToString::Type[(u64)type]);
         return false;
     }
 
     // Add the piece
-    InfoPrintln("Board::PromotePawn: Promoting: {} to {}.", piece.ToString(), Enums::ToString::Type[(u8)type]);
+    InfoPrintln("Board::PromotePawn: Promoting: {} to {}.", piece.ToString(),
+                Enums::ToString::Type[(u8)type]);
     piece = Piece(piece.Colour(), type, piece.Position());
-    m_playerColour = (
-        m_playerColour == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White
-    );
+    m_playerColour =
+        (m_playerColour == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White);
     m_promotion = INVALID_ENPASSANT;
 
     m_fen = RecalculateFen();
@@ -239,15 +221,17 @@ bool Board::ValidateMove(Index start, Index end)
     // Check piece validity
     const Piece& piece = m_pieces[start];
     if (piece.Colour() != m_playerColour) {
-        WarningPrintln("Board::ValidateMove: Invalid piece selected at start position: {}", piece.ToString());
+        WarningPrintln("Board::ValidateMove: Invalid piece selected at start position: {}",
+                       piece.ToString());
         return false;
     }
-    
+
     // Generate the moves
     m_moveGen.Generate(m_pieces, start, m_castling);
     BitBoard movesBB = m_moveGen.GetMoves();
     if (movesBB == MoveGen::INVALID) {
-        WarningPrintln("Board::ValidateMove: Could not generate moves for piece: {}", piece.ToString());
+        WarningPrintln("Board::ValidateMove: Could not generate moves for piece: {}",
+                       piece.ToString());
         return false;
     }
 
@@ -264,13 +248,13 @@ bool Board::ValidateMove(Index start, Index end)
 void Board::MovePiece(std::string_view move)
 {
     Index start = Convert::MoveToIndex(move);
-    Index end = Convert::MoveToIndex(move.substr(2));
+    Index end   = Convert::MoveToIndex(move.substr(2));
 
     Piece piece = m_pieces[start];
 
     // Swap pieces
     piece.Position(end);
-    m_pieces[end] = piece;
+    m_pieces[end]   = piece;
     m_pieces[start] = Piece();
 }
 
@@ -278,7 +262,7 @@ void Board::MoveEnPassant(std::string_view move)
 {
     // Reset en passant
     Index enPassant = m_enPassant;
-    m_enPassant = INVALID_ENPASSANT;
+    m_enPassant     = INVALID_ENPASSANT;
 
     // Remove old en passant
     if (enPassant != INVALID_ENPASSANT) {
@@ -286,8 +270,8 @@ void Board::MoveEnPassant(std::string_view move)
     }
 
     // Calculate information
-    Index start = Convert::MoveToIndex(move);
-    Index end = Convert::MoveToIndex(move.substr(2));
+    Index        start = Convert::MoveToIndex(move);
+    Index        end   = Convert::MoveToIndex(move.substr(2));
     const Piece& piece = m_pieces[start];
 
     // Ensure piece is pawn
@@ -298,7 +282,7 @@ void Board::MoveEnPassant(std::string_view move)
     // Update en passant square (if necessary)
     i8 offset = (piece.Colour() == Enums::Colour::White ? (i8)8 : -(i8)8);
     if (start + (offset * 2) == end) {
-        m_enPassant = start + offset;
+        m_enPassant           = start + offset;
         m_pieces[m_enPassant] = Piece(m_enPassant);
     }
 
@@ -313,7 +297,7 @@ void Board::MovePromotion(std::string_view move)
 {
     // Gather information
     Index start = Convert::MoveToIndex(move);
-    Index end = Convert::MoveToIndex(move.substr(2));
+    Index end   = Convert::MoveToIndex(move.substr(2));
     Piece piece = m_pieces[start];
     Piece other = m_pieces[end];
     (void)other;
@@ -326,11 +310,9 @@ void Board::MovePromotion(std::string_view move)
     // Check rank
     Index rank = end / 8;
     if ((rank == 0 && piece.Colour() == Enums::Colour::Black) ||
-        (rank == 7 && piece.Colour() == Enums::Colour::White)
-    ) {
-        m_playerColour = (
-            m_playerColour == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White
-        );
+        (rank == 7 && piece.Colour() == Enums::Colour::White)) {
+        m_playerColour =
+            (m_playerColour == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White);
 
         m_promotion = end;
     }
@@ -344,7 +326,7 @@ void Board::MoveCastling(std::string_view move)
     }
 
     Index start = Convert::MoveToIndex(move);
-    Index end = Convert::MoveToIndex(move.substr(2));
+    Index end   = Convert::MoveToIndex(move.substr(2));
 
     Piece& piece = m_pieces[start];
     if (piece.Type() == Enums::Type::King) {
@@ -365,17 +347,15 @@ void Board::MoveCastling(std::string_view move)
     }
 }
 
-
-
 // ----- Fen -----
 
 std::string Board::RecalculateFen()
 {
-    char player = RecalculatePlayer();
-    std::string castling = RecalculateCastling();
+    char        player    = RecalculatePlayer();
+    std::string castling  = RecalculateCastling();
     std::string enPassant = RecalculateEnPassant();
-    u32 halfMoves = RecalculateHalfMoves(false) - 1;
-    u32 fullMoves = RecalculateFullMoves();
+    u32         halfMoves = RecalculateHalfMoves(false) - 1;
+    u32         fullMoves = RecalculateFullMoves();
     if (m_playerColour == Enums::Colour::White) {
         fullMoves--;
     }
@@ -384,18 +364,15 @@ std::string Board::RecalculateFen()
 
 std::string Board::RecalculateFen(bool isCaptureOrPawn)
 {
-    char player = RecalculatePlayer();
-    std::string castling = RecalculateCastling();
+    char        player    = RecalculatePlayer();
+    std::string castling  = RecalculateCastling();
     std::string enPassant = RecalculateEnPassant();
-    u32 halfMoves = RecalculateHalfMoves(isCaptureOrPawn);
-    u32 fullMoves = RecalculateFullMoves();
+    u32         halfMoves = RecalculateHalfMoves(isCaptureOrPawn);
+    u32         fullMoves = RecalculateFullMoves();
     return Fen::GenerateFen(m_pieces, player, castling, enPassant, halfMoves, fullMoves);
 }
 
-char Board::RecalculatePlayer()
-{
-    return (m_playerColour == Enums::Colour::White ? 'w' : 'b');
-}
+char Board::RecalculatePlayer() { return (m_playerColour == Enums::Colour::White ? 'w' : 'b'); }
 
 std::string Board::RecalculateCastling()
 {
@@ -460,22 +437,21 @@ u32 Board::RecalculateHalfMoves(bool isCaptureOrPawn)
     }
 
     std::string_view strHalfMoves = m_fen.substr(m_fen.find(' ') + 1);
-    strHalfMoves = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
-    strHalfMoves = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
-    strHalfMoves = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
+    strHalfMoves                  = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
+    strHalfMoves                  = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
+    strHalfMoves                  = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
 
     u32 halfMoves = std::stoul(strHalfMoves.data());
     return (halfMoves + 1);
-
 }
 
 u32 Board::RecalculateFullMoves()
 {
     std::string_view strHalfMoves = m_fen.substr(m_fen.find(' ') + 1);
-    strHalfMoves = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
-    strHalfMoves = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
-    strHalfMoves = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
-    strHalfMoves = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
+    strHalfMoves                  = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
+    strHalfMoves                  = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
+    strHalfMoves                  = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
+    strHalfMoves                  = strHalfMoves.substr(strHalfMoves.find(' ') + 1);
 
     u32 fullMoves = std::stoul(strHalfMoves.data());
     if (m_playerColour == Enums::Colour::Black) {
@@ -484,4 +460,3 @@ u32 Board::RecalculateFullMoves()
 
     return fullMoves;
 }
-

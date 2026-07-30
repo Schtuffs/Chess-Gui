@@ -14,7 +14,6 @@
  */
 class GameManager {
 public:
-
     // ----- Creation / Destruction -----
 
     /**
@@ -75,12 +74,12 @@ public:
 
 private:
     std::vector<std::string> m_moves;
-    Board m_board;
-    MoveGen m_moveGen;
-    std::string m_currentMove;
-    BitBoard m_possibleMoves;
-    Index m_promotionSquare;
-    bool m_isWhiteTurn, m_isWhiteAI, m_isBlackAI, m_inCheckmate, m_inStalemate;
+    Board                    m_board;
+    MoveGen                  m_moveGen;
+    std::string              m_currentMove;
+    BitBoard                 m_possibleMoves;
+    Index                    m_promotionSquare;
+    bool                     m_isWhiteTurn, m_isWhiteAI, m_isBlackAI, m_inCheckmate, m_inStalemate;
 
     void Update(std::string_view move, bool tryReselect);
 
@@ -93,4 +92,3 @@ private:
 
     void CheckForCheckmate();
 };
-

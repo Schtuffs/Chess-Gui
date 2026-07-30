@@ -13,7 +13,7 @@
 class MoveGen {
 public:
     // Useful for determining if generated moves are invalid.
-    static const BitBoard INVALID      = 0x00'00'00'00'00'00'00'00;
+    static const BitBoard INVALID = 0x00'00'00'00'00'00'00'00;
 
     // ----- Creation / Destruction -----
 
@@ -27,7 +27,7 @@ public:
 
     // Determines if previous move generation results in checkmate.
     bool IsCheckmate() const noexcept;
-    
+
     // Determines if previous move generation results in stalemate.
     bool IsStalemate() const noexcept;
 
@@ -45,31 +45,30 @@ public:
 private:
     // Data taken in
     const Piece* m_pieceList;
-    Index m_pieceIndex;
-    u8 m_castling;
+    Index        m_pieceIndex;
+    u8           m_castling;
 
     // Calculation data
-    bool m_generatingAttacks, m_inCheck, m_inDoubleCheck, m_pinningPiece;
-    Index m_pinIndex;
+    bool     m_generatingAttacks, m_inCheck, m_inDoubleCheck, m_pinningPiece;
+    Index    m_pinIndex;
     BitBoard m_attacks, m_pins, m_pinsHorz, m_pinsVert, m_pinsDiagUp, m_pinsDiagDown;
     BitBoard m_checkSquares, m_currentMoves;
 
     // Result data
     BitBoard m_validMoves;
-    bool m_isCheckmate, m_isStalemate;
+    bool     m_isCheckmate, m_isStalemate;
 
     // General
 
     void Reset();
-    int PieceCompare(const Piece& lhs, const Piece& rhs);
+    int  PieceCompare(const Piece& lhs, const Piece& rhs);
     void CheckForCheckmate(Enums::Colour friendly);
-    // void CheckForStalemate();
 
     // Attacks
 
-    bool IsSquareAttacked(Index index);
+    bool     IsSquareAttacked(Index index);
     BitBoard GenAttacks();
-    void ResetAttackPiece();
+    void     ResetAttackPiece();
 
     // Checks
 
@@ -80,8 +79,8 @@ private:
     // Pins
 
     void AddPiecePin(int pinDir);
-    int IsNewPin(const Piece& piece, const Piece& other, int pinDir);
-    int IsPiecePinned(const Piece& piece);
+    int  IsNewPin(const Piece& piece, const Piece& other, int pinDir);
+    int  IsPiecePinned(const Piece& piece);
 
     // Verifying moves
 
@@ -102,8 +101,6 @@ private:
     // Move generation - special
 
     BitBoard GenCastling(const Piece& piece);
-    bool IsValidForCastle(Index index);
+    bool     IsValidForCastle(Index index);
     BitBoard GenSliding(const Piece& piece, i32 offset, Index mod);
-
 };
-

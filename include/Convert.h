@@ -85,5 +85,4 @@ namespace Convert {
      * @date 2026-07-07
      */
     std::string PiecesToString(const Piece* pieces);
-}
-
+} // namespace Convert

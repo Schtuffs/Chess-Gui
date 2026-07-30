@@ -16,8 +16,6 @@ bool sIsSuiteSetup = false;
 
 std::vector<std::pair<const char*, std::function<void()>>> sTestFunctions;
 
-
-
 // ----- Arguments -----
 
 static std::vector<std::string> CreateArgList(int argc, char** argv)
@@ -76,8 +74,7 @@ static void AdjustName(const std::string& arg)
         if (arg == "") {
             s_nameAddAll = true;
             s_testNameRequirements.push_back("*");
-        }
-        else {
+        } else {
             s_testNameRequirements.push_back(arg);
         }
         return;
@@ -113,12 +110,12 @@ static void AdjustName(const std::string& arg)
 static void ParseArgs(int argc, char** argv)
 {
     std::array<std::pair<const char*, std::function<void(const std::string&)>>, 6> ARG_LIST = {{
-        {"-c",      AdjustCount},
+        {"-c", AdjustCount},
         {"--count", AdjustCount},
-        {"-j",      AdjustJobs},
-        {"--jobs",  AdjustJobs},
-        {"-n",      AdjustName},
-        {"--name",  AdjustName},
+        {"-j", AdjustJobs},
+        {"--jobs", AdjustJobs},
+        {"-n", AdjustName},
+        {"--name", AdjustName},
     }};
 
     std::vector args = CreateArgList(argc, argv);
@@ -126,18 +123,17 @@ static void ParseArgs(int argc, char** argv)
     bool validArgFound = false;
     std::pair<const char*, std::function<void(const std::string&)>> prevArg;
     for (const auto& arg : args) {
-        if (validArgFound){
+        if (validArgFound) {
             validArgFound = false;
             prevArg.second(arg);
             continue;
         }
         // Iterate over all entries
-        auto it = std::find_if(ARG_LIST.begin(), ARG_LIST.end(),
-            [&arg](const std::pair<const char*, std::function<void(const std::string&)>>& list)
-            {
+        auto it = std::find_if(
+            ARG_LIST.begin(), ARG_LIST.end(),
+            [&arg](const std::pair<const char*, std::function<void(const std::string&)>>& list) {
                 return (arg == list.first);
-            }
-        );
+            });
 
         // If found call function on next run
         if (it != ARG_LIST.end()) {
@@ -157,8 +153,6 @@ void TestSuite::Setup(int argc, char** argv)
     ParseArgs(argc, argv);
     sIsSuiteSetup = true;
 }
-
-
 
 // ----- Adding Tests -----
 
@@ -201,7 +195,8 @@ static bool IsValidTestName(std::string_view name)
     return true;
 }
 
-void TestSuite::add(const char* name, std::function<void()> function) {
+void TestSuite::add(const char* name, std::function<void()> function)
+{
     if (!sIsSuiteSetup) {
         std::println(stderr, "\nERROR: Must call TestSuite::Setup(int argc, char** argv) first.\n");
         exit(1);
@@ -213,8 +208,6 @@ void TestSuite::add(const char* name, std::function<void()> function) {
 
     sTestFunctions.push_back({name, function});
 }
-
-
 
 // ----- Running Tests -----
 
@@ -229,8 +222,7 @@ static bool RunTest(const std::pair<const char*, std::function<void()>>& test)
         std::println(stderr, "{}Test ({}) failed! {}", s_firstPrint, test.first, e.c_str());
         s_firstPrint = '\0';
         mtx.unlock();
-    }
-    catch (...) {
+    } catch (...) {
         mtx.lock();
         std::println(stderr, "{}Test ({}) failed! Uncaught exception!", s_firstPrint, test.first);
         s_firstPrint = '\0';
@@ -239,7 +231,8 @@ static bool RunTest(const std::pair<const char*, std::function<void()>>& test)
     return false;
 }
 
-static std::pair<uint64_t, uint64_t> RunTests(std::span<std::pair<const char*, std::function<void()>>> tests)
+static std::pair<uint64_t, uint64_t>
+RunTests(std::span<std::pair<const char*, std::function<void()>>> tests)
 {
     std::pair<uint64_t, uint64_t> results = {};
     for (const auto& test : tests) {
@@ -252,7 +245,8 @@ static std::pair<uint64_t, uint64_t> RunTests(std::span<std::pair<const char*, s
     return results;
 }
 
-static void TestLoop(uint64_t runTimes, std::span<std::pair<const char*, std::function<void()>>> tests)
+static void TestLoop(uint64_t runTimes,
+                     std::span<std::pair<const char*, std::function<void()>>> tests)
 {
     static std::mutex mtx;
     uint64_t pass = 0, fail = 0;
@@ -269,22 +263,22 @@ static void TestLoop(uint64_t runTimes, std::span<std::pair<const char*, std::fu
     mtx.unlock();
 }
 
-uint64_t TestSuite::RunTests() {
+uint64_t TestSuite::RunTests()
+{
     s_firstPrint = '\n';
 
     const auto& start = std::chrono::system_clock::now();
 
     if (s_syncJobs == 1) {
         TestLoop(s_repeatRuns, sTestFunctions);
-    }
-    else {
+    } else {
         std::vector<std::jthread> threads;
         threads.reserve(s_syncJobs);
         uint64_t listPtr = 0;
 
         for (uint64_t i = 0; i < s_syncJobs; i++) {
             uint64_t functionCount = (sTestFunctions.size() - listPtr) / (s_syncJobs - i);
-            threads.emplace_back([functionCount, listPtr](){
+            threads.emplace_back([functionCount, listPtr]() {
                 TestLoop(s_repeatRuns, std::span(sTestFunctions.begin() + listPtr, functionCount));
             });
             listPtr += functionCount;
@@ -298,11 +292,11 @@ uint64_t TestSuite::RunTests() {
     FILE* out = stdout;
     std::println(out);
     std::println(out, "Total tests: {}, Run {}x each", sTestFunctions.size(), s_repeatRuns);
-    std::println(out, "Passes: {}, Fails: {}, Success: {}%", sPasses, sFails, ((sPasses / (double)(sPasses + sFails)) * 100));
+    std::println(out, "Passes: {}, Fails: {}, Success: {}%", sPasses, sFails,
+                 ((sPasses / (double)(sPasses + sFails)) * 100));
     std::println(out, "Total test runtime: {}", duration);
     std::println(out);
 
     // Exit program with the number of fails
     return (sFails);
 }
-

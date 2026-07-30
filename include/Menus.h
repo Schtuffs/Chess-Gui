@@ -7,8 +7,7 @@
  * @namespace Menu
  * @date 2026-06-28
  */
-namespace Menu
-{
+namespace Menu {
     /**
      * @brief The main menu.
      * @param screen The screen state which can be changed by this `Menu`.
@@ -36,6 +35,4 @@ namespace Menu
      * @date 2026-06-28
      */
     void InGame(Enums::Screen& screen);
-}
-
-
+} // namespace Menu
