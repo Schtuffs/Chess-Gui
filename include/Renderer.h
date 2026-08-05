@@ -15,7 +15,6 @@
  */
 class Renderer {
 public:
-
     // ----- Creation / Destruction -----
 
     /**
@@ -31,14 +30,15 @@ public:
 
     // ----- Read -----
 
-    void Update();
-    std::string Render(std::string_view fen, BitBoard moves, Index promoSquare, bool isWhitePerspective) const noexcept;
-    void RenderMate(Enums::Colour winner, bool isCheckmate) const noexcept;
+    void        Update();
+    std::string Render(std::string_view fen, BitBoard moves, Index promoSquare,
+                       bool isWhitePerspective) const noexcept;
+    void        RenderMate(Enums::Colour winner, bool isCheckmate) const noexcept;
 
 private:
     Texture2D m_textures[12];
-    Color m_dark, m_light;
-    int m_textureSize, m_startX, m_startY;
+    Color     m_dark, m_light;
+    int       m_textureSize, m_startX, m_startY;
 
     // Render workflow
 
@@ -50,14 +50,14 @@ private:
 
     // Helper functions
 
-    Index DetectClick(bool isWhitePerspective) const noexcept;
-    void FixSize();
+    Index     DetectClick(bool isWhitePerspective) const noexcept;
+    void      FixSize();
     Rectangle GetRect(Index index) const noexcept;
-    Color GetHoverColour(Index index) const noexcept;
-    bool IsClicked(Index index) const noexcept;
-    bool IsHovered(Index index) const noexcept;
-    void RenderPiece(Texture2D texture, Index index) const noexcept;
-    void RenderSquare(Color colour, Index index) const noexcept;
+    Color     GetHoverColour(Index index) const noexcept;
+    bool      IsClicked(Index index) const noexcept;
+    bool      IsHovered(Index index) const noexcept;
+    void      RenderPiece(Texture2D texture, Index index) const noexcept;
+    void      RenderSquare(Color colour, Index index) const noexcept;
 
     /**
      * @brief Determines a pieces `Color`.
@@ -75,4 +75,3 @@ private:
      */
     int CheckType(char cur) const noexcept;
 };
-

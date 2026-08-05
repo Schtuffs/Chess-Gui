@@ -8,7 +8,7 @@ set(SUITE ${CMAKE_CURRENT_LIST_DIR}/TestSuite)
 set(INCLUDES ../include ../third_party)
 set(SOURCES ../src)
 
-file(GLOB ALL_SOURCE_FILES ${SOURCES}/*.cpp)
+file(GLOB_RECURSE ALL_SOURCE_FILES ${SOURCES}/*.cpp)
 list(FILTER ALL_SOURCE_FILES EXCLUDE REGEX ".*/main\\.cpp$")
 
 project(tests LANGUAGES C CXX)
@@ -27,7 +27,7 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR
     ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"
 )
     target_link_libraries(${PROJECT_NAME} PRIVATE stdc++exp)
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Werror -Wpedantic)
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Werror -Wpedantic $<$<COMPILE_LANGUAGE:CXX>:-fconstexpr-ops-limit=1000000000>)
 endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${SUITE} ${INCLUDES})

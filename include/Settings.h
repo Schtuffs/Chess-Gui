@@ -145,5 +145,4 @@ namespace Settings {
      * @date 2026-07-01
      */
     bool s(Setting setting, const std::string& value);
-}
-
+} // namespace Settings

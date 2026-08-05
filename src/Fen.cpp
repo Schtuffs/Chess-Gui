@@ -8,8 +8,6 @@
 
 #include "Utils.h"
 
-
-
 // ----- Hidden -----
 
 /**
@@ -18,7 +16,7 @@
 static bool ValidatePieces(std::string_view fen)
 {
     // Check files and ranks
-    i8 files = 0, ranks = 0;
+    i8     files = 0, ranks = 0;
     size_t index = 0;
     while (index < fen.size()) {
         char c = fen[index];
@@ -36,20 +34,16 @@ static bool ValidatePieces(std::string_view fen)
         // Marks end of all ranks, validate
         else if (c == ' ') {
             if (files != 8 && ranks != 8) {
-                WarningPrintln("Fen::ValidatePieces: Invalid number of files or ranks in fen: {}, {}", files, ranks);
+                WarningPrintln(
+                    "Fen::ValidatePieces: Invalid number of files or ranks in fen: {}, {}", files,
+                    ranks);
                 return false;
             }
             break;
         }
 
-        else if (
-            c == 'b' || c == 'B' ||
-            c == 'k' || c == 'K' ||
-            c == 'n' || c == 'N' ||
-            c == 'p' || c == 'P' ||
-            c == 'q' || c == 'Q' ||
-            c == 'r' || c == 'R'
-        ) {
+        else if (c == 'b' || c == 'B' || c == 'k' || c == 'K' || c == 'n' || c == 'N' || c == 'p' ||
+                 c == 'P' || c == 'q' || c == 'Q' || c == 'r' || c == 'R') {
             files++;
         }
 
@@ -95,8 +89,8 @@ static bool ValidateCastling(std::string_view fen)
         return true;
     }
 
-    constexpr std::string_view str = "KQkq";
-    u8 strPos = 0;
+    constexpr std::string_view str    = "KQkq";
+    u8                         strPos = 0;
     for (char c : fen) {
         while (strPos < str.length() && c != str[strPos]) {
             strPos++;
@@ -143,7 +137,7 @@ static bool ValidateEnPassant(std::string_view fen)
 /**
  * Helper function to ensure next check passes
  */
-static bool NextCheck(std::istringstream& ss, bool(*validate)(std::string_view))
+static bool NextCheck(std::istringstream& ss, bool (*validate)(std::string_view))
 {
     std::string str;
     ss >> str;
@@ -179,12 +173,10 @@ bool Fen::IsValidFen(const char* data)
     return true;
 }
 
-
-
 static std::string GenPieces(std::span<const Piece, 64> pieces)
 {
     std::string fen;
-    u8 extra = 0;
+    u8          extra = 0;
     for (u64 rank = 8 - 1; rank < 8; rank--) {
         if (extra > 0) {
             fen += std::to_string(extra);
@@ -199,7 +191,7 @@ static std::string GenPieces(std::span<const Piece, 64> pieces)
             u64 i = rank * 8 + file;
 
             const Piece& piece = pieces[i];
-            char p = piece.AsChar();
+            char         p     = piece.AsChar();
             if (!p) {
                 extra++;
                 continue;
@@ -267,7 +259,9 @@ static std::string GenFullMoves(u32 fullMoves)
     return fen;
 }
 
-std::string Fen::GenerateFen(std::span<const Piece, 64> pieces, char player, std::string_view castling, std::string_view enPassant, u32 halfMoves, u32 fullMoves)
+std::string Fen::GenerateFen(std::span<const Piece, 64> pieces, char player,
+                             std::string_view castling, std::string_view enPassant, u32 halfMoves,
+                             u32 fullMoves)
 {
     std::string fen = "";
 
@@ -285,4 +279,3 @@ std::string Fen::GenerateFen(std::span<const Piece, 64> pieces, char player, std
 
     return fen;
 }
-

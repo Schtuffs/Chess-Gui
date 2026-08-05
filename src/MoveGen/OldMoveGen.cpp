@@ -1,4 +1,4 @@
-#include "MoveGen.h"
+#include "MoveGen/OldMoveGen.h"
 
 #include <cmath>
 
@@ -13,126 +13,110 @@ enum MoveResult {
 };
 
 enum PinDirection {
-    PIN_HORZ        = 1,
-    PIN_VERT        = 2,
-    PIN_DIAG_UP     = 4,
-    PIN_DIAG_DOWN   = 8,
-    PIN_NONE        = 16,
+    PIN_HORZ      = 1,
+    PIN_VERT      = 2,
+    PIN_DIAG_UP   = 4,
+    PIN_DIAG_DOWN = 8,
+    PIN_NONE      = 16,
 };
-
-
 
 // ----- Creation / Destruction -----
 
-MoveGen::MoveGen()
-  : m_pieceList(nullptr), m_pieceIndex(INVALID), m_castling(0),
+OldMoveGen::OldMoveGen()
+    : m_pieceList(nullptr), m_pieceIndex(INVALID), m_castling(0),
 
-    m_generatingAttacks(false), m_inCheck(false), m_inDoubleCheck(false), m_pinningPiece(false),
-    m_pinIndex(INVALID),
-    m_attacks(0), m_pins(0), m_pinsHorz(0), m_pinsVert(0), m_pinsDiagUp(0), m_pinsDiagDown(0),
-    m_checkSquares(0), m_currentMoves(0),
+      m_generatingAttacks(false), m_inCheck(false), m_inDoubleCheck(false), m_pinningPiece(false),
+      m_pinIndex(INVALID), m_attacks(0), m_pins(0), m_pinsHorz(0), m_pinsVert(0), m_pinsDiagUp(0),
+      m_pinsDiagDown(0), m_checkSquares(0), m_currentMoves(0),
 
-    m_validMoves(0), m_isCheckmate(false), m_isStalemate(false)
-{}
-
-
+      m_validMoves(0), m_isCheckmate(false), m_isStalemate(false)
+{
+}
 
 // ----- Read -----
 
-BitBoard MoveGen::GetMoves() const noexcept
-{
-    return m_validMoves;
-}
+BitBoard OldMoveGen::GetMoves() const noexcept { return m_validMoves; }
 
-bool MoveGen::IsCheckmate() const noexcept
-{
-    return m_isCheckmate;
-}
+bool OldMoveGen::IsCheckmate() const noexcept { return m_isCheckmate; }
 
-bool MoveGen::IsStalemate() const noexcept
-{
-    return m_isStalemate;
-}
+bool OldMoveGen::IsStalemate() const noexcept { return m_isStalemate; }
 
 // ----- Read ----- Hidden -----
 
-bool MoveGen::IsSquareAttacked(Index index)
+bool OldMoveGen::IsSquareAttacked(Index index)
 {
     return (m_attacks & (Convert::IndexToBitBoard(index)));
 }
 
-
-
 // ----- Update -----
 
-void MoveGen::Generate(std::span<const Piece, 64> pieces, Index index, u8 castling)
+void OldMoveGen::Generate(std::span<const Piece, 64> pieces, Index index, u8 castling)
 {
     Reset();
 
     // Check pieces
     if (pieces.size() == 0) {
-        WarningPrintln("MoveGen::Generate: Piece list was null.");
+        WarningPrintln("OldMoveGen::Generate: Piece list was null.");
         return;
     }
 
     // Verify index
     if (!Utils::IsValidIndex(index)) {
-        WarningPrintln("MoveGen::Generate: Index out of bounds: {}", index);
+        WarningPrintln("OldMoveGen::Generate: Index out of bounds: {}", index);
         return;
     }
 
     // Reset and prepare for new move generation
-    m_pieceList = pieces.data();
+    m_pieceList  = pieces.data();
     m_pieceIndex = index;
-    m_castling = castling;
+    m_castling   = castling;
 
     // Check piece selected is valid
     const Piece& piece = m_pieceList[m_pieceIndex];
     if (!piece.IsValid()) {
-        WarningPrintln("MoveGen::Generate: Invalid piece selected.");
+        WarningPrintln("OldMoveGen::Generate: Invalid piece selected.");
         return;
     }
 
     // Always generate attacks first
     m_attacks = GenAttacks();
-    DebugPrintln("MoveGen::Generate: Attacks: {}", Convert::BitBoardToString(m_attacks));
+    DebugPrintln("OldMoveGen::Generate: Attacks: {}", Convert::BitBoardToString(m_attacks));
 
     // If in double check, only king can move
     if (m_inDoubleCheck) {
-        DebugPrintln("MoveGen::Generate: In double check.");
+        DebugPrintln("OldMoveGen::Generate: In double check.");
         if (piece.Type() == Enums::Type::King) {
             m_validMoves = GenMoves(piece);
-        }
-        else {
+        } else {
             m_validMoves = Convert::IndexToBitBoard(piece.Position());
         }
         CheckForCheckmate(m_pieceList[index].Colour());
         return;
     }
-    
+
     // Generate moves normally
     BitBoard bb = GenMoves(piece);
-    DebugPrintln("MoveGen::Generate: Moves: {}", Convert::BitBoardToString(bb, 'X', ' '));
-    CheckForCheckmate(m_pieceList[index].Colour());
+    DebugPrintln("OldMoveGen::Generate: Moves: {}", Convert::BitBoardToString(bb, 'X', ' '));
     m_validMoves = bb;
+    CheckForCheckmate(m_pieceList[index].Colour());
 }
 
 // ----- Update ----- Hidden -----
 
-void MoveGen::Reset()
+void OldMoveGen::Reset()
 {
-    m_inCheck = false;
-    m_inDoubleCheck = false;
+    m_inCheck           = false;
+    m_inDoubleCheck     = false;
     m_generatingAttacks = false;
-    m_pinningPiece = false;
+    m_pinningPiece      = false;
 
-    m_attacks       = 0;
-    m_pins          = 0;
-    m_pinsHorz      = 0;
-    m_pinsVert      = 0;
-    m_pinsDiagUp    = 0;
-    m_pinsDiagDown  = 0;
-    m_validMoves    = MoveGen::INVALID;
+    m_attacks      = 0;
+    m_pins         = 0;
+    m_pinsHorz     = 0;
+    m_pinsVert     = 0;
+    m_pinsDiagUp   = 0;
+    m_pinsDiagDown = 0;
+    m_validMoves   = OldMoveGen::INVALID;
 
     m_checkSquares = 0;
     m_currentMoves = 0;
@@ -143,11 +127,11 @@ void MoveGen::Reset()
  * =0 Same colours
  * <0 Invalid piece
  */
-int MoveGen::PieceCompare(const Piece& lhs, const Piece& rhs)
+int OldMoveGen::PieceCompare(const Piece& lhs, const Piece& rhs)
 {
-    constexpr int INVALID   = -1;
-    constexpr int EQUAL     = 0;
-    constexpr int OPPOSITE  = 1;
+    constexpr int INVALID  = -1;
+    constexpr int EQUAL    = 0;
+    constexpr int OPPOSITE = 1;
 
     if (!lhs.IsValid()) {
         return INVALID;
@@ -164,11 +148,10 @@ int MoveGen::PieceCompare(const Piece& lhs, const Piece& rhs)
     return OPPOSITE;
 }
 
-void MoveGen::CheckForCheckmate(Enums::Colour friendly)
+void OldMoveGen::CheckForCheckmate(Enums::Colour friendly)
 {
-    Enums::Colour search = (
-        friendly == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White
-    );
+    Enums::Colour search =
+        (friendly == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White);
 
     // In check, check for any valid moves
     for (Index i = 0; i < 64; i++) {
@@ -176,33 +159,33 @@ void MoveGen::CheckForCheckmate(Enums::Colour friendly)
         if (!piece.IsValid() || piece.Colour() != search) {
             continue;
         }
-        
+
         BitBoard moves = GenMoves(piece);
         if (moves != Convert::IndexToBitBoard(piece.Position())) {
             std::println("Piece: {}{}", piece.ToString(), Convert::BitBoardToString(moves));
-            DebugPrintln("GameManager::CheckForCheckmate: Not in checkmate");
+            DebugPrintln("OldMoveGen::CheckForCheckmate: Not in mate.");
             return;
         }
     }
 
     if (m_inCheck) {
-        DebugPrintln("GameManager::CheckForCheckmate: In checkmate");
+        DebugPrintln("OldMoveGen::CheckForCheckmate: In checkmate.");
         m_isCheckmate = true;
     } else {
-        DebugPrintln("GameManager::CheckForCheckmate: In stalemate");
+        DebugPrintln("OldMoveGen::CheckForCheckmate: In stalemate.");
         m_isStalemate = true;
     }
+
+    std::println("C: {}, S: {}", m_isCheckmate, m_isStalemate);
 }
-
-
 
 // ----- Attacks -----
 
-BitBoard MoveGen::GenAttacks()
+BitBoard OldMoveGen::GenAttacks()
 {
     m_generatingAttacks = true;
 
-    BitBoard bb = 0;
+    BitBoard      bb            = 0;
     Enums::Colour currentColour = m_pieceList[m_pieceIndex].Colour();
 
     for (Index i = 0; i < 64; i++) {
@@ -217,34 +200,32 @@ BitBoard MoveGen::GenAttacks()
         bb |= GenMoves(piece);
     }
 
-    m_pinningPiece = false;
+    m_pinningPiece      = false;
     m_generatingAttacks = false;
 
     return bb;
 }
 
-void MoveGen::ResetAttackPiece()
+void OldMoveGen::ResetAttackPiece()
 {
     m_pinningPiece = false;
-    m_pinIndex = 64;
+    m_pinIndex     = 64;
     m_currentMoves = 0;
 }
 
-
-
 // ----- Checks -----
 
-void MoveGen::AddCheck()
+void OldMoveGen::AddCheck()
 {
     // Update checks
     if (m_inCheck) {
         m_inDoubleCheck = true;
     }
     m_inCheck = true;
-    DebugPrintln("MoveGen::AddCheck: Check: {}, Double Check: {}", m_inCheck, m_inDoubleCheck);
+    DebugPrintln("OldMoveGen::AddCheck: Check: {}, Double Check: {}", m_inCheck, m_inDoubleCheck);
 }
 
-void MoveGen::AddCheckMoves(const Piece& piece)
+void OldMoveGen::AddCheckMoves(const Piece& piece)
 {
     m_checkSquares |= Convert::IndexToBitBoard(piece.Position());
     if (piece.Type() != Enums::Type::Knight) {
@@ -252,18 +233,15 @@ void MoveGen::AddCheckMoves(const Piece& piece)
     }
 }
 
-bool MoveGen::IsBlockCheck(Index index)
+bool OldMoveGen::IsBlockCheck(Index index)
 {
     return (!m_generatingAttacks && m_inCheck && !m_inDoubleCheck &&
-        (Convert::IndexToBitBoard(index) & m_checkSquares) > 0
-    );
+            (Convert::IndexToBitBoard(index) & m_checkSquares) > 0);
 }
-
-
 
 // ----- Pins -----
 
-void MoveGen::AddPiecePin(int pinDir)
+void OldMoveGen::AddPiecePin(int pinDir)
 {
     if (pinDir & PIN_HORZ) {
         m_pinsHorz |= Convert::IndexToBitBoard(m_pinIndex);
@@ -286,7 +264,7 @@ void MoveGen::AddPiecePin(int pinDir)
     }
 }
 
-int MoveGen::IsNewPin(const Piece& piece, const Piece& other, int pinDir)
+int OldMoveGen::IsNewPin(const Piece& piece, const Piece& other, int pinDir)
 {
     // Only check pins on attack generation
     if (!m_generatingAttacks) {
@@ -305,7 +283,7 @@ int MoveGen::IsNewPin(const Piece& piece, const Piece& other, int pinDir)
         // Begin pinning this piece
         if (piece.Type() != Enums::Type::Knight) {
             m_pinningPiece = true;
-            m_pinIndex = other.Position();
+            m_pinIndex     = other.Position();
         }
         return MOVE_UNTIL_NEXT;
     }
@@ -322,10 +300,10 @@ int MoveGen::IsNewPin(const Piece& piece, const Piece& other, int pinDir)
     return MOVE_END;
 }
 
-int MoveGen::IsPiecePinned(const Piece& piece)
+int OldMoveGen::IsPiecePinned(const Piece& piece)
 {
-    Index index = piece.Position();
-    BitBoard pos = Convert::IndexToBitBoard(index);
+    Index    index = piece.Position();
+    BitBoard pos   = Convert::IndexToBitBoard(index);
 
     if (m_generatingAttacks) {
         return PIN_NONE;
@@ -361,29 +339,37 @@ static int CalculatePinDir(Index lhs, Index rhs)
     Index rFile = rhs % 8;
     Index rRank = rhs / 8;
 
-    if (lRank == rRank) { return PIN_HORZ; }
-    if (lFile == rFile) { return PIN_VERT; }
+    if (lRank == rRank) {
+        return PIN_HORZ;
+    }
+    if (lFile == rFile) {
+        return PIN_VERT;
+    }
 
     int rise = rRank - lRank;
     int run  = rFile - lFile;
 
-    if (std::abs(rise) != std::abs(run)) { return PIN_NONE; }
+    if (std::abs(rise) != std::abs(run)) {
+        return PIN_NONE;
+    }
 
-    if ((rise / run) > 0) { return PIN_DIAG_UP; }
-    if ((rise / run) < 0) { return PIN_DIAG_DOWN; }
+    if ((rise / run) > 0) {
+        return PIN_DIAG_UP;
+    }
+    if ((rise / run) < 0) {
+        return PIN_DIAG_DOWN;
+    }
 
     return PIN_NONE;
 }
 
-
-
 // ----- Verification -----
 
-int MoveGen::AddMove(const Piece& piece, Index index)
+int OldMoveGen::AddMove(const Piece& piece, Index index)
 {
     // Validate index
     if (!Utils::IsValidIndex(index)) {
-        WarningPrintln("MoveGen::AddMove: Index out of bounds: {}", index);
+        WarningPrintln("OldMoveGen::AddMove: Index out of bounds: {}", index);
         return MOVE_END;
     }
 
@@ -432,7 +418,7 @@ int MoveGen::AddMove(const Piece& piece, Index index)
     return res;
 }
 
-int MoveGen::AddPawnMove(const Piece& piece, Index index)
+int OldMoveGen::AddPawnMove(const Piece& piece, Index index)
 {
     // Validate index
     if (!Utils::IsValidIndex(index)) {
@@ -448,9 +434,9 @@ int MoveGen::AddPawnMove(const Piece& piece, Index index)
         return MOVE_END;
     }
 
-    Index pFile = piece.Position() % 8;
-    Index oFile = index % 8;
-    bool equalFile = pFile == oFile;
+    Index pFile     = piece.Position() % 8;
+    Index oFile     = index % 8;
+    bool  equalFile = pFile == oFile;
 
     // Check file wraps
     if (std::abs((i8)pFile - (i8)oFile) > 1) {
@@ -478,8 +464,7 @@ int MoveGen::AddPawnMove(const Piece& piece, Index index)
             AddCheckMoves(piece);
         }
         return MOVE_END;
-    }
-    else if (other.IsValid() || other.IsEnPassant()) {
+    } else if (other.IsValid() || other.IsEnPassant()) {
         if (!equalFile && PieceCompare(piece, other) != 0) {
             m_currentMoves |= Convert::IndexToBitBoard(index);
         }
@@ -495,9 +480,7 @@ int MoveGen::AddPawnMove(const Piece& piece, Index index)
     return MOVE_END;
 }
 
-
-
-BitBoard MoveGen::GenSliding(const Piece& piece, i32 offset, Index mod)
+BitBoard OldMoveGen::GenSliding(const Piece& piece, i32 offset, Index mod)
 {
     ResetAttackPiece();
 
@@ -508,12 +491,12 @@ BitBoard MoveGen::GenSliding(const Piece& piece, i32 offset, Index mod)
         Index index = piece.Position();
         index += (i32)i * offset;
         if (!Utils::IsValidIndex(index)) {
-            DebugPrintln("MoveGen::GenSliding: Index out of bounds: {}", index);
+            DebugPrintln("OldMoveGen::GenSliding: Index out of bounds: {}", index);
             break;
         }
 
         if ((index % (Index)8) == mod) {
-            DebugPrintln("MoveGen::GenSliding: Index is mod");
+            DebugPrintln("OldMoveGen::GenSliding: Index is mod");
             break;
         }
 
@@ -523,8 +506,7 @@ BitBoard MoveGen::GenSliding(const Piece& piece, i32 offset, Index mod)
         }
         if (res == MOVE_UNTIL_NEXT) {
             untilNext = true;
-        }
-        else if (res == MOVE_END && untilNext) {
+        } else if (res == MOVE_END && untilNext) {
             break;
         }
     }
@@ -534,41 +516,41 @@ BitBoard MoveGen::GenSliding(const Piece& piece, i32 offset, Index mod)
     return bb;
 }
 
-BitBoard MoveGen::GenBishop(const Piece& piece)
+BitBoard OldMoveGen::GenBishop(const Piece& piece)
 {
     BitBoard bb = 0;
 
     int pins = IsPiecePinned(piece);
     if (pins & (PIN_DIAG_UP | PIN_NONE) || m_generatingAttacks) {
-        bb |= GenSliding(piece,  9, 0); // Up right
+        bb |= GenSliding(piece, 9, 0);  // Up right
         bb |= GenSliding(piece, -9, 7); // Down left
     }
     if (pins & (PIN_DIAG_DOWN | PIN_NONE) || m_generatingAttacks) {
-        bb |= GenSliding(piece,  7, 7); // Up left
+        bb |= GenSliding(piece, 7, 7);  // Up left
         bb |= GenSliding(piece, -7, 0); // Down right
     }
 
     return bb;
 }
 
-BitBoard MoveGen::GenRook(const Piece& piece)
+BitBoard OldMoveGen::GenRook(const Piece& piece)
 {
     BitBoard bb = 0;
 
     int pins = IsPiecePinned(piece);
     if (pins & (PIN_VERT | PIN_NONE) || m_generatingAttacks) {
-        bb |= GenSliding(piece,  8, 0xff); // Up
+        bb |= GenSliding(piece, 8, 0xff);  // Up
         bb |= GenSliding(piece, -8, 0xff); // Down
     }
     if (pins & (PIN_HORZ | PIN_NONE) || m_generatingAttacks) {
-        bb |= GenSliding(piece,  1,    0); // Right
-        bb |= GenSliding(piece, -1,    7); // Left
+        bb |= GenSliding(piece, 1, 0);  // Right
+        bb |= GenSliding(piece, -1, 7); // Left
     }
 
     return bb;
 }
 
-BitBoard MoveGen::GenQueen(const Piece& piece)
+BitBoard OldMoveGen::GenQueen(const Piece& piece)
 {
     BitBoard bb = 0;
 
@@ -578,14 +560,12 @@ BitBoard MoveGen::GenQueen(const Piece& piece)
     return bb;
 }
 
-
-
-bool MoveGen::IsValidForCastle(Index index)
+bool OldMoveGen::IsValidForCastle(Index index)
 {
     return (!m_pieceList[index].IsValid() && !IsSquareAttacked(index) && !m_inCheck);
 }
 
-BitBoard MoveGen::GenCastling(const Piece& piece)
+BitBoard OldMoveGen::GenCastling(const Piece& piece)
 {
     if (m_castling & ((u8)Enums::Castling::White_King | (u8)Enums::Castling::Black_King)) {
         Index index = piece.Position();
@@ -606,12 +586,12 @@ BitBoard MoveGen::GenCastling(const Piece& piece)
     return bb;
 }
 
-BitBoard MoveGen::GenKing(const Piece& piece)
+BitBoard OldMoveGen::GenKing(const Piece& piece)
 {
     ResetAttackPiece();
 
-    Index pos = piece.Position();
-    BitBoard bb = 0;
+    Index    pos = piece.Position();
+    BitBoard bb  = 0;
 
     for (int rank = -1; rank < 2; rank++) {
         if (rank == -1 && (pos / 8) == 0) {
@@ -656,19 +636,19 @@ BitBoard MoveGen::GenKing(const Piece& piece)
     return bb;
 }
 
-BitBoard MoveGen::GenKnight(const Piece& piece)
+BitBoard OldMoveGen::GenKnight(const Piece& piece)
 {
     ResetAttackPiece();
 
-    constexpr int HOP_INVALID   = 0x7f;
-    Index pos = piece.Position();
-    BitBoard bb = 0;
+    constexpr int HOP_INVALID = 0x7f;
+    Index         pos         = piece.Position();
+    BitBoard      bb          = 0;
     if (m_pins & Convert::IndexToBitBoard(pos)) {
         return bb;
     }
 
     int moves[8] = {-17, -10, 6, 15, 17, 10, -6, -15};
-    int file = pos % (int)8;
+    int file     = pos % (int)8;
 
     // Stop left overflow
     if (file <= 1) {
@@ -705,18 +685,18 @@ BitBoard MoveGen::GenKnight(const Piece& piece)
     return bb;
 }
 
-BitBoard MoveGen::GenPawn(const Piece& piece)
+BitBoard OldMoveGen::GenPawn(const Piece& piece)
 {
     ResetAttackPiece();
 
     // Allow both types to use same code
-    const i8 offset = ((piece.Colour() == Enums::Colour::White) ? (i8)8 : (-(i8)8));
-    const Index rank = ((piece.Colour() == Enums::Colour::White) ? 1 : 6);
+    const i8    offset = ((piece.Colour() == Enums::Colour::White) ? (i8)8 : (-(i8)8));
+    const Index rank   = ((piece.Colour() == Enums::Colour::White) ? 1 : 6);
 
     // Prepare state
-    BitBoard bb = 0;
-    Index pos = piece.Position();
-    Index checkIndex = pos + offset;
+    BitBoard bb         = 0;
+    Index    pos        = piece.Position();
+    Index    checkIndex = pos + offset;
 
     // Forward moves
     if (AddPawnMove(piece, checkIndex) == MOVE_CONTINUE) {
@@ -738,9 +718,7 @@ BitBoard MoveGen::GenPawn(const Piece& piece)
     return bb;
 }
 
-
-
-BitBoard MoveGen::GenMoves(const Piece& piece)
+BitBoard OldMoveGen::GenMoves(const Piece& piece)
 {
     ResetAttackPiece();
 
@@ -772,4 +750,3 @@ BitBoard MoveGen::GenMoves(const Piece& piece)
 
     return bb;
 }
-

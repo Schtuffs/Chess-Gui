@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "Board.h"
-#include "MoveGen.h"
+#include "MoveGen/MoveGen.h"
 
 /**
  * @brief Manages game based workflows.
@@ -14,7 +14,6 @@
  */
 class GameManager {
 public:
-
     // ----- Creation / Destruction -----
 
     /**
@@ -38,7 +37,7 @@ public:
      */
     std::string AllMoves() const noexcept;
 
-    // Checks if the current player has been checkmated.
+    // Checks if the current player has checkmated their opponent.
     bool InCheckmate() const noexcept;
 
     // Checks if the game is in stalemate.
@@ -49,7 +48,7 @@ public:
      * @return The fen state of the game.
      * @date 2026-07-01
      */
-    std::string_view Fen() const noexcept;
+    std::string_view Fen();
 
     /**
      * @brief Get the valid moves from selected `Piece`.
@@ -75,12 +74,12 @@ public:
 
 private:
     std::vector<std::string> m_moves;
-    Board m_board;
-    MoveGen m_moveGen;
-    std::string m_currentMove;
-    BitBoard m_possibleMoves;
-    Index m_promotionSquare;
-    bool m_isWhiteTurn, m_isWhiteAI, m_isBlackAI, m_inCheckmate, m_inStalemate;
+    Board                    m_board;
+    MoveGen                  m_moveGen;
+    std::string              m_currentMove;
+    BitBoard                 m_possibleMoves;
+    Index                    m_promotionSquare;
+    bool                     m_isWhiteTurn, m_isWhiteAI, m_isBlackAI;
 
     void Update(std::string_view move, bool tryReselect);
 
@@ -90,7 +89,4 @@ private:
 
     void CheckForPromotion(std::string_view move);
     void ManagePromotion(std::string_view move);
-
-    void CheckForCheckmate();
 };
-

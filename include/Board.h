@@ -5,7 +5,6 @@
 #include <string>
 #include <string_view>
 
-#include "MoveGen.h"
 #include "Piece.h"
 
 /**
@@ -18,7 +17,7 @@ public:
     // ----- Creation / Destruction -----
 
     // Create board with given fen.
-    Board(std::string_view fen);
+    Board(std::string_view fen = DEFAULT_FEN);
 
     // Free memory.
     ~Board();
@@ -29,7 +28,7 @@ public:
     u8 Castling() const noexcept;
 
     // Get current gamestate fen.
-    std::string_view Fen() const noexcept;
+    std::string_view Fen();
 
     // Get the board's piece list.
     std::span<const Piece, 64> Pieces() const noexcept;
@@ -39,16 +38,20 @@ public:
     // Try to play given move (long algebraic notation).
     bool MakeMove(std::string_view move);
 
+    // Undoes previous move, max depth 1.
+    void UnmakeMove();
+
     // Promotes a pawn on the board to given type.
     bool PromotePawn(Index index, Enums::Type type);
 
 private:
-    std::string m_fen;
+    std::string           m_fen;
     std::array<Piece, 64> m_pieces;
-    u8 m_castling;
-    Index m_enPassant, m_promotion;
-    Enums::Colour m_playerColour;
-    MoveGen m_moveGen;
+    u8                    m_castling;
+    Index                 m_enPassant, m_promotion;
+    Enums::Colour         m_playerColour;
+    std::string           m_previousMove;
+    bool                  m_captureOrPawn, m_fenCalculated;
 
     // ----- Update -----
 
@@ -62,10 +65,9 @@ private:
 
     std::string RecalculateFen();
     std::string RecalculateFen(bool isCaptureOrPawn);
-    char RecalculatePlayer();
+    char        RecalculatePlayer();
     std::string RecalculateCastling();
     std::string RecalculateEnPassant();
-    u32 RecalculateHalfMoves(bool isCaptureOrPawn);
-    u32 RecalculateFullMoves();
+    u32         RecalculateHalfMoves(bool isCaptureOrPawn);
+    u32         RecalculateFullMoves();
 };
-

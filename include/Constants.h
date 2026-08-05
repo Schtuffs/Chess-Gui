@@ -3,16 +3,16 @@
 #include <cstdint>
 #include <string_view>
 
-using i8        =   int8_t;
-using u8        =  uint8_t;
-using i16       =  int16_t;
-using u16       = uint16_t;
-using i32       =  int32_t;
-using u32       = uint32_t;
-using i64       =  int64_t;
-using u64       = uint64_t;
-using Index     =       u8;
-using BitBoard  =      u64;
+using i8       = int8_t;
+using u8       = uint8_t;
+using i16      = int16_t;
+using u16      = uint16_t;
+using i32      = int32_t;
+using u32      = uint32_t;
+using i64      = int64_t;
+using u64      = uint64_t;
+using Index    = u8;
+using BitBoard = u64;
 
 extern bool inDebugMode;
 
@@ -21,8 +21,7 @@ extern bool inDebugMode;
  * @tparam T The desired datatype.
  * @date 2026-06-11
  */
-template <typename T>
-struct Vec2 {
+template <typename T> struct Vec2 {
     T x, y;
 };
 
@@ -30,13 +29,13 @@ struct Vec2 {
  * @brief Default fen string.
  * @date 2026-06-11
  */
-constexpr std::string_view DEFAULT_FEN  = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+constexpr std::string_view DEFAULT_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 /**
  * @brief Resource path for piece textures.
  * @date 2026-06-08
  */
-constexpr std::string_view PATH_PIECES  = "../resources/pieces";
+constexpr std::string_view PATH_PIECES = "../resources/pieces";
 
 /**
  * @brief Holds global enums.
@@ -50,10 +49,10 @@ namespace Enums {
      * @date 2026-07-03
      */
     enum class Castling {
-        Black_King  = 1,    /**< Black castling kingside */
-        Black_Queen = 2,    /**< Black castling queenside */
-        White_King  = 4,    /**< White castling kingside */
-        White_Queen = 8,    /**< White castling queenside */
+        Black_King  = 1, /**< Black castling kingside */
+        Black_Queen = 2, /**< Black castling queenside */
+        White_King  = 4, /**< White castling kingside */
+        White_Queen = 8, /**< White castling queenside */
     };
 
     /**
@@ -62,9 +61,9 @@ namespace Enums {
      * @date 2026-06-08
      */
     enum class Colour {
-        Black,      /**< Piece colour black */
-        White,      /**< Piece colour white */
-        Invalid,    /**< Invalid piece. */
+        Black,   /**< Piece colour black */
+        White,   /**< Piece colour white */
+        Invalid, /**< Invalid piece. */
     };
 
     /**
@@ -73,12 +72,12 @@ namespace Enums {
      * @date 2026-06-08
      */
     enum class Screen {
-        Quit,           /**< Quitting the game. */
-        Menu,           /**< Main menu screen. */
-        NewGame,        /**< New game options screen. */
-        Game,           /**< Playing a game screen. */
-        Multiplayer,    /**< Setup multiplayer screen. */
-        Settings,       /**< Settings screen. */
+        Quit,        /**< Quitting the game. */
+        Menu,        /**< Main menu screen. */
+        NewGame,     /**< New game options screen. */
+        Game,        /**< Playing a game screen. */
+        Multiplayer, /**< Setup multiplayer screen. */
+        Settings,    /**< Settings screen. */
     };
 
     /**
@@ -87,13 +86,13 @@ namespace Enums {
      * @date 2026-06-08
      */
     enum class Type {
-        Bishop,     /**< Bishop type. */
-        King,       /**< King type. */
-        Knight,     /**< Knight type. */
-        Pawn,       /**< Pawn type. */
-        Queen,      /**< Queen type. */
-        Rook,       /**< Rook type. */
-        Invalid,    /**< Invalid piece. */
+        Bishop,  /**< Bishop type. */
+        King,    /**< King type. */
+        Knight,  /**< Knight type. */
+        Pawn,    /**< Pawn type. */
+        Queen,   /**< Queen type. */
+        Rook,    /**< Rook type. */
+        Invalid, /**< Invalid piece. */
     };
 
     /**
@@ -107,7 +106,9 @@ namespace Enums {
          * @date 2026-06-08
          */
         constexpr const char* Colour[] = {
-            "black", "white", "invalid",
+            "black",
+            "white",
+            "invalid",
         };
 
         /**
@@ -115,9 +116,7 @@ namespace Enums {
          * @date 2026-06-08
          */
         constexpr const char* Type[] = {
-            "bishop", "king", "knight",
-            "pawn", "queen", "rook",
-            "invalid",
+            "bishop", "king", "knight", "pawn", "queen", "rook", "invalid",
         };
 
         /**
@@ -125,10 +124,8 @@ namespace Enums {
          * @date 2026-07-01
          */
         constexpr const char* Setting[] = {
-            "GAME_LOAD", "GAME_FEN", "GAME_MOVES",
-            "BOARD_TILE_DARK", "BOARD_TILE_LIGHT",
-            "TOTAL_SETTINGS",
+            "GAME_LOAD",       "GAME_FEN",         "GAME_MOVES",
+            "BOARD_TILE_DARK", "BOARD_TILE_LIGHT", "TOTAL_SETTINGS",
         };
-    }
-}
-
+    } // namespace ToString
+} // namespace Enums
