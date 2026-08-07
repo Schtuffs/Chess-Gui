@@ -36,15 +36,15 @@ private:
     bool                     m_generatingAttacks;
     bool                     m_inCheck, m_inDoubleCheck;
     BitBoard                 m_friendly, m_enemies, m_occupied;
-    BitBoard                 m_bishops, m_kings, m_knights, m_pawns, m_queens, m_rooks;
+    BitBoard                 m_bishops, m_kings, m_knights, m_pawns, m_queens, m_rooks, m_enPassant;
     BitBoard                 m_attacks;
     BitBoard                 m_kingAttacks;
-    std::array<BitBoard, 64> m_pseudoLegal;
+    std::array<BitBoard, 64> m_pins, m_pseudoLegal;
 
     // Output items
     bool                     m_hasGenerated;
     std::array<BitBoard, 64> m_legal;
-    bool                     m_isCheckmate, m_isStalemate;
+    BitBoard                 m_totalLegal;
 
     void Reset();
     void SetupPieceBoards();
@@ -59,7 +59,7 @@ private:
     BitBoard GenRook(const Piece& piece) const noexcept;
 
     void GenAttacks();
-    void AddAttacks(const Piece& piece, const Piece& king, BitBoard moves);
+    void AddAttacks(const Piece& piece, Index king, BitBoard moves);
     void AddCheck();
 
     void GenPseudoLegal();

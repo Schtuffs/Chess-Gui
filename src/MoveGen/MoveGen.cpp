@@ -22,9 +22,9 @@ BitBoard MoveGen::GetMoves(Index index) const noexcept
     return m_legal[index];
 }
 
-bool MoveGen::IsCheckmate() const noexcept { return m_isCheckmate; }
+bool MoveGen::IsCheckmate() const noexcept { return (m_totalLegal == 0 && m_inCheck); }
 
-bool MoveGen::IsStalemate() const noexcept { return m_isStalemate; }
+bool MoveGen::IsStalemate() const noexcept { return (m_totalLegal == 0 && !m_inCheck); }
 
 // ----- Update -----
 
@@ -58,12 +58,15 @@ void MoveGen::Reset()
     // Parameters
     m_hasGenerated = false;
     m_genColour    = Enums::Colour::Invalid;
+    m_board        = nullptr;
 
     // Calculation items
+    m_pins.fill(MoveGen::INVALID);
     m_pseudoLegal.fill(MoveGen::INVALID);
-    m_friendly = 0;
-    m_enemies  = 0;
-    m_occupied = 0;
+    m_friendly  = 0;
+    m_enemies   = 0;
+    m_occupied  = 0;
+    m_enPassant = 0;
 
     m_bishops = 0;
     m_kings   = 0;
@@ -79,8 +82,7 @@ void MoveGen::Reset()
 
     // Output items
     m_legal.fill(MoveGen::INVALID);
-    m_isCheckmate = false;
-    m_isStalemate = false;
+    m_totalLegal = 0;
 }
 
 void MoveGen::SetupPieceBoards()
@@ -107,12 +109,15 @@ void MoveGen::SetupPieceBoards()
             m_rooks |= Convert::IndexToBitBoard(piece.Position());
             break;
         default:
+            if (piece.IsEnPassant()) {
+                m_enPassant |= Convert::IndexToBitBoard(piece.Position());
+            }
             break;
         }
 
         if (piece.Colour() == m_genColour) {
             m_friendly |= Convert::IndexToBitBoard(piece.Position());
-        } else {
+        } else if (piece.Colour() == Utils::SwapColour(m_genColour)) {
             m_enemies |= Convert::IndexToBitBoard(piece.Position());
         }
     }
@@ -123,6 +128,9 @@ void MoveGen::SetupPieceBoards()
 BitBoard MoveGen::GenMoves(const Piece& piece) const noexcept
 {
     BitBoard bb = 0;
+    if (piece.Type() == Enums::Type::King) {
+        bb |= GenKing(piece);
+    }
 
     if (!m_generatingAttacks && m_inDoubleCheck) {
         return bb;
@@ -133,7 +141,6 @@ BitBoard MoveGen::GenMoves(const Piece& piece) const noexcept
         bb |= GenBishop(piece);
         break;
     case Enums::Type::King:
-        bb |= GenKing(piece);
         break;
     case Enums::Type::Knight:
         bb |= GenKnight(piece);
@@ -277,10 +284,11 @@ BitBoard MoveGen::GenQueen(const Piece& piece) const noexcept
 
 BitBoard MoveGen::GenPawn(const Piece& piece) const noexcept
 {
-    BitBoard bb  = 0;
-    BitBoard m1  = 0;
-    BitBoard m2  = 0;
-    BitBoard pos = Convert::IndexToBitBoard(piece.Position());
+    BitBoard bb   = 0;
+    BitBoard m1   = 0;
+    BitBoard m2   = 0;
+    BitBoard pos  = Convert::IndexToBitBoard(piece.Position());
+    Index    file = piece.Position() % 8;
 
     // Moves
     if (piece.Colour() == Enums::Colour::White) {
@@ -297,23 +305,27 @@ BitBoard MoveGen::GenPawn(const Piece& piece) const noexcept
 
     // Gen atttacks first
     if (m_generatingAttacks) {
-        if ((m1 >> 1) & m_friendly) {
+        // Left attack
+        if (((m1 >> 1) & m_friendly) && file != 0) {
             bb |= m1 >> 1;
         }
 
-        if ((m1 << 1) & m_friendly) {
+        // Right attack
+        if (((m1 << 1) & m_friendly) && file != 7) {
             bb |= m1 << 1;
         }
 
         return bb;
     }
 
-    if ((m1 >> 1) & m_enemies) {
-        bb |= (m1 >> 1);
+    // Left attack
+    if (file != 0) {
+        bb |= ((m1 >> 1) & (m_enemies | m_enPassant));
     }
 
-    if ((m1 << 1) & m_enemies) {
-        bb |= (m1 << 1);
+    // Right attack
+    if (file != 7) {
+        bb |= ((m1 << 1) & (m_enemies | m_enPassant));
     }
 
     // Cant move into pieces
@@ -338,32 +350,31 @@ BitBoard MoveGen::GenRook(const Piece& piece) const noexcept
 
 // ----- Attacks -----
 
-void MoveGen::AddAttacks(const Piece& piece, const Piece& king, BitBoard moves)
+void MoveGen::AddAttacks(const Piece& piece, Index king, BitBoard moves)
 {
     switch (piece.Type()) {
     case Enums::Type::Bishop:
-        m_kingAttacks |= Magic::GetKingAttacks(piece.Position(), king.Position(), false);
+        m_kingAttacks |= Magic::GetKingAttacks(piece.Position(), king, false);
         break;
     case Enums::Type::King:
         // What?!
         break;
     case Enums::Type::Knight:
-        m_kingAttacks |= Convert::IndexToBitBoard(piece.Position());
         break;
     case Enums::Type::Queen:
-        m_kingAttacks |= Magic::GetKingAttacks(piece.Position(), king.Position(), false);
-        m_kingAttacks |= Magic::GetKingAttacks(piece.Position(), king.Position(), true);
+        m_kingAttacks |= Magic::GetKingAttacks(piece.Position(), king, false);
+        m_kingAttacks |= Magic::GetKingAttacks(piece.Position(), king, true);
         break;
     case Enums::Type::Pawn:
-        m_kingAttacks |= Convert::IndexToBitBoard(piece.Position());
         break;
     case Enums::Type::Rook:
-        m_kingAttacks |= Magic::GetKingAttacks(piece.Position(), king.Position(), true);
+        m_kingAttacks |= Magic::GetKingAttacks(piece.Position(), king, true);
         break;
     default:
         m_kingAttacks |= moves;
         break;
     }
+    m_kingAttacks |= Convert::IndexToBitBoard(piece.Position());
 }
 
 void MoveGen::AddCheck()
@@ -384,22 +395,68 @@ void MoveGen::GenAttacks()
     Enums::Colour enemy  = Utils::SwapColour(m_genColour);
 
     // Find king
-    const Piece* king = nullptr;
-    for (Index i = 0; i < 64; i++) {
-        const Piece& piece = pieces[i];
-        if (piece.Type() != Enums::Type::King) {
-            continue;
-        }
-
-        if (piece.Colour() != m_genColour) {
-            continue;
-        }
-
-        king = &piece;
-        break;
+    BitBoard kingBB  = m_kings & m_friendly;
+    Index    kingPos = 64;
+    if (kingBB) {
+        kingPos = Convert::BitBoardToIndex(kingBB);
     }
 
-    // Gen attacks and pins
+    // Gen pins
+    constexpr i8 offsets[8] = {8, 1, -8, -1, 7, 9, -7, -9};
+
+    if (Utils::IsValidIndex(kingPos)) {
+        Index kingFile = kingPos % 8;
+
+        // Loop rays
+        for (Index off = 0; off < 8; off++) {
+            i8       offset = offsets[off];
+            BitBoard pins   = 0;
+            Index    pinPos;
+            bool     isPinning = false;
+
+            // Loop through rays
+            for (i8 sq = kingPos + offset; 0 <= sq && sq < 64; sq += offset) {
+                if ((kingFile == 0) && ((sq % 8) == 0)) {
+                }
+
+                BitBoard bb = Convert::IndexToBitBoard(sq);
+                pins |= bb;
+
+                // Friendly (them), try to pin
+                if (bb & m_friendly) {
+                    // Already pinning, therefore not a real pin
+                    if (isPinning) {
+                        break;
+                    }
+
+                    isPinning = true;
+                    pinPos    = sq;
+                    continue;
+                }
+
+                // Pinning, check for pinner
+                if (isPinning) {
+                    // No enemy, continue
+                    if ((bb & m_enemies) == 0) {
+                        continue;
+                    }
+
+                    // Rooks/queens
+                    if (off < 4 && (bb & (m_rooks | m_queens))) {
+                        m_pins[pinPos] = pins;
+                    }
+
+                    // Bishops/queens
+                    else if (off >= 4 && (bb & (m_bishops | m_queens))) {
+                        m_pins[pinPos] = pins;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    // Gen attacks
     for (Index i = 0; i < 64; i++) {
         const Piece& piece = pieces[i];
         if (piece.Colour() != enemy) {
@@ -408,13 +465,9 @@ void MoveGen::GenAttacks()
 
         BitBoard moves = GenMoves(piece);
         // If king, check if attack
-        if (king) {
-            BitBoard kingPos = Convert::IndexToBitBoard(king->Position());
-            // Add to pin attacks
-            if (moves & kingPos) {
-                AddAttacks(piece, *king, moves);
-                AddCheck();
-            }
+        if (moves & kingBB) {
+            AddAttacks(piece, kingPos, moves);
+            AddCheck();
         }
 
         m_attacks |= moves;
@@ -445,15 +498,27 @@ void MoveGen::GenLegal()
     // Play move, check state, unplay move
     for (Index i = 0; i < 64; i++) {
         const Piece& piece = m_board->Pieces()[i];
-        BitBoard     bb    = m_pseudoLegal[i];
-
-        if (m_inCheck && piece.Type() != Enums::Type::King) {
-            bb &= m_kingAttacks;
+        if (!piece.IsValid()) {
+            continue;
         }
 
-        if (piece.IsValid()) {
-            bb |= Convert::IndexToBitBoard(piece.Position());
-            m_legal[i] = bb;
+        BitBoard bb = m_pseudoLegal[i];
+
+        // Add check requirements
+        if (piece.Type() != Enums::Type::King) {
+            if (m_inCheck) {
+                bb &= m_kingAttacks;
+            }
+
+            // Add pins
+            if (m_pins[i]) {
+                bb &= m_pins[i];
+            }
         }
+
+        // Add moves
+        m_totalLegal |= bb;
+        bb |= Convert::IndexToBitBoard(piece.Position());
+        m_legal[i] = bb;
     }
 }

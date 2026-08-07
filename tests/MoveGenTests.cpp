@@ -381,7 +381,7 @@ static void CheckTests()
     });
 
     TEST("MoveGen::Generate: rook check - king", []() {
-        BitBoard expected = 0x00'00'00'00'00'00'82'83;
+        BitBoard expected = 0x00'00'00'00'00'00'28'38;
         Board    b("4r3/8/8/8/8/8/8/4K2R w K - 0 1");
 
         MoveGen gen;
@@ -398,6 +398,17 @@ static void CheckTests()
         MoveGen gen;
         gen.Generate(b, Enums::Colour::White);
         BitBoard actual = gen.GetMoves(8);
+
+        Assert::Equal(actual, expected);
+    });
+
+    TEST("MoveGen::Generate: queen checkmate - pawn", []() {
+        BitBoard expected = 0x00'01'00'00'00'00'00'00;
+        Board    b("rnbqkbnr/ppppp2p/5p2/6pQ/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 3");
+
+        MoveGen gen;
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(48);
 
         Assert::Equal(actual, expected);
     });
@@ -493,7 +504,7 @@ static void MiscTests()
             Assert::True(b.MakeMove(move));
         }
         MoveGen gen;
-        gen.Generate(b, Enums::Colour::Black);
+        gen.Generate(b, Enums::Colour::White);
         BitBoard actual = gen.GetMoves(36);
 
         Assert::Equal(actual, expected);
@@ -508,6 +519,17 @@ static void MiscTests()
         }
         MoveGen gen;
         gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(37);
+
+        Assert::Equal(actual, expected);
+    });
+
+    TEST("MoveGen::Generate: en passant - only 1 way en passant", []() {
+        BitBoard expected = 0x00'00'60'20'00'00'00'00;
+        Board    b("rnbqkbnr/ppppp2p/8/5Pp1/8/8/PPPP1PPP/RNBQKBNR w KQkq g6 0 2");
+
+        MoveGen gen;
+        gen.Generate(b, Enums::Colour::White);
         BitBoard actual = gen.GetMoves(37);
 
         Assert::Equal(actual, expected);
