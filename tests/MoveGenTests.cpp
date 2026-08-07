@@ -571,7 +571,7 @@ static void TimeTests1()
     constexpr std::string_view fen   = "8/1Q3p1k/4p1q1/7p/8/1B3p1P/P4PP1/6K1 b - - 0 34";
     constexpr static u64       count = 1000;
     static std::mutex          mtx;
-    std::shared_ptr<FILE>      file(fopen("MoveGenV2.log", "a"), fclose);
+    std::shared_ptr<FILE>      file(fopen("MoveGenV3.log", "a"), fclose);
 
     TEST("MoveGen::Time: 1 - white", [file]() {
         chrono::nanoseconds expected(3360);

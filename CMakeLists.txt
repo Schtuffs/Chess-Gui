@@ -50,7 +50,7 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR
     ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"
 )
     target_link_libraries(${PROJECT_NAME} PRIVATE stdc++exp)
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Werror -Wpedantic $<$<COMPILE_LANGUAGE:CXX>:-fconstexpr-ops-limit=1000000000>)
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Werror -Wpedantic -march=native $<$<CONFIG:Release>:-flto> $<$<COMPILE_LANGUAGE:CXX>:-fconstexpr-ops-limit=1000000000>)
 
     if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
         target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:-fsanitize=address>)
