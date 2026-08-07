@@ -4,7 +4,7 @@
 #include <string>
 
 #define TEST_FAIL(_text) throw std::string(_text)
-#define TEST_SUCCESS
+#define TEST_SUCCESS() do {} while (false)
 
 namespace Assert {
     // Checks if the value is true.
@@ -20,7 +20,7 @@ namespace Assert {
     template <typename T> void Equal(const T& actual, const T& expected)
     {
         if (actual == expected) {
-            TEST_SUCCESS;
+            TEST_SUCCESS();
         } else {
             std::stringstream str;
             str << "Assert::Equal: <" << actual << "> is not equal to <" << expected << ">";
@@ -39,7 +39,7 @@ namespace Assert {
             str << "Assert::NotEqual: <" << actual << "> is equal to <" << expected << ">";
             TEST_FAIL(str.str());
         }
-        TEST_SUCCESS;
+        TEST_SUCCESS();
     }
 
     // Checks if expected is greater than actual.
@@ -54,7 +54,7 @@ namespace Assert {
                 << ">";
             TEST_FAIL(str.str());
         }
-        TEST_SUCCESS;
+        TEST_SUCCESS();
     }
 
     // Checks if expected is less than actual.
@@ -68,6 +68,6 @@ namespace Assert {
             str << "Assert::LessThan: <" << actual << "> is not less than <" << expected << ">";
             TEST_FAIL(str.str());
         }
-        TEST_SUCCESS;
+        TEST_SUCCESS();
     }
 } // namespace Assert

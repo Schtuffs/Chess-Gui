@@ -370,7 +370,7 @@ static void CheckTests()
     });
 
     TEST("MoveGen::Generate: bishop check - knight", []() {
-        BitBoard expected = 0x00'00'04'02'00'02'04'00;
+        BitBoard expected = 0x00'00'04'02'08'00'00'00;
         Board    b("r1bqkbnr/ppp2ppp/3p4/4p3/B2nP3/5N2/PPPPQPPP/RNB1K2R b KQkq - 3 5");
 
         MoveGen gen;
@@ -546,7 +546,6 @@ static chrono::nanoseconds RunTimeTest(std::string_view fen, Enums::Colour colou
 
 static void TimeTests1()
 {
-    return;
     constexpr std::string_view fen   = "8/1Q3p1k/4p1q1/7p/8/1B3p1P/P4PP1/6K1 b - - 0 34";
     constexpr static u64       count = 1000;
     static std::mutex          mtx;

@@ -1,5 +1,7 @@
 #include "MoveGen/MoveGen.h"
 
+#include <bit>
+
 #include "MoveGen/Magic.h"
 
 #include "Convert.h"
@@ -59,10 +61,19 @@ void MoveGen::Reset()
 
     // Calculation items
     m_pseudoLegal.fill(MoveGen::INVALID);
-    m_friendly      = 0;
-    m_enemies       = 0;
-    m_kingAttacks   = 0;
+    m_friendly = 0;
+    m_enemies  = 0;
+    m_occupied = 0;
+
+    m_bishops = 0;
+    m_kings   = 0;
+    m_knights = 0;
+    m_pawns   = 0;
+    m_queens  = 0;
+    m_rooks   = 0;
+
     m_attacks       = 0;
+    m_kingAttacks   = 0;
     m_inCheck       = false;
     m_inDoubleCheck = false;
 
@@ -76,6 +87,29 @@ void MoveGen::SetupPieceBoards()
 {
     auto pieces = m_board->Pieces();
     for (const auto& piece : pieces) {
+        switch (piece.Type()) {
+        case Enums::Type::Bishop:
+            m_bishops |= Convert::IndexToBitBoard(piece.Position());
+            break;
+        case Enums::Type::King:
+            m_kings |= Convert::IndexToBitBoard(piece.Position());
+            break;
+        case Enums::Type::Knight:
+            m_knights |= Convert::IndexToBitBoard(piece.Position());
+            break;
+        case Enums::Type::Pawn:
+            m_pawns |= Convert::IndexToBitBoard(piece.Position());
+            break;
+        case Enums::Type::Queen:
+            m_queens |= Convert::IndexToBitBoard(piece.Position());
+            break;
+        case Enums::Type::Rook:
+            m_rooks |= Convert::IndexToBitBoard(piece.Position());
+            break;
+        default:
+            break;
+        }
+
         if (piece.Colour() == m_genColour) {
             m_friendly |= Convert::IndexToBitBoard(piece.Position());
         } else {
@@ -321,6 +355,7 @@ void MoveGen::AddAttacks(const Piece& piece, const Piece& king, BitBoard moves)
         m_kingAttacks |= Magic::GetKingAttacks(piece.Position(), king.Position(), true);
         break;
     case Enums::Type::Pawn:
+        m_kingAttacks |= Convert::IndexToBitBoard(piece.Position());
         break;
     case Enums::Type::Rook:
         m_kingAttacks |= Magic::GetKingAttacks(piece.Position(), king.Position(), true);

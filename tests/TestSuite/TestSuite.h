@@ -4,9 +4,6 @@
 #include <functional>
 #include <sstream>
 
-#define TEST_FAIL(_text) throw std::string(_text)
-#define TEST_SUCCESS
-
 /**
  * @brief Testing suite
  * @namespace TestSuite

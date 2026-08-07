@@ -427,12 +427,7 @@ constexpr KingTable CreateKingTable()
             // Bishop
             hash = BishopTableHash(sq, king);
             if (hash != INVALID_HASH) {
-                if (table.bishop[hash] != 0) {
-                    std::println("Sq: {}, i: {}, hash: {}, Val: {}", sq, king, hash,
-                                 table.bishop[hash]);
-                } else {
-                    table.bishop[hash] = CalculateBishopAttacks(sq, king);
-                }
+                table.bishop[hash] = CalculateBishopAttacks(sq, king);
             }
         }
     }

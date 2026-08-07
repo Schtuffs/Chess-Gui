@@ -35,8 +35,8 @@ private:
     // Calculated items
     bool                     m_generatingAttacks;
     bool                     m_inCheck, m_inDoubleCheck;
-    BitBoard                 m_friendly;
-    BitBoard                 m_enemies;
+    BitBoard                 m_friendly, m_enemies, m_occupied;
+    BitBoard                 m_bishops, m_kings, m_knights, m_pawns, m_queens, m_rooks;
     BitBoard                 m_attacks;
     BitBoard                 m_kingAttacks;
     std::array<BitBoard, 64> m_pseudoLegal;
