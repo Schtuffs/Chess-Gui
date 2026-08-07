@@ -75,16 +75,16 @@ Board::Board(std::string_view fen)
     while ((c = castling[index++]) != ' ') {
         switch (c) {
         case 'K':
-            m_castling |= (u8)Enums::Castling::White_King;
+            m_castling |= static_cast<u8>(Enums::Castling::White_King);
             break;
         case 'Q':
-            m_castling |= (u8)Enums::Castling::White_Queen;
+            m_castling |= static_cast<u8>(Enums::Castling::White_Queen);
             break;
         case 'k':
-            m_castling |= (u8)Enums::Castling::Black_King;
+            m_castling |= static_cast<u8>(Enums::Castling::Black_King);
             break;
         case 'q':
-            m_castling |= (u8)Enums::Castling::Black_Queen;
+            m_castling |= static_cast<u8>(Enums::Castling::Black_Queen);
             break;
         }
     }
@@ -114,14 +114,7 @@ u8 Board::Castling() const noexcept { return m_castling; }
 
 std::span<const Piece, 64> Board::Pieces() const noexcept { return m_pieces; }
 
-std::string_view Board::Fen()
-{
-    if (!m_fenCalculated) {
-        m_fenCalculated = true;
-        m_fen           = RecalculateFen(m_captureOrPawn);
-    }
-    return m_fen;
-}
+std::string_view Board::Fen() { return m_fen; }
 
 // ----- Update -----
 
@@ -150,33 +143,14 @@ bool Board::MakeMove(std::string_view move)
     Piece piece = m_pieces[startPos];
     Piece other = m_pieces[endPos];
     MovePiece(move);
-    piece          = m_pieces[endPos];
+    piece = m_pieces[endPos];
+    bool captureOrPawn =
+        (piece.Type() == Enums::Type::Pawn) | (other.IsValid() | other.IsEnPassant());
     m_playerColour = Utils::SwapColour(m_playerColour);
-
-    // Update fen data
-    m_captureOrPawn = (piece.Type() == Enums::Type::Pawn) | (other.IsValid() | other.IsEnPassant());
-    m_previousMove  = move;
-    m_fenCalculated = false;
+    m_fen          = RecalculateFen(captureOrPawn);
+    DebugPrintln("Board::MakeMove: Fen: {}", m_fen);
 
     return true;
-}
-
-void Board::UnmakeMove()
-{
-    // Only allows for 1 previous move
-    if (m_previousMove == "") {
-        return;
-    }
-
-    std::string move = m_previousMove.substr(2, 2) + m_previousMove.substr(0, 2);
-
-    MoveEnPassant(move);
-    MovePromotion(move);
-    MoveCastling(move);
-    MovePiece(move);
-
-    m_fenCalculated = false;
-    m_previousMove  = "";
 }
 
 bool Board::PromotePawn(Index index, Enums::Type type)
@@ -387,36 +361,38 @@ std::string Board::RecalculateCastling()
 
     // Remove all castling if king moved
     if (m_pieces[4].Type() != Enums::Type::King) {
-        m_castling &= ~((u8)Enums::Castling::White_King | (u8)Enums::Castling::White_Queen);
+        m_castling &= ~(static_cast<u8>(Enums::Castling::White_King) |
+                        static_cast<u8>(Enums::Castling::White_Queen));
     }
     if (m_pieces[60].Type() != Enums::Type::King) {
-        m_castling &= ~((u8)Enums::Castling::Black_King | (u8)Enums::Castling::Black_Queen);
+        m_castling &= ~(static_cast<u8>(Enums::Castling::Black_King) |
+                        static_cast<u8>(Enums::Castling::Black_Queen));
     }
 
     // Individual castling checks
     if (m_pieces[7].Type() != Enums::Type::Rook) {
-        m_castling &= ~((u8)Enums::Castling::White_King);
+        m_castling &= ~(static_cast<u8>(Enums::Castling::White_King));
     }
     if (m_pieces[0].Type() != Enums::Type::Rook) {
-        m_castling &= ~((u8)Enums::Castling::White_Queen);
+        m_castling &= ~(static_cast<u8>(Enums::Castling::White_Queen));
     }
     if (m_pieces[63].Type() != Enums::Type::Rook) {
-        m_castling &= ~((u8)Enums::Castling::Black_King);
+        m_castling &= ~(static_cast<u8>(Enums::Castling::Black_King));
     }
     if (m_pieces[56].Type() != Enums::Type::Rook) {
-        m_castling &= ~((u8)Enums::Castling::Black_Queen);
+        m_castling &= ~(static_cast<u8>(Enums::Castling::Black_Queen));
     }
 
-    if (m_castling & (u8)Enums::Castling::White_King) {
+    if (m_castling & static_cast<u8>(Enums::Castling::White_King)) {
         castle += "K";
     }
-    if (m_castling & (u8)Enums::Castling::White_Queen) {
+    if (m_castling & static_cast<u8>(Enums::Castling::White_Queen)) {
         castle += "Q";
     }
-    if (m_castling & (u8)Enums::Castling::Black_King) {
+    if (m_castling & static_cast<u8>(Enums::Castling::Black_King)) {
         castle += "k";
     }
-    if (m_castling & (u8)Enums::Castling::Black_Queen) {
+    if (m_castling & static_cast<u8>(Enums::Castling::Black_Queen)) {
         castle += "q";
     }
 

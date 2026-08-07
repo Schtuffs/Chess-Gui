@@ -2,8 +2,8 @@
 
 #include <array>
 #include <chrono>
-#include <cstring>
 #include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <mutex>
 #include <print>
@@ -14,13 +14,11 @@
 #include <utility>
 #include <vector>
 
-int sPasses = 0;
-int sFails = 0;
+int  sPasses       = 0;
+int  sFails        = 0;
 bool sIsSuiteSetup = false;
 
 std::vector<std::pair<const char*, std::function<void()>>> sTestFunctions;
-
-
 
 // ----- Arguments -----
 
@@ -34,9 +32,9 @@ static std::vector<std::string> CreateArgList(int argc, char** argv)
     return args;
 }
 
-static char s_firstPrint = '\n';
+static char     s_firstPrint = '\n';
 static uint32_t s_repeatRuns = 1;
-static void AdjustCount(const std::string& arg)
+static void     AdjustCount(const std::string& arg)
 {
     try {
         s_repeatRuns = std::stoi(arg);
@@ -52,7 +50,7 @@ static void AdjustCount(const std::string& arg)
 }
 
 static uint32_t s_syncJobs = std::thread::hardware_concurrency();
-static void AdjustJobs(const std::string& arg)
+static void     AdjustJobs(const std::string& arg)
 {
     try {
         s_syncJobs = std::stoi(arg);
@@ -68,8 +66,8 @@ static void AdjustJobs(const std::string& arg)
 }
 
 static std::vector<std::string> s_testNameRequirements;
-static bool s_nameAddAll = true;
-static void AdjustName(const std::string& arg)
+static bool                     s_nameAddAll = true;
+static void                     AdjustName(const std::string& arg)
 {
     s_testNameRequirements.clear();
     s_nameAddAll = false;
@@ -80,8 +78,7 @@ static void AdjustName(const std::string& arg)
         if (arg == "") {
             s_nameAddAll = true;
             s_testNameRequirements.push_back("*");
-        }
-        else {
+        } else {
             s_testNameRequirements.push_back(arg);
         }
         return;
@@ -91,7 +88,7 @@ static void AdjustName(const std::string& arg)
         s_testNameRequirements.push_back("*");
     }
 
-    uint64_t prev = 0;
+    uint64_t prev   = 0;
     uint64_t safety = 50;
     while ((index = arg.find("*", prev)) != std::string::npos && safety != 0) {
         if (index != prev) {
@@ -117,35 +114,34 @@ static void AdjustName(const std::string& arg)
 static void ParseArgs(int argc, char** argv)
 {
     std::array<std::pair<const char*, std::function<void(const std::string&)>>, 6> ARG_LIST = {{
-        {"-c",      AdjustCount},
+        {"-c", AdjustCount},
         {"--count", AdjustCount},
-        {"-j",      AdjustJobs},
-        {"--jobs",  AdjustJobs},
-        {"-n",      AdjustName},
-        {"--name",  AdjustName},
+        {"-j", AdjustJobs},
+        {"--jobs", AdjustJobs},
+        {"-n", AdjustName},
+        {"--name", AdjustName},
     }};
 
     std::vector args = CreateArgList(argc, argv);
 
-    bool validArgFound = false;
+    bool                                                            validArgFound = false;
     std::pair<const char*, std::function<void(const std::string&)>> prevArg;
     for (const auto& arg : args) {
-        if (validArgFound){
+        if (validArgFound) {
             validArgFound = false;
             prevArg.second(arg);
             continue;
         }
         // Iterate over all entries
-        auto it = std::find_if(ARG_LIST.begin(), ARG_LIST.end(),
-            [&arg](const std::pair<const char*, std::function<void(const std::string&)>>& list)
-            {
+        auto it = std::find_if(
+            ARG_LIST.begin(), ARG_LIST.end(),
+            [&arg](const std::pair<const char*, std::function<void(const std::string&)>>& list) {
                 return (arg == list.first);
-            }
-        );
+            });
 
         // If found call function on next run
         if (it != ARG_LIST.end()) {
-            prevArg = *it;
+            prevArg       = *it;
             validArgFound = true;
             continue;
         }
@@ -162,8 +158,6 @@ void TestSuite::Setup(int argc, char** argv)
     sIsSuiteSetup = true;
 }
 
-
-
 // ----- Adding Tests -----
 
 static bool IsValidTestName(std::string_view name)
@@ -176,11 +170,11 @@ static bool IsValidTestName(std::string_view name)
         return false;
     }
 
-    uint64_t index = 0;
-    bool canContinue = true;
+    uint64_t index       = 0;
+    bool     canContinue = true;
     for (uint64_t i = 0; i < s_testNameRequirements.size(); i++) {
-        bool finalEndsWith = (i == s_testNameRequirements.size() - 1);
-        const auto& requirement = s_testNameRequirements[i];
+        bool        finalEndsWith = (i == s_testNameRequirements.size() - 1);
+        const auto& requirement   = s_testNameRequirements[i];
         if (requirement == "*") {
             canContinue = true;
             continue;
@@ -199,13 +193,15 @@ static bool IsValidTestName(std::string_view name)
             return false;
         }
 
+        index += requirement.length();
         canContinue = false;
     }
 
     return true;
 }
 
-void TestSuite::add(const char* name, std::function<void()> function) {
+void TestSuite::add(const char* name, std::function<void()> function)
+{
     if (!sIsSuiteSetup) {
         std::println(stderr, "\nERROR: Must call TestSuite::Setup(int argc, char** argv) first.\n");
         exit(1);
@@ -218,8 +214,6 @@ void TestSuite::add(const char* name, std::function<void()> function) {
     sTestFunctions.push_back({name, function});
 }
 
-
-
 // ----- Running Tests -----
 
 static bool RunTest(const std::pair<const char*, std::function<void()>>& test)
@@ -230,11 +224,10 @@ static bool RunTest(const std::pair<const char*, std::function<void()>>& test)
         return true;
     } catch (std::string e) {
         mtx.lock();
-        std::println(stderr, "{}Test ({}) failed! {}", s_firstPrint, test.first, e.c_str());
+        std::println(stderr, "{}Test ({}) failed!\n{}\n", s_firstPrint, test.first, e.c_str());
         s_firstPrint = '\0';
         mtx.unlock();
-    }
-    catch (...) {
+    } catch (...) {
         mtx.lock();
         std::println(stderr, "{}Test ({}) failed! Uncaught exception!", s_firstPrint, test.first);
         s_firstPrint = '\0';
@@ -243,7 +236,8 @@ static bool RunTest(const std::pair<const char*, std::function<void()>>& test)
     return false;
 }
 
-static std::pair<uint64_t, uint64_t> RunTests(std::span<std::pair<const char*, std::function<void()>>> tests)
+static std::pair<uint64_t, uint64_t>
+RunTests(std::span<std::pair<const char*, std::function<void()>>> tests)
 {
     std::pair<uint64_t, uint64_t> results = {};
     for (const auto& test : tests) {
@@ -256,10 +250,11 @@ static std::pair<uint64_t, uint64_t> RunTests(std::span<std::pair<const char*, s
     return results;
 }
 
-static void TestLoop(uint64_t runTimes, std::span<std::pair<const char*, std::function<void()>>> tests)
+static void TestLoop(uint64_t                                                 runTimes,
+                     std::span<std::pair<const char*, std::function<void()>>> tests)
 {
     static std::mutex mtx;
-    uint64_t pass = 0, fail = 0;
+    uint64_t          pass = 0, fail = 0;
 
     for (uint64_t i = 0; i < runTimes; i++) {
         auto results = ::RunTests(tests);
@@ -273,76 +268,40 @@ static void TestLoop(uint64_t runTimes, std::span<std::pair<const char*, std::fu
     mtx.unlock();
 }
 
-uint64_t TestSuite::RunTests() {
+uint64_t TestSuite::RunTests()
+{
     s_firstPrint = '\n';
 
     const auto& start = std::chrono::system_clock::now();
 
     if (s_syncJobs == 1) {
         TestLoop(s_repeatRuns, sTestFunctions);
-    }
-    else {
+    } else {
         std::vector<std::jthread> threads;
         threads.reserve(s_syncJobs);
         uint64_t listPtr = 0;
 
         for (uint64_t i = 0; i < s_syncJobs; i++) {
             uint64_t functionCount = (sTestFunctions.size() - listPtr) / (s_syncJobs - i);
-            threads.emplace_back([functionCount, listPtr](){
+            threads.emplace_back([functionCount, listPtr]() {
                 TestLoop(s_repeatRuns, std::span(sTestFunctions.begin() + listPtr, functionCount));
             });
             listPtr += functionCount;
         }
     }
 
-    const auto& end = std::chrono::system_clock::now();
+    const auto& end      = std::chrono::system_clock::now();
     const auto& duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
     // Print data
     FILE* out = stdout;
-    std::println(out);
-    std::println(out, "Total tests: {}, Run {}x each", sTestFunctions.size(), s_repeatRuns);
-    std::println(out, "Passes: {}, Fails: {}, Success: {}%", sPasses, sFails, ((sPasses / (double)(sPasses + sFails)) * 100));
+    std::println(out, "{}\n\nTotal tests: {}, Run {}x each", s_firstPrint, sTestFunctions.size(),
+                 s_repeatRuns);
+    std::println(out, "Passes: {}, Fails: {}, Success: {}%", sPasses, sFails,
+                 ((sPasses / (double)(sPasses + sFails)) * 100));
     std::println(out, "Total test runtime: {}", duration);
     std::println(out);
 
     // Exit program with the number of fails
     return (sFails);
 }
-
-
-
-// ----- Asserts -----
-
-void TestSuite::assertTrue(bool value) {
-    if (value == false) {
-        TEST_FAIL("Expected <true>, received <false>");
-    }
-    TEST_SUCCESS;
-}
-
-void TestSuite::assertFalse(bool value) {
-    if (value == true) {
-        TEST_FAIL("Expected <false>, received <true>");
-    }
-    TEST_SUCCESS;
-}
-
-void TestSuite::assertEqual(const void* expected, const void* actual, int length) {
-    if (memcmp(expected, actual, length) != 0) {
-        std::stringstream str;
-        str << "<" << expected << "> is not equal to <" << actual << ">";
-        TEST_FAIL(str.str());
-    }
-    TEST_SUCCESS;
-}
-
-void TestSuite::assertNotEqual(const void* expected, const void* actual, int length) {
-    if (memcmp(expected, actual, length) == 0) {
-        std::stringstream str;
-        str << "<" << expected << "> is equal to <" << actual << ">";
-        TEST_FAIL(str.str());
-    }
-    TEST_SUCCESS;
-}
-

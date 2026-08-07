@@ -38,9 +38,6 @@ public:
     // Try to play given move (long algebraic notation).
     bool MakeMove(std::string_view move);
 
-    // Undoes previous move, max depth 1.
-    void UnmakeMove();
-
     // Promotes a pawn on the board to given type.
     bool PromotePawn(Index index, Enums::Type type);
 
@@ -50,8 +47,6 @@ private:
     u8                    m_castling;
     Index                 m_enPassant, m_promotion;
     Enums::Colour         m_playerColour;
-    std::string           m_previousMove;
-    bool                  m_captureOrPawn, m_fenCalculated;
 
     // ----- Update -----
 

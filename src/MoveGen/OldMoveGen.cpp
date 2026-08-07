@@ -567,14 +567,16 @@ bool OldMoveGen::IsValidForCastle(Index index)
 
 BitBoard OldMoveGen::GenCastling(const Piece& piece)
 {
-    if (m_castling & ((u8)Enums::Castling::White_King | (u8)Enums::Castling::Black_King)) {
+    if (m_castling & (static_cast<u8>(Enums::Castling::White_King) |
+                      static_cast<u8>(Enums::Castling::Black_King))) {
         Index index = piece.Position();
         if (IsValidForCastle(index + 1) && IsValidForCastle(index + 2)) {
             AddMove(piece, piece.Position() + 2);
         }
     }
 
-    if (m_castling & ((u8)Enums::Castling::White_Queen | (u8)Enums::Castling::Black_Queen)) {
+    if (m_castling & (static_cast<u8>(Enums::Castling::White_Queen) |
+                      static_cast<u8>(Enums::Castling::Black_Queen))) {
         Index index = piece.Position();
         if (IsValidForCastle(index - 1) && IsValidForCastle(index - 2)) {
             AddMove(piece, index - 2);

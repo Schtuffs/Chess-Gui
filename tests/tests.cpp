@@ -8,7 +8,8 @@ void BoardTests(void);
 void GameManagerTests(void);
 void MoveGenTests(void);
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
     TestSuite::Setup(argc, argv);
 
     Settings::LoadSettings();
@@ -19,4 +20,3 @@ int main(int argc, char** argv) {
 
     return TestSuite::RunTests();
 }
-

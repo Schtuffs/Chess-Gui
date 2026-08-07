@@ -30,6 +30,8 @@ GameManager::GameManager(std::string_view fen)
         }
         m_moves.push_back(moves.substr(start));
     }
+
+    m_moveGen.Generate(m_board, Player());
 }
 
 GameManager::~GameManager() {}
@@ -79,6 +81,7 @@ void GameManager::Update(std::string_view move)
         return;
     }
 
+    move = Convert::CastleToMove(move, Player());
     if (!Utils::IsValidIndex(Convert::MoveToIndex(move))) {
         return;
     }
@@ -104,27 +107,22 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
 
     // Prepare state information
     if (passedMove.length() >= 3) {
-        m_currentMove = Convert::CastleToMove(passedMove, Player());
+        m_currentMove = passedMove;
     } else {
         m_currentMove += passedMove;
     }
 
     // Player attempting to pick up a piece
     if (m_currentMove.length() == 2) {
-        // PickupPiece(passedMove);
         // Current move not complete, add it in
         Index index = Convert::MoveToIndex(passedMove);
         if (CheckPieceSelectable(index)) {
             m_possibleMoves = m_moveGen.GetMoves(index);
         }
 
-        if (m_currentMove.length() == 2) {
-            // Failed to generate moves
-            if (m_possibleMoves == MoveGen::INVALID) {
-                m_currentMove.clear();
-            }
-
-            return;
+        // Failed to get moves
+        if (m_possibleMoves == MoveGen::INVALID) {
+            m_currentMove.clear();
         }
 
         return;

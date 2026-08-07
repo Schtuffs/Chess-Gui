@@ -29,12 +29,16 @@ public:
 
 private:
     // Passed parameters
-    Board         m_board;
+    const Board*  m_board;
     Enums::Colour m_genColour;
 
     // Calculated items
+    bool                     m_generatingAttacks;
+    bool                     m_inCheck, m_inDoubleCheck;
     BitBoard                 m_friendly;
     BitBoard                 m_enemies;
+    BitBoard                 m_attacks;
+    BitBoard                 m_kingAttacks;
     std::array<BitBoard, 64> m_pseudoLegal;
 
     // Output items
@@ -47,14 +51,18 @@ private:
 
     BitBoard GenMoves(const Piece& piece) const noexcept;
     BitBoard GenBishop(const Piece& piece) const noexcept;
+    BitBoard GenCastling(const Piece& piece) const noexcept;
     BitBoard GenKing(const Piece& piece) const noexcept;
     BitBoard GenKnight(const Piece& piece) const noexcept;
     BitBoard GenPawn(const Piece& piece) const noexcept;
     BitBoard GenQueen(const Piece& piece) const noexcept;
     BitBoard GenRook(const Piece& piece) const noexcept;
 
-    void     GenPseudoLegal();
-    BitBoard IterateMoves(const Piece& piece, BitBoard moves);
+    void GenAttacks();
+    void AddAttacks(const Piece& piece, const Piece& king, BitBoard moves);
+    void AddCheck();
+
+    void GenPseudoLegal();
 
     void GenLegal();
 };
