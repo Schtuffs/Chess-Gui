@@ -31,6 +31,9 @@ template <typename T> struct Vec2 {
  */
 constexpr std::string_view DEFAULT_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+// Resources path.
+constexpr std::string_view PATH_RESOURCES = "../resources";
+
 /**
  * @brief Resource path for piece textures.
  * @date 2026-06-08
@@ -123,9 +126,12 @@ namespace Enums {
          * @brief Convert `Utils::Setting` to string.
          * @date 2026-07-01
          */
+        // clang-format off
         constexpr const char* Setting[] = {
             "GAME_LOAD",       "GAME_FEN",         "GAME_MOVES",
-            "BOARD_TILE_DARK", "BOARD_TILE_LIGHT", "TOTAL_SETTINGS",
+            "BOARD_TILE_DARK", "BOARD_TILE_LIGHT", "BOARD_TILE_PROMO",
+            "TOTAL_SETTINGS"
         };
+        // clang-format on
     } // namespace ToString
 } // namespace Enums

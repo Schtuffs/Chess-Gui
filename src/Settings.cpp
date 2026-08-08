@@ -68,8 +68,16 @@ static void DefaultSettings()
             s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::U32, {.i = val}};
             break;
         }
-        case Setting::TOTAL_SETTINGS:
+        case Setting::BOARD_TILE_PROMO: {
+            Color promo      = {255, 255, 0, 255};
+            u32   val        = Convert::ColorToU32(promo);
+            s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::U32, {.i = val}};
             break;
+        }
+        default: {
+            std::println(stderr, "Settings::LoadSettings: Unknown setting: {}", i);
+            break;
+        }
         }
     }
 }
@@ -100,8 +108,11 @@ bool Settings::LoadSettings()
         }
         value = token;
 
-        Setting    setting = DetermineSetting(key);
-        ActualType type    = (s_settingData[(u64)setting]).first;
+        Setting setting = DetermineSetting(key);
+        if (setting == Setting::TOTAL_SETTINGS) {
+            continue;
+        }
+        ActualType type = (s_settingData[(u64)setting]).first;
         SetSetting(setting, type, value);
     }
 
@@ -149,6 +160,18 @@ bool Settings::SaveSettings()
     DebugPrintln("Settings::SaveSettings: Saved settings.");
     file.close();
     return true;
+}
+
+void Settings::Reset()
+{
+    // Save the game
+    std::string fen   = Settings::s(Setting::GAME_FEN);
+    std::string moves = Settings::s(Setting::GAME_MOVES);
+
+    DefaultSettings();
+
+    Settings::s(Setting::GAME_FEN, fen);
+    Settings::s(Setting::GAME_MOVES, moves);
 }
 
 // ----- Read -----
@@ -294,6 +317,10 @@ bool Settings::s(Setting setting, const std::string& value)
 
 static void SetSetting(Setting setting, ActualType type, const std::string& value)
 {
+    if (setting == Setting::TOTAL_SETTINGS) {
+        return;
+    }
+
     switch (type) {
     case ActualType::U8:
         Settings::b(setting, (u8)std::stoul(value.data()));

@@ -7,12 +7,12 @@
 #include "Settings.h"
 #include "Utils.h"
 
-static float DefaultButtonThickness()
+float DefaultButtonThickness()
 {
     return (Utils::Max(Utils::Min(GetScreenWidth(), GetScreenHeight()) / 300.f, 2.f));
 }
 
-static Color DefaultButtonBorderColour() { return BLACK; }
+Color DefaultButtonBorderColour() { return BLACK; }
 
 Renderer::Renderer()
 {
@@ -46,17 +46,6 @@ Renderer::Renderer()
 
     m_dark  = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     m_light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
-
-    // m_buttons.reserve(64);
-    // Vector3 grid = Utils::GridPositioning();
-    // for (u64 rank = 0; rank < 8; rank++) {
-    //     for (u64 file = 0; file < 8; file++) {
-    //         Color col = (((rank + file) % 2) == 0 ? BOARD_SQUARE_DARK_ALPHA :
-    //         BOARD_SQUARE_LIGHT_ALPHA); m_buttons.emplace_back("", FontData{}, Rectangle{grid.x +
-    //         grid.z * file, grid.y + grid.z * (8 - rank - 1), grid.z, grid.z}, col);
-    //         m_buttons.back().Thickness(DefaultButtonThickness());
-    //     }
-    // }
 }
 
 Renderer::~Renderer()
@@ -136,8 +125,10 @@ std::string Renderer::Render(std::string_view fen, BitBoard moves, Index promoSq
 
 void Renderer::RenderMate(Enums::Colour colour, bool isCheckmate) const noexcept
 {
-    char text[15];
-    int  fontSize = Utils::Max(GetScreenWidth() / 50, 20);
+    char  text[15];
+    int   fontSize = Utils::Max(GetScreenWidth() / 50, 20);
+    float spacing  = 2.f;
+    Font  font     = GetFontDefault();
 
     if (isCheckmate) {
         snprintf(text, sizeof(text), "%s has won!", Enums::ToString::Colour[(u8)colour]);
@@ -145,11 +136,19 @@ void Renderer::RenderMate(Enums::Colour colour, bool isCheckmate) const noexcept
         strcpy(text, "Stalemate :|");
     }
 
-    Font    font = GetFontDefault();
-    Vector2 pos =
-        Utils::CenterText(text, font, fontSize, {GetScreenWidth() / 2.f, GetScreenHeight() / 2.f});
+    float   width  = GetScreenWidth() / 2.f;
+    float   height = GetScreenHeight() / 2.f;
+    Vector2 pos    = Utils::CenterText(text, font, fontSize, spacing, {width, height});
 
-    DrawText(text, pos.x, pos.y, fontSize, WHITE);
+    Color dark  = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
+    Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
+
+    i32       offset = 15;
+    Rectangle r      = {pos.x - offset, pos.y - offset, (width - (pos.x - offset)) * 2,
+                        (height - (pos.y - offset)) * 2};
+    DrawRectangle(r.x, r.y, r.width, r.height, dark);
+    DrawRectangleLinesEx(r, 3., light);
+    DrawTextEx(GetFontDefault(), text, pos, fontSize, spacing, WHITE);
 }
 
 // ----- Update ----- Hidden -----
@@ -192,8 +191,6 @@ void Renderer::FixSize()
         }
     }
     DebugPrintln("Renderer::FixSize: Reloaded textures");
-
-    // UpdateButtons(m_buttons);
 }
 
 void Renderer::RenderBoard() const noexcept
@@ -215,7 +212,7 @@ void Renderer::RenderHover() const noexcept
 {
     for (size_t i = 0; i < 64; i++) {
         if (IsHovered(i)) {
-            RenderSquare(GetHoverColour(i), i);
+            RenderSquare(GetHoverColour(i), i, true);
         }
     }
 }
@@ -231,7 +228,7 @@ void Renderer::RenderMoves(BitBoard bb, bool isWhitePerspective) const noexcept
         Index index = (Index)(isWhitePerspective ? i : 63 - i);
 
         if ((bb >> index) & 1) {
-            RenderSquare({255, 0, 0, 255}, index);
+            RenderSquare({255, 0, 0, 255}, index, true);
         }
     }
 }
@@ -310,12 +307,12 @@ void Renderer::RenderPromotion(Index promotionSquare, bool isWhitePerspective) c
     constexpr Enums::Type TYPES[] = {Enums::Type::Queen, Enums::Type::Rook, Enums::Type::Bishop,
                                      Enums::Type::Knight};
     for (u8 promo = 0; promo < 4; promo++) {
-        Index i = index + (offset * promo);
-        // UpdateButtonWithPromotion(m_buttons[i], i, true);
-        // m_buttons[i].Render();
+        Index i    = index + (offset * promo);
         Index tex  = (u8)TYPES[promo] * 2 + (u8)colour;
         int   file = i % 8;
         int   rank = 7 - (i / 8);
+        RenderSquare(Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_PROMO)),
+                     (7 - rank) * 8 + file, true);
         RenderPiece(m_textures[tex], rank * 8 + file);
     }
 }
@@ -352,8 +349,7 @@ Rectangle Renderer::GetRect(Index index) const noexcept
     Index rank = index / 8;
 
     Vector3   grid = Utils::GridPositioning();
-    Rectangle rect = {(grid.x + grid.z * file), (grid.y + grid.z * (8 - rank - 1)), (grid.z),
-                      (grid.z)};
+    Rectangle rect = {(grid.x + grid.z * file), (grid.y + grid.z * (7 - rank)), (grid.z), (grid.z)};
     return rect;
 }
 
@@ -380,10 +376,12 @@ void Renderer::RenderPiece(Texture2D texture, Index index) const noexcept
     }
 }
 
-void Renderer::RenderSquare(Color colour, Index index) const noexcept
+void Renderer::RenderSquare(Color colour, Index index, bool border) const noexcept
 {
     Rectangle rect = GetRect(index);
 
     DrawRectangleRec(rect, colour);
-    DrawRectangleLinesEx(rect, DefaultButtonThickness(), DefaultButtonBorderColour());
+    if (border) {
+        DrawRectangleLinesEx(rect, DefaultButtonThickness(), DefaultButtonBorderColour());
+    }
 }

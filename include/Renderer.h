@@ -34,6 +34,7 @@ public:
     std::string Render(std::string_view fen, BitBoard moves, Index promoSquare,
                        bool isWhitePerspective) const noexcept;
     void        RenderMate(Enums::Colour winner, bool isCheckmate) const noexcept;
+    void        RenderSquare(Color colour, Index index, bool border) const noexcept;
 
 private:
     Texture2D m_textures[12];
@@ -57,7 +58,6 @@ private:
     bool      IsClicked(Index index) const noexcept;
     bool      IsHovered(Index index) const noexcept;
     void      RenderPiece(Texture2D texture, Index index) const noexcept;
-    void      RenderSquare(Color colour, Index index) const noexcept;
 
     /**
      * @brief Determines a pieces `Color`.

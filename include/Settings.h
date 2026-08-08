@@ -16,6 +16,7 @@ enum class Setting {
     GAME_MOVES,
     BOARD_TILE_DARK,
     BOARD_TILE_LIGHT,
+    BOARD_TILE_PROMO,
     TOTAL_SETTINGS
 };
 
@@ -39,6 +40,9 @@ namespace Settings {
      * @date 2026-07-01
      */
     bool LoadSettings();
+
+    // Resets all `Settings`.
+    void Reset();
 
     // ----- Read -----
 

@@ -56,7 +56,7 @@ namespace Utils {
      * @return The position to draw the text at for it to be centered.
      * @date 2026-06-15
      */
-    Vector2 CenterText(const char* text, Font font, int fontSize, Vector2 centerPoint);
+    Vector2 CenterText(const char* text, Font font, float fontSize, float fontSpacing, Vector2 centerPoint);
 
     /**
      * @brief Get the position of the first square in the rendered grid.

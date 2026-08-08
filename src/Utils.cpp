@@ -16,9 +16,9 @@ static u8               s_clickedButton = 0;
 
 int CalculateIndex(Enums::Colour colour, Enums::Type type) { return ((int)type * 2) + (int)colour; }
 
-Vector2 Utils::CenterText(const char* text, Font font, int fontSize, Vector2 centerPoint)
+Vector2 Utils::CenterText(const char* text, Font font, float fontSize, float fontSpacing, Vector2 centerPoint)
 {
-    Vector2 textSize = MeasureTextEx(font, text, fontSize, 1.f);
+    Vector2 textSize = MeasureTextEx(font, text, fontSize, fontSpacing);
     centerPoint.x    = centerPoint.x - (textSize.x / 2);
     centerPoint.y    = centerPoint.y - (textSize.y / 2);
 

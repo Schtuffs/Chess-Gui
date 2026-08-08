@@ -45,6 +45,10 @@ int main(void)
     SetWindowMinSize(200, 200);
     SetTargetFPS(60);
 
+    // Icon
+    Image icon = LoadImage((std::string(PATH_RESOURCES) + "/ChessGui.png").c_str());
+    SetWindowIcon(icon);
+
     // Main loop
     Enums::Screen currentScreen  = Enums::Screen::Menu;
     bool          shouldExitGame = false;
@@ -96,7 +100,7 @@ int main(void)
             int fontSize = Utils::Max(GetScreenWidth() / 100, 20);
 
             Font    font = GetFontDefault();
-            Vector2 pos  = Utils::CenterText(text, font, fontSize,
+            Vector2 pos  = Utils::CenterText(text, font, fontSize, 1.f,
                                              {GetScreenWidth() / 2.f, GetScreenHeight() / 2.f});
 
             DrawText(text, pos.x, pos.y, fontSize, WHITE);

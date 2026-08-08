@@ -19,6 +19,10 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(raylib)
 
+if(WIN32)
+    set(RESOURCE_FILES ${CMAKE_CURRENT_LIST_DIR}/ChessGui.rc)
+endif()
+
 add_executable(${PROJECT_NAME}
     ${SRC}/Board.cpp
     ${SRC}/Convert.cpp
@@ -33,6 +37,7 @@ add_executable(${PROJECT_NAME}
     ${SRC}/Settings.cpp
     ${SRC}/Utils.cpp
     ${THIRD_PARTY}/raygui.c
+    ${RESOURCE_FILES}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE})
