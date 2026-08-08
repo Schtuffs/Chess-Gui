@@ -28,7 +28,7 @@ public:
     u8 Castling() const noexcept;
 
     // Get current gamestate fen.
-    std::string_view Fen();
+    std::string_view Fen() const noexcept;
 
     // Get the board's piece list.
     std::span<const Piece, 64> Pieces() const noexcept;
