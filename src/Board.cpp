@@ -68,9 +68,9 @@ Board::Board(std::string_view fen)
         }
     }
 
-    m_playerColour = (m_fen[index + 1] == 'w' ? Enums::Colour::White : Enums::Colour::Black);
     std::string_view castling = m_fen.substr(index + 3);
-    index                     = 0;
+    m_playerColour = (m_fen[index + 1] == 'w' ? Enums::Colour::White : Enums::Colour::Black);
+    index          = 0;
     char c;
     while ((c = castling[index++]) != ' ') {
         switch (c) {
@@ -112,9 +112,9 @@ Board::~Board()
 
 u8 Board::Castling() const noexcept { return m_castling; }
 
-std::span<const Piece, 64> Board::Pieces() const noexcept { return m_pieces; }
+std::string_view Board::Fen() const noexcept { return m_fen; }
 
-std::string_view Board::Fen() { return m_fen; }
+std::span<const Piece, 64> Board::Pieces() const noexcept { return m_pieces; }
 
 // ----- Update -----
 
@@ -144,10 +144,12 @@ bool Board::MakeMove(std::string_view move)
     Piece other = m_pieces[endPos];
     MovePiece(move);
     piece = m_pieces[endPos];
-    bool captureOrPawn =
-        (piece.Type() == Enums::Type::Pawn) | (other.IsValid() | other.IsEnPassant());
-    m_playerColour = Utils::SwapColour(m_playerColour);
-    m_fen          = RecalculateFen(captureOrPawn);
+    m_playerColour =
+        (m_playerColour == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White);
+
+    // Update fen data
+    m_fen = RecalculateFen((piece.Type() == Enums::Type::Pawn) |
+                           (other.IsValid() | other.IsEnPassant()));
     DebugPrintln("Board::MakeMove: Fen: {}", m_fen);
 
     return true;
@@ -220,6 +222,22 @@ bool Board::ValidateMove(Index start, Index end)
     if (piece.Colour() != m_playerColour) {
         WarningPrintln("Board::ValidateMove: Invalid piece selected at start position: {}",
                        piece.ToString());
+        return false;
+    }
+
+    // Generate the moves
+    m_moveGen.Generate(m_pieces, start, m_castling);
+    BitBoard movesBB = m_moveGen.GetMoves();
+    if (movesBB == MoveGen::INVALID) {
+        WarningPrintln("Board::ValidateMove: Could not generate moves for piece: {}",
+                       piece.ToString());
+        return false;
+    }
+
+    // Check valid end position selection
+    BitBoard indexBB = Convert::IndexToBitBoard(end);
+    if ((indexBB & movesBB) == 0) {
+        InfoPrintln("Board::ValidateMove: End position was invalid.");
         return false;
     }
 
