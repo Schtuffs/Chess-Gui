@@ -104,6 +104,14 @@ namespace Utils {
     bool IsValidIndex(Index index);
 
     /**
+     * @brief Swaps a `Enums::Colour` from one to the other.
+     * @param colour The `Enums::Colour` to swap.
+     * @return The opposite `Enums::Colour`.
+     * @date 2026-08-04
+     */
+    Enums::Colour SwapColour(Enums::Colour colour);
+
+    /**
      * @brief Specify the level of logging.
      * @enum LogLevel
      * @date 2026-06-21

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <string>
 #include <string_view>
 
@@ -20,7 +21,10 @@ namespace Convert {
      * @return The ABGR u32 representation of the colour.
      * @date 2026-07-03
      */
-    u32 ColorToU32(Color col);
+    constexpr u32 ColorToU32(Color col)
+    {
+        return (col.a << 24) | (col.b << 16) | (col.g << 8) | col.r;
+    }
 
     /**
      * @brief Converts a ABGR u32 to a `Color`.
@@ -28,10 +32,53 @@ namespace Convert {
      * @return The `Color` representation of the ABGR u32.
      * @date 2026-07-03
      */
-    Color U32ToColor(u32 val);
+    constexpr Color U32ToColor(u32 val)
+    {
+        Color col;
+        col.a = (0xff & (val >> 24));
+        col.b = (0xff & (val >> 16));
+        col.g = (0xff & (val >> 8));
+        col.r = (0xff & (val >> 0));
+        return col;
+    }
 
     // Converts a letter to a piece type.
-    Enums::Type CharToType(char c);
+    constexpr Enums::Type CharToType(char c)
+    {
+        c = tolower(c);
+        switch (c) {
+        case 'b':
+            return Enums::Type::Bishop;
+        case 'k':
+            return Enums::Type::King;
+        case 'n':
+            return Enums::Type::Knight;
+        case 'p':
+            return Enums::Type::Pawn;
+        case 'q':
+            return Enums::Type::Queen;
+        case 'r':
+            return Enums::Type::Rook;
+        default:
+            return Enums::Type::Invalid;
+        }
+    }
+
+    /**
+     * @brief Changes a `BitBoard` to an `Index`.
+     * @param bb The `BitBoard` to convert.
+     * @return The `Index`. Ex: 0x00'00'00'00'00'00'10'00 -> 12.
+     * @date 2026-07-07
+     */
+    constexpr Index BitBoardToIndex(BitBoard bb) { return (Index)std::round(std::log2(bb)); }
+
+    /**
+     * @brief Changes an `Index` to a `BitBoard`.
+     * @param index The `Index` to convert.
+     * @return The `BitBoard`. Ex: 12 -> 0x00'00'00'00'00'00'10'00.
+     * @date 2026-07-07
+     */
+    constexpr BitBoard IndexToBitBoard(Index index) { return (BitBoard)1 << index; }
 
     // Convert given castling move to actual move.
     std::string_view CastleToMove(std::string_view move, Enums::Colour player);
@@ -51,22 +98,6 @@ namespace Convert {
      * @date 2026-07-01
      */
     Index MoveToIndex(std::string_view move);
-
-    /**
-     * @brief Changes a `BitBoard` to an `Index`.
-     * @param bb The `BitBoard` to convert.
-     * @return The `Index`. Ex: 0x00'00'00'00'00'00'10'00 -> 12.
-     * @date 2026-07-07
-     */
-    Index BitBoardToIndex(BitBoard bb);
-
-    /**
-     * @brief Changes an `Index` to a `BitBoard`.
-     * @param index The `Index` to convert.
-     * @return The `BitBoard`. Ex: 12 -> 0x00'00'00'00'00'00'10'00.
-     * @date 2026-07-07
-     */
-    BitBoard IndexToBitBoard(Index index);
 
     /**
      * @brief Changes a `BitBoard` to a printable string.

@@ -5,7 +5,6 @@
 #include <string>
 #include <string_view>
 
-#include "MoveGen.h"
 #include "Piece.h"
 
 /**
@@ -18,7 +17,7 @@ public:
     // ----- Creation / Destruction -----
 
     // Create board with given fen.
-    Board(std::string_view fen);
+    Board(std::string_view fen = DEFAULT_FEN);
 
     // Free memory.
     ~Board();
@@ -48,7 +47,6 @@ private:
     u8                    m_castling;
     Index                 m_enPassant, m_promotion;
     Enums::Colour         m_playerColour;
-    MoveGen               m_moveGen;
 
     // ----- Update -----
 

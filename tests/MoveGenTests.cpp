@@ -2,67 +2,208 @@
 #include "TestSuite/TestSuite.h"
 
 #include <chrono>
-#include <iostream>
 #include <memory>
 #include <mutex>
 #include <print>
+#include <string>
+#include <vector>
 
 #include "Board.h"
 #include "Convert.h"
-#include "MoveGen.h"
+#include "MoveGen/MoveGen.h"
+
+namespace chrono = std::chrono;
 
 static void BreakMoveGen()
 {
     TEST("MoveGen::Generate: index out of bounds", []() {
         BitBoard expected = MoveGen::INVALID;
-        Piece    pieces[64];
+        Board    b;
         MoveGen  gen;
 
-        gen.Generate(pieces, 64, 12);
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(64);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
+}
+
+static void InitialMoves()
+{
+    // White initial
+    {
+        Board                    board;
+        std::shared_ptr<MoveGen> gen = std::make_shared<MoveGen>();
+        gen.get()->Generate(board, Enums::Colour::White);
+
+        TEST("MoveGen::Generate: white initial - r1", [gen]() {
+            BitBoard expected = 0x00'00'00'00'00'00'00'01;
+
+            BitBoard actual = gen.get()->GetMoves(0);
+
+            Assert::Equal(actual, expected);
+        });
+
+        TEST("MoveGen::Generate: white initial - n1", [gen]() {
+            BitBoard expected = 0x00'00'00'00'00'05'00'02;
+
+            BitBoard actual = gen.get()->GetMoves(1);
+
+            Assert::Equal(actual, expected);
+        });
+
+        TEST("MoveGen::Generate: white initial - b1", [gen]() {
+            BitBoard expected = 0x00'00'00'00'00'00'00'04;
+
+            BitBoard actual = gen.get()->GetMoves(2);
+
+            Assert::Equal(actual, expected);
+        });
+
+        TEST("MoveGen::Generate: white initial - q", [gen]() {
+            BitBoard expected = 0x00'00'00'00'00'00'00'08;
+
+            BitBoard actual = gen.get()->GetMoves(3);
+
+            Assert::Equal(actual, expected);
+        });
+
+        TEST("MoveGen::Generate: white initial - k", [gen]() {
+            BitBoard expected = 0x00'00'00'00'00'00'00'10;
+
+            BitBoard actual = gen.get()->GetMoves(4);
+
+            Assert::Equal(actual, expected);
+        });
+
+        TEST("MoveGen::Generate: white initial - b2", [gen]() {
+            BitBoard expected = 0x00'00'00'00'00'00'00'20;
+
+            BitBoard actual = gen.get()->GetMoves(5);
+
+            Assert::Equal(actual, expected);
+        });
+
+        TEST("MoveGen::Generate: white initial - n2", [gen]() {
+            BitBoard expected = 0x00'00'00'00'00'a0'00'40;
+
+            BitBoard actual = gen.get()->GetMoves(6);
+
+            Assert::Equal(actual, expected);
+        });
+
+        TEST("MoveGen::Generate: white initial - r2", [gen]() {
+            BitBoard expected = 0x00'00'00'00'00'00'00'80;
+
+            BitBoard actual = gen.get()->GetMoves(7);
+
+            Assert::Equal(actual, expected);
+        });
+
+        TEST("MoveGen::Generate: white initial - p1", [gen]() {
+            BitBoard expected = 0x00'00'00'00'01'01'01'00;
+
+            BitBoard actual = gen.get()->GetMoves(8);
+
+            Assert::Equal(actual, expected);
+        });
+
+        TEST("MoveGen::Generate: white initial - p2", [gen]() {
+            BitBoard expected = 0x00'00'00'00'02'02'02'00;
+
+            BitBoard actual = gen.get()->GetMoves(9);
+
+            Assert::Equal(actual, expected);
+        });
+
+        TEST("MoveGen::Generate: white initial - p3", [gen]() {
+            BitBoard expected = 0x00'00'00'00'04'04'04'00;
+
+            BitBoard actual = gen.get()->GetMoves(10);
+
+            Assert::Equal(actual, expected);
+        });
+
+        TEST("MoveGen::Generate: white initial - p4", [gen]() {
+            BitBoard expected = 0x00'00'00'00'08'08'08'00;
+
+            BitBoard actual = gen.get()->GetMoves(11);
+
+            Assert::Equal(actual, expected);
+        });
+
+        TEST("MoveGen::Generate: white initial - p5", [gen]() {
+            BitBoard expected = 0x00'00'00'00'10'10'10'00;
+
+            BitBoard actual = gen.get()->GetMoves(12);
+
+            Assert::Equal(actual, expected);
+        });
+
+        TEST("MoveGen::Generate: white initial - p6", [gen]() {
+            BitBoard expected = 0x00'00'00'00'20'20'20'00;
+
+            BitBoard actual = gen.get()->GetMoves(13);
+
+            Assert::Equal(actual, expected);
+        });
+
+        TEST("MoveGen::Generate: white initial - p7", [gen]() {
+            BitBoard expected = 0x00'00'00'00'40'40'40'00;
+
+            BitBoard actual = gen.get()->GetMoves(14);
+
+            Assert::Equal(actual, expected);
+        });
+
+        TEST("MoveGen::Generate: white initial - p8", [gen]() {
+            BitBoard expected = 0x00'00'00'00'80'80'80'00;
+
+            BitBoard actual = gen.get()->GetMoves(15);
+
+            Assert::Equal(actual, expected);
+        });
+    }
 }
 
 //
 
 static void WhiteLondonTests()
 {
-    constexpr const char* fen =
+    static constexpr const char* fen =
         "r1bq1rk1/ppp2ppp/2n1pn2/b2pN3/3P1B2/2PBP3/PP3PPP/RN1QK2R w KQ - 3 6";
 
-    TEST("MoveGen::Generate: london piece movements - white king", [&fen]() {
+    TEST("MoveGen::Generate: london piece movements - white king", []() {
         Board    b(fen);
         BitBoard expected = 0x00'00'00'00'00'00'18'70;
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 4, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(4);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
-    TEST("MoveGen::Generate: london piece movements - white queen", [&fen]() {
+    TEST("MoveGen::Generate: london piece movements - white queen", []() {
         Board    b(fen);
         BitBoard expected = 0x00'00'00'80'41'22'1c'0c;
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 3, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(3);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
-    TEST("MoveGen::Generate: london piece movements - white pinned pawn e3", [&fen]() {
+    TEST("MoveGen::Generate: london piece movements - white pinned pawn e3", []() {
         Board    b(fen);
         BitBoard expected = 0x00'00'00'00'00'04'00'00;
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 18, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(18);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 }
 
@@ -75,10 +216,10 @@ static void WhitePuzzleTests()
         const Board b(fen);
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 48, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(48);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: puzzle king in check - move light bishop", [&fen]() {
@@ -86,10 +227,10 @@ static void WhitePuzzleTests()
         const Board b(fen);
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 17, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(17);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: puzzle king in check - move king", [&fen]() {
@@ -97,10 +238,10 @@ static void WhitePuzzleTests()
         const Board b(fen);
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 6, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(6);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: puzzle king in check - move rook", [&fen]() {
@@ -108,10 +249,10 @@ static void WhitePuzzleTests()
         const Board b(fen);
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 5, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(5);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 }
 
@@ -127,10 +268,10 @@ static void BlackLondonTests()
         const Board b(fen);
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 62, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(62);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: london piece movements - black pawn g7", [&fen]() {
@@ -138,10 +279,10 @@ static void BlackLondonTests()
         const Board b(fen);
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 54, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(54);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: london piece movements - black pinned pawn e3", [&fen]() {
@@ -149,10 +290,10 @@ static void BlackLondonTests()
         const Board b(fen);
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 18, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(18);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 }
 
@@ -167,10 +308,10 @@ static void CheckTests()
         Board    b("rnbq1r2/ppp1pp1k/3p2p1/6N1/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 20, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(20);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: knight check - pawn", []() {
@@ -178,10 +319,10 @@ static void CheckTests()
         Board    b("rnbq1r2/ppp1pp1k/3p2p1/6N1/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 52, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(52);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: knight check - king", []() {
@@ -189,10 +330,10 @@ static void CheckTests()
         Board    b("rnbq1r2/ppp1pp1k/3p2p1/6N1/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 55, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(55);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: pawn check - king", []() {
@@ -200,10 +341,10 @@ static void CheckTests()
         Board    b("rnbq1r2/ppp1pp1k/3p2P1/8/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 55, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(55);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: pawn check - pawn", []() {
@@ -211,10 +352,10 @@ static void CheckTests()
         Board    b("rnbq1r2/ppp1pp1k/3p2P1/8/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 53, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(53);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: pawn check defended - king", []() {
@@ -222,10 +363,54 @@ static void CheckTests()
         Board    b("rnbq1r2/ppp1pp1k/3p2P1/8/2P2N2/4b3/PP3PPP/R1BQKB1R b KQ - 1 9");
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 55, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(55);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
+    });
+
+    TEST("MoveGen::Generate: bishop check - knight", []() {
+        BitBoard expected = 0x00'00'04'02'08'00'00'00;
+        Board    b("r1bqkbnr/ppp2ppp/3p4/4p3/B2nP3/5N2/PPPPQPPP/RNB1K2R b KQkq - 3 5");
+
+        MoveGen gen;
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(27);
+
+        Assert::Equal(actual, expected);
+    });
+
+    TEST("MoveGen::Generate: rook check - king", []() {
+        BitBoard expected = 0x00'00'00'00'00'00'28'38;
+        Board    b("4r3/8/8/8/8/8/8/4K2R w K - 0 1");
+
+        MoveGen gen;
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(4);
+
+        Assert::Equal(actual, expected);
+    });
+
+    TEST("MoveGen::Generate: rook check - rook", []() {
+        BitBoard expected = 0x00'00'00'00'00'00'11'00;
+        Board    b("4r3/8/8/8/8/8/R7/4K2R w K - 0 1");
+
+        MoveGen gen;
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(8);
+
+        Assert::Equal(actual, expected);
+    });
+
+    TEST("MoveGen::Generate: queen checkmate - pawn", []() {
+        BitBoard expected = 0x00'01'00'00'00'00'00'00;
+        Board    b("rnbqkbnr/ppppp2p/5p2/6pQ/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 3");
+
+        MoveGen gen;
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(48);
+
+        Assert::Equal(actual, expected);
     });
 }
 
@@ -236,8 +421,8 @@ static void DoubleCheckTests()
         Board    b("rnbq1r2/ppp1pp1k/3p2P1/6N1/2P5/4b3/PP3PPP/R1BQKB1R b KQ - 0 9");
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 55, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(55);
 
         Assert::Equal(actual, expected);
     });
@@ -247,8 +432,8 @@ static void DoubleCheckTests()
         Board    b("rnbq1r2/ppp1pp1k/3p2P1/6N1/2P4N/4b3/PP3PPP/R1BQKB1R b KQ - 0 9");
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 55, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(55);
 
         Assert::Equal(actual, expected);
     });
@@ -258,8 +443,8 @@ static void DoubleCheckTests()
         Board    b("rnbq1r2/ppp1pp1k/3p2P1/6N1/2P4N/4b3/PP3PPP/R1BQKB1R b KQ - 0 9");
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 20, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(20);
 
         Assert::Equal(actual, expected);
     });
@@ -269,8 +454,8 @@ static void DoubleCheckTests()
         Board    b("rnbq1r2/ppp1pp1k/3p2P1/6N1/2P4N/4b3/PP3PPP/R1BQKB1R b KQ - 0 9");
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 53, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(53);
 
         Assert::Equal(actual, expected);
     });
@@ -283,10 +468,10 @@ static void MiscTests()
         Board    b("r1bq1rk1/ppp2ppB/2n1pn2/b2pN3/3P1B2/2P1P3/PP3PPP/RN1QK2R b KQ - 0 7");
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 9, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(9);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: invalid piece", []() {
@@ -294,10 +479,10 @@ static void MiscTests()
         Board    b(DEFAULT_FEN);
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 34, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(34);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: en passant - from fen", []() {
@@ -305,10 +490,10 @@ static void MiscTests()
         Board    b("rnbqkbnr/pppp1ppp/8/3Pp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 2");
 
         MoveGen gen;
-        gen.Generate(b.Pieces(), 35, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(35);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: en passant - make moves", []() {
@@ -319,10 +504,10 @@ static void MiscTests()
             Assert::True(b.MakeMove(move));
         }
         MoveGen gen;
-        gen.Generate(b.Pieces(), 36, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(36);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
     });
 
     TEST("MoveGen::Generate: en passant - ensure pawn gone", []() {
@@ -333,27 +518,49 @@ static void MiscTests()
             Assert::True(b.MakeMove(move));
         }
         MoveGen gen;
-        gen.Generate(b.Pieces(), 37, b.Castling());
-        BitBoard actual = gen.GetMoves();
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(37);
 
-        Assert::Equal(expected, actual);
+        Assert::Equal(actual, expected);
+    });
+
+    TEST("MoveGen::Generate: en passant - only 1 way en passant", []() {
+        BitBoard expected = 0x00'00'60'20'00'00'00'00;
+        Board    b("rnbqkbnr/ppppp2p/8/5Pp1/8/8/PPPP1PPP/RNBQKBNR w KQkq g6 0 2");
+
+        MoveGen gen;
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(37);
+
+        Assert::Equal(actual, expected);
+    });
+
+    TEST("MoveGen::Generate: castle through check", []() {
+        BitBoard expected = 0x00'00'00'00'00'00'18'18;
+        Board    b("5r2/8/8/8/8/8/8/4K2R w K - 0 1");
+
+        MoveGen gen;
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(4);
+
+        Assert::Equal(actual, expected);
     });
 }
 
 //
 
-static std::chrono::nanoseconds RunTimeTest(std::string_view fen, Index index, u64 count)
+static chrono::nanoseconds RunTimeTest(std::string_view fen, Enums::Colour colour, u64 count)
 {
-    std::chrono::nanoseconds totalTime = {};
+    chrono::nanoseconds totalTime = {};
     for (u64 i = 0; i < count; i++) {
         Board   b(fen);
         MoveGen gen;
 
-        auto start = std::chrono::steady_clock::now();
-        gen.Generate(b.Pieces(), index, 0);
-        auto end = std::chrono::steady_clock::now();
+        auto start = chrono::steady_clock::now();
+        gen.Generate(b, colour);
+        auto end = chrono::steady_clock::now();
 
-        auto delta = std::chrono::nanoseconds(end - start);
+        auto delta = chrono::nanoseconds(end - start);
         totalTime += delta;
     }
     return totalTime;
@@ -361,67 +568,27 @@ static std::chrono::nanoseconds RunTimeTest(std::string_view fen, Index index, u
 
 static void TimeTests1()
 {
-    constexpr std::string_view fen = "8/1Q3p1k/4p1q1/7p/8/1B3p1P/P4PP1/6K1 b - - 0 34";
-    constexpr static u64       count = 100;
+    constexpr std::string_view fen   = "8/1Q3p1k/4p1q1/7p/8/1B3p1P/P4PP1/6K1 b - - 0 34";
+    constexpr static u64       count = 1000;
     static std::mutex          mtx;
-    std::shared_ptr<FILE>      file(fopen("MoveGenV2.log", "a"), fclose);
+    std::shared_ptr<FILE>      file(fopen("MoveGenV3.log", "a"), fclose);
 
-    TEST("MoveGen::Time: 1 - index 21", [file]() {
-        std::chrono::nanoseconds expected(3360);
-        auto actual = std::chrono::nanoseconds(RunTimeTest(fen, 21, count) / count);
+    TEST("MoveGen::Time: 1 - white", [file]() {
+        chrono::nanoseconds expected(3360);
+        auto actual = chrono::nanoseconds(RunTimeTest(fen, Enums::Colour::White, count) / count);
 
         mtx.lock();
-        std::println(file.get(), "21:{}", actual);
+        std::println(file.get(), "1w:{}", actual);
         mtx.unlock();
         Assert::LessThan(actual, expected);
     });
 
-    TEST("MoveGen::Time: 1 - index 39", [file]() {
-        std::chrono::nanoseconds expected(3215);
-        auto actual = std::chrono::nanoseconds(RunTimeTest(fen, 39, count) / count);
+    TEST("MoveGen::Time: 1 - black", [file]() {
+        chrono::nanoseconds expected(3215);
+        auto actual = chrono::nanoseconds(RunTimeTest(fen, Enums::Colour::Black, count) / count);
 
         mtx.lock();
-        std::println(file.get(), "39:{}", actual);
-        mtx.unlock();
-        Assert::LessThan(actual, expected);
-    });
-
-    TEST("MoveGen::Time: 1 - index 44", [file]() {
-        std::chrono::nanoseconds expected(3200);
-        auto actual = std::chrono::nanoseconds(RunTimeTest(fen, 44, count) / count);
-
-        mtx.lock();
-        std::println(file.get(), "44:{}", actual);
-        mtx.unlock();
-        Assert::LessThan(actual, expected);
-    });
-
-    TEST("MoveGen::Time: 1 - index 46", [file]() {
-        std::chrono::nanoseconds expected(3565);
-        auto actual = std::chrono::nanoseconds(RunTimeTest(fen, 46, count) / count);
-
-        mtx.lock();
-        std::println(file.get(), "46:{}", actual);
-        mtx.unlock();
-        Assert::LessThan(actual, expected);
-    });
-
-    TEST("MoveGen::Time: 1 - index 53", [file]() {
-        std::chrono::nanoseconds expected(3170);
-        auto actual = std::chrono::nanoseconds(RunTimeTest(fen, 53, count) / count);
-
-        mtx.lock();
-        std::println(file.get(), "53:{}", actual);
-        mtx.unlock();
-        Assert::LessThan(actual, expected);
-    });
-
-    TEST("MoveGen::Time: 1 - index 55", [file]() {
-        std::chrono::nanoseconds expected(3210);
-        auto actual = std::chrono::nanoseconds(RunTimeTest(fen, 55, count) / count);
-
-        mtx.lock();
-        std::println(file.get(), "55:{}", actual);
+        std::println(file.get(), "1b:{}", actual);
         mtx.unlock();
         Assert::LessThan(actual, expected);
     });
@@ -430,6 +597,7 @@ static void TimeTests1()
 void MoveGenTests()
 {
     BreakMoveGen();
+    InitialMoves();
 
     WhiteLondonTests();
     WhitePuzzleTests();

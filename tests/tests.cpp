@@ -9,7 +9,8 @@ void BoardTests(void);
 void GameManagerTests(void);
 void MoveGenTests(void);
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
     TestSuite::Setup(argc, argv);
     Utils::SetLogLevel(Utils::LogLevel::PRINT);
 
@@ -21,4 +22,3 @@ int main(int argc, char** argv) {
 
     return TestSuite::RunTests();
 }
-

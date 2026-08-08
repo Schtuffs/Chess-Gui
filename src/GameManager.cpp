@@ -1,7 +1,6 @@
 #include "GameManager.h"
 
 #include "Convert.h"
-#include "MoveGen.h"
 #include "Settings.h"
 #include "Utils.h"
 
@@ -9,7 +8,7 @@
 
 GameManager::GameManager(std::string_view fen)
     : m_board(fen), m_moveGen(), m_possibleMoves(0), m_promotionSquare(64), m_isWhiteTurn(true),
-      m_isWhiteAI(false), m_isBlackAI(false), m_inCheckmate(false), m_inStalemate(false)
+      m_isWhiteAI(false), m_isBlackAI(false)
 {
     fen                     = m_board.Fen();
     u64              index  = fen.find(' ');
@@ -31,6 +30,8 @@ GameManager::GameManager(std::string_view fen)
         }
         m_moves.push_back(moves.substr(start));
     }
+
+    m_moveGen.Generate(m_board, Player());
 }
 
 GameManager::~GameManager() {}
@@ -53,11 +54,11 @@ std::string GameManager::AllMoves() const noexcept
     return moves;
 }
 
-bool GameManager::InCheckmate() const noexcept { return m_inCheckmate; }
+bool GameManager::InCheckmate() const noexcept { return m_moveGen.IsCheckmate(); }
 
-bool GameManager::InStalemate() const noexcept { return m_inStalemate; }
+bool GameManager::InStalemate() const noexcept { return m_moveGen.IsStalemate(); }
 
-std::string_view GameManager::Fen() const noexcept { return m_board.Fen(); }
+std::string_view GameManager::Fen() { return m_board.Fen(); }
 
 BitBoard GameManager::Moves() const noexcept { return m_possibleMoves; }
 
@@ -72,13 +73,20 @@ Index GameManager::Promotion() const noexcept { return m_promotionSquare; }
 
 void GameManager::Update(std::string_view move)
 {
-    if (m_inCheckmate || m_inStalemate) {
+    if (m_moveGen.IsCheckmate() || m_moveGen.IsStalemate()) {
         return;
     }
 
-    if (move.length() > 0) {
-        Update(move, true);
+    if (move.length() < 2) {
+        return;
     }
+
+    move = Convert::CastleToMove(move, Player());
+    if (!Utils::IsValidIndex(Convert::MoveToIndex(move))) {
+        return;
+    }
+
+    Update(move, true);
 }
 
 // ----- Hidden -----
@@ -93,39 +101,31 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
 
     // Manage the promotion taking place
     if (Utils::IsValidIndex(m_promotionSquare)) {
-        DebugPrintln("GameManager::Update: Managing promotion");
         ManagePromotion(passedMove);
         return;
     }
 
     // Prepare state information
     if (passedMove.length() >= 3) {
-        m_currentMove = Convert::CastleToMove(passedMove, Player());
+        m_currentMove = passedMove;
     } else {
         m_currentMove += passedMove;
     }
 
     // Player attempting to pick up a piece
-    if (m_currentMove.length() >= 2) {
+    if (m_currentMove.length() == 2) {
         // Current move not complete, add it in
         Index index = Convert::MoveToIndex(passedMove);
         if (CheckPieceSelectable(index)) {
-            m_moveGen.Generate(m_board.Pieces(), index, m_board.Castling());
-            m_possibleMoves = m_moveGen.GetMoves();
-            DebugPrintln("GameManager::Update: Generated moves.");
+            m_possibleMoves = m_moveGen.GetMoves(index);
         }
 
-        if (m_currentMove.length() == 2) {
-            m_inCheckmate = false;
-            m_inStalemate = false;
-
-            // Failed to generate moves
-            if (m_possibleMoves == MoveGen::INVALID) {
-                m_currentMove.clear();
-            }
-
-            return;
+        // Failed to get moves
+        if (m_possibleMoves == MoveGen::INVALID) {
+            m_currentMove.clear();
         }
+
+        return;
     }
 
     // Try to play the move
@@ -145,19 +145,26 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
     // Try to reselect
     bool isSameIndex = (start == end);
     if (!moveCheck && tryReselect && !isSameIndex) {
-        DebugPrintln("GameManager::Update: Attempting reselect.");
         Update(passedMove, false);
     }
 }
 
-bool GameManager::CheckMove(std::string& move) { return (m_board.MakeMove(move)); }
-
-bool GameManager::CheckPieceSelectable(Index index)
+bool GameManager::CheckMove(std::string& move)
 {
-    if (!Utils::IsValidIndex(index)) {
+    Index    start  = Convert::MoveToIndex(move);
+    Index    endIdx = Convert::MoveToIndex(move.substr(2));
+    BitBoard end    = Convert::IndexToBitBoard(endIdx);
+
+    BitBoard moves = m_moveGen.GetMoves(start);
+    if ((moves & end) == 0) {
         return false;
     }
 
+    return (m_board.MakeMove(move));
+}
+
+bool GameManager::CheckPieceSelectable(Index index)
+{
     Enums::Colour col = m_board.Pieces()[index].Colour();
     return ((m_isWhiteTurn && col == Enums::Colour::White) ||
             (!m_isWhiteTurn && col == Enums::Colour::Black));
@@ -172,7 +179,8 @@ void GameManager::OnValidMove(std::string_view move)
     Settings::s(Setting::GAME_MOVES, AllMoves());
 
     CheckForPromotion(move);
-    CheckForCheckmate();
+
+    m_moveGen.Generate(m_board, Player());
 }
 
 void GameManager::CheckForPromotion(std::string_view move)
@@ -249,72 +257,5 @@ void GameManager::ManagePromotion(std::string_view move)
             }
             return;
         }
-    }
-}
-
-void GameManager::CheckForCheckmate()
-{
-    Enums::Colour attackers =
-        (Player() == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White);
-
-    // Get king pos
-    BitBoard kingPos = 0;
-    for (Index i = 0; i < 64; i++) {
-        const Piece& piece = m_board.Pieces()[i];
-        if (piece.Type() == Enums::Type::King && piece.Colour() == Player()) {
-            kingPos = Convert::IndexToBitBoard(piece.Position());
-            break;
-        }
-    }
-
-    // Something has gone wrong
-    if (kingPos == 0) {
-        ErrorPrintln("GameManager::CheckForCheckmate: No {} king found.",
-                     Enums::ToString::Colour[(u8)Player()]);
-        exit(1);
-    }
-
-    // Find a check
-    bool inCheck = false;
-    for (Index i = 0; i < 64; i++) {
-        const Piece& piece = m_board.Pieces()[i];
-        if (!piece.IsValid() || piece.Colour() != attackers) {
-            continue;
-        }
-
-        m_moveGen.Generate(m_board.Pieces(), piece.Position(), 0);
-        BitBoard moves = m_moveGen.GetMoves();
-        if (moves & kingPos) {
-            // Check
-            inCheck = true;
-            break;
-        }
-    }
-
-    // In check, check for any valid moves
-    Enums::Colour defenders = Player();
-    for (Index i = 0; i < 64; i++) {
-        const Piece& piece = m_board.Pieces()[i];
-        if (!piece.IsValid() || piece.Colour() != defenders) {
-            continue;
-        }
-
-        m_moveGen.Generate(m_board.Pieces(), piece.Position(), 0);
-        BitBoard moves = m_moveGen.GetMoves();
-        if (moves != Convert::IndexToBitBoard(piece.Position())) {
-            DebugPrintln("GameManager::CheckForCheckmate: Not in checkmate");
-            return;
-        }
-    }
-
-    if (inCheck) {
-        DebugPrintln("GameManager::CheckForCheckmate: In checkmate");
-        m_inCheckmate = true;
-        m_isWhiteTurn = !m_isWhiteTurn;
-        Settings::s(Setting::GAME_FEN, DEFAULT_FEN.data());
-        Settings::s(Setting::GAME_MOVES, "");
-    } else {
-        DebugPrintln("GameManager::CheckForCheckmate: In stalemate");
-        m_inStalemate = true;
     }
 }

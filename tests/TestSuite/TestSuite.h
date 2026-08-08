@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <sstream>
 
 /**
  * @brief Testing suite
@@ -10,13 +11,11 @@
  */
 namespace TestSuite {
 
-    // Prepare test suite with necessary data
+    // Prepare test suite with necessary data.
     void Setup(int argc, char** argv);
 
-    // Runs the tests
+    // Runs the tests.
     uint64_t RunTests();
-
-    // ----- Asserts -----
 
     /**
      * @brief Adds a test function to the list of tests.
@@ -25,7 +24,6 @@ namespace TestSuite {
      * @date 2025-11-27
      */
     void add(const char* testName, std::function<void()> function);
-};
+}; // namespace TestSuite
 
 #define TEST(__test_name, ...) TestSuite::add(__test_name, __VA_ARGS__)
-

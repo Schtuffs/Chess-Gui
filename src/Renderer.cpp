@@ -46,6 +46,17 @@ Renderer::Renderer()
 
     m_dark  = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     m_light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
+
+    // m_buttons.reserve(64);
+    // Vector3 grid = Utils::GridPositioning();
+    // for (u64 rank = 0; rank < 8; rank++) {
+    //     for (u64 file = 0; file < 8; file++) {
+    //         Color col = (((rank + file) % 2) == 0 ? BOARD_SQUARE_DARK_ALPHA :
+    //         BOARD_SQUARE_LIGHT_ALPHA); m_buttons.emplace_back("", FontData{}, Rectangle{grid.x +
+    //         grid.z * file, grid.y + grid.z * (8 - rank - 1), grid.z, grid.z}, col);
+    //         m_buttons.back().Thickness(DefaultButtonThickness());
+    //     }
+    // }
 }
 
 Renderer::~Renderer()
@@ -118,11 +129,9 @@ std::string Renderer::Render(std::string_view fen, BitBoard moves, Index promoSq
     RenderPieces(fen, isWhitePerspective);
     RenderPromotion(promoSquare, isWhitePerspective);
 
-    Index index = DetectClick(isWhitePerspective);
-    if (Utils::IsValidIndex(index)) {
-        return Convert::IndexToMove(index);
-    }
-    return "";
+    Index       index = DetectClick(isWhitePerspective);
+    std::string move  = Convert::IndexToMove(index);
+    return move;
 }
 
 void Renderer::RenderMate(Enums::Colour colour, bool isCheckmate) const noexcept

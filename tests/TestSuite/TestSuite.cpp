@@ -2,6 +2,9 @@
 
 #include <array>
 #include <chrono>
+#include <cstdint>
+#include <cstring>
+#include <iostream>
 #include <mutex>
 #include <print>
 #include <span>
@@ -110,8 +113,7 @@ static void                     AdjustName(const std::string& arg)
 
 static void ParseArgs(int argc, char** argv)
 {
-    using FunctionPtr = std::function<void(const std::string&)>;
-    std::array<std::pair<const char*, FunctionPtr>, 6> ARG_LIST = {{
+    std::array<std::pair<const char*, std::function<void(const std::string&)>>, 6> ARG_LIST = {{
         {"-c", AdjustCount},
         {"--count", AdjustCount},
         {"-j", AdjustJobs},
@@ -122,8 +124,8 @@ static void ParseArgs(int argc, char** argv)
 
     std::vector args = CreateArgList(argc, argv);
 
-    bool                                validArgFound = false;
-    std::pair<const char*, FunctionPtr> prevArg;
+    bool                                                            validArgFound = false;
+    std::pair<const char*, std::function<void(const std::string&)>> prevArg;
     for (const auto& arg : args) {
         if (validArgFound) {
             validArgFound = false;
@@ -131,10 +133,11 @@ static void ParseArgs(int argc, char** argv)
             continue;
         }
         // Iterate over all entries
-        auto it = std::find_if(ARG_LIST.begin(), ARG_LIST.end(),
-                               [&arg](const std::pair<const char*, FunctionPtr>& list) {
-                                   return (arg == list.first);
-                               });
+        auto it = std::find_if(
+            ARG_LIST.begin(), ARG_LIST.end(),
+            [&arg](const std::pair<const char*, std::function<void(const std::string&)>>& list) {
+                return (arg == list.first);
+            });
 
         // If found call function on next run
         if (it != ARG_LIST.end()) {
@@ -190,6 +193,7 @@ static bool IsValidTestName(std::string_view name)
             return false;
         }
 
+        index += requirement.length();
         canContinue = false;
     }
 
@@ -220,7 +224,7 @@ static bool RunTest(const std::pair<const char*, std::function<void()>>& test)
         return true;
     } catch (std::string e) {
         mtx.lock();
-        std::println(stderr, "{}Test ({}) failed! {}", s_firstPrint, test.first, e.c_str());
+        std::println(stderr, "{}Test ({}) failed!\n{}\n", s_firstPrint, test.first, e.c_str());
         s_firstPrint = '\0';
         mtx.unlock();
     } catch (...) {
@@ -291,8 +295,8 @@ uint64_t TestSuite::RunTests()
 
     // Print data
     FILE* out = stdout;
-    std::println(out);
-    std::println(out, "Total tests: {}, Run {}x each", sTestFunctions.size(), s_repeatRuns);
+    std::println(out, "{}\n\nTotal tests: {}, Run {}x each", s_firstPrint, sTestFunctions.size(),
+                 s_repeatRuns);
     std::println(out, "Passes: {}, Fails: {}, Success: {}%", sPasses, sFails,
                  ((sPasses / (double)(sPasses + sFails)) * 100));
     std::println(out, "Total test runtime: {}", duration);

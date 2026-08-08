@@ -144,6 +144,19 @@ void Utils::UnloadTexture(Texture2D& texture, Enums::Colour colour, Enums::Type 
 
 bool Utils::IsValidIndex(Index index) { return (index < 64); }
 
+Enums::Colour Utils::SwapColour(Enums::Colour colour)
+{
+    if (colour == Enums::Colour::White) {
+        return Enums::Colour::Black;
+    }
+
+    if (colour == Enums::Colour::Black) {
+        return Enums::Colour::White;
+    }
+
+    return colour;
+}
+
 static std::mutex                   mtxPrint, mtxDebug, mtxError, mtxInfo, mtxWarning;
 static std::atomic<Utils::LogLevel> s_logLevel = Utils::LogLevel::ERROR;
 
@@ -153,7 +166,7 @@ bool Utils::Detail::LockPrint(Utils::LogLevel ll)
         return false;
     }
 
-#ifdef UTILS_LOG_CONSOLE
+#ifdef FILES_ALL_CONSOLE
     mtxPrint.lock();
     return true;
 #else
@@ -182,7 +195,7 @@ bool Utils::Detail::LockPrint(Utils::LogLevel ll)
 
 void Utils::Detail::UnlockPrint(Utils::LogLevel ll)
 {
-#ifdef UTILS_LOG_CONSOLE
+#ifdef FILES_ALL_CONSOLE
     (void)ll;
     mtxPrint.unlock();
 #else
