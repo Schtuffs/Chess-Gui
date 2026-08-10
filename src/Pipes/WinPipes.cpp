@@ -4,7 +4,6 @@
 #include "Windows.h"
 
 #include <print>
-#include <vector>
 
 HANDLE              s_engineStdin   = nullptr;
 HANDLE              s_engineStdout  = nullptr;
@@ -22,7 +21,8 @@ static std::wstring StrToWStr(const std::string& str)
         return std::wstring();
     }
 
-    std::vector<wchar_t> buffer(str.length() + 1);
+    std::wstring buffer;
+    buffer.resize(str.length() + 1);
 
 #if defined(_MSC_VER)
     size_t charsConverted = 0;
@@ -31,7 +31,7 @@ static std::wstring StrToWStr(const std::string& str)
     mbstowcs(buffer.data(), str.c_str(), str.length());
 #endif
 
-    return std::wstring(buffer.data());
+    return buffer;
 }
 
 static bool HandleClose(HANDLE handle)
@@ -117,8 +117,9 @@ std::string Read()
         return "";
     }
 
-    std::vector<char> buffer(available + 1);
-    DWORD             read;
+    std::string buffer;
+    buffer.resize(available + 1);
+    DWORD read;
     if (!ReadFile(s_engineStdout, buffer.data(), available, &read, nullptr) || read == 0) {
         return "";
     }

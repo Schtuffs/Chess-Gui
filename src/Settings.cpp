@@ -56,6 +56,18 @@ static void DefaultSettings()
         case Setting::GAME_MOVES:
             s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::STRING, {.s = ""}};
             break;
+        case Setting::ENGINE_WHITE_AI:
+            s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::U8, {.b = false}};
+            break;
+        case Setting::ENGINE_WHITE_PATH:
+            s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::STRING, {.s = ""}};
+            break;
+        case Setting::ENGINE_BLACK_AI:
+            s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::U8, {.b = false}};
+            break;
+        case Setting::ENGINE_BLACK_PATH:
+            s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::STRING, {.s = ""}};
+            break;
         case Setting::BOARD_TILE_DARK: {
             Color dark       = {100, 75, 60, 255};
             u32   val        = Convert::ColorToU32(dark);
@@ -74,10 +86,15 @@ static void DefaultSettings()
             s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::U32, {.i = val}};
             break;
         }
-        default: {
-            std::println(stderr, "Settings::LoadSettings: Unknown setting: {}", i);
+        case Setting::BOARD_TILE_LEGAL: {
+            Color legal      = {255, 0, 0, 255};
+            u32   val        = Convert::ColorToU32(legal);
+            s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::U32, {.i = val}};
             break;
         }
+        case Setting::TOTAL_SETTINGS:
+            ErrorPrintln("Settings::DefaultSettings: Hit TOTAL_SETTINGS.");
+            exit(1);
         }
     }
 }

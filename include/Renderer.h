@@ -38,7 +38,7 @@ public:
 
 private:
     Texture2D m_textures[12];
-    Color     m_dark, m_light;
+    Color     m_dark, m_light, m_promo, m_legal;
     int       m_textureSize, m_startX, m_startY;
 
     // Render workflow

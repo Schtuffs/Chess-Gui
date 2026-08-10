@@ -32,6 +32,8 @@ GameManager::GameManager(std::string_view fen)
     }
 
     m_moveGen.Generate(m_board, Player());
+    m_isWhiteAI = Settings::b(Setting::ENGINE_WHITE_AI);
+    m_isBlackAI = Settings::b(Setting::ENGINE_BLACK_AI);
 }
 
 GameManager::~GameManager() {}
@@ -237,21 +239,25 @@ void GameManager::ManagePromotion(std::string_view move)
             return;
         }
 
-        m_moves[m_moves.size() - 1] += PROMOTIONS_CHAR[i];
+        if (m_moves[m_moves.size() - 1].length() == 4) {
+            m_moves[m_moves.size() - 1] += PROMOTIONS_CHAR[i];
+        }
         m_promotionSquare = 64;
-
+        m_moveGen.Generate(m_board, Player());
+        
         return;
     }
-
+    
     Index clicked = Convert::MoveToIndex(move);
     i8    sign    = (m_promotionSquare / 8 == 0 ? 1 : -1);
-
+    
     for (u8 i = 0; i < TOTAL_PROMOTIONS; i++) {
         Index index = m_promotionSquare + (sign * (i8)(i * 8));
         if (clicked == index) {
             if (m_board.PromotePawn(m_promotionSquare, PROMOTIONS[i])) {
                 m_moves[m_moves.size() - 1] += PROMOTIONS_CHAR[i];
                 m_promotionSquare = 64;
+                m_moveGen.Generate(m_board, Player());
             } else {
                 WarningPrintln("GameManager::ManagePromotion: Could not promote pawn.");
             }

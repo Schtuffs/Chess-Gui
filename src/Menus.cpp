@@ -40,7 +40,7 @@ static void PopDefaultGuiStyle()
     }
 }
 
-static Rectangle& MoveDown(Rectangle& rect, u8 squares)
+static Rectangle MoveDown(Rectangle rect, u8 squares)
 {
     Vector3 grid = Utils::GridPositioning();
     rect.y += grid.z * squares;
@@ -58,10 +58,10 @@ void Menu::Main(Enums::Screen& screen)
     if (Utils::ClickableButton(startPos, "Start new game", 1)) {
         screen = Enums::Screen::NewGame;
     }
-    if (Utils::ClickableButton(MoveDown(startPos, 4), "Settings", 2)) {
+    if (Utils::ClickableButton((startPos = MoveDown(startPos, 4)), "Settings", 2)) {
         screen = Enums::Screen::Settings;
     }
-    if (Utils::ClickableButton(MoveDown(startPos, 1), "Quit", 3)) {
+    if (Utils::ClickableButton((startPos = MoveDown(startPos, 1)), "Quit", 3)) {
         screen = Enums::Screen::Quit;
     }
 
@@ -88,6 +88,9 @@ void Menu::NewGame(Enums::Screen& screen)
     if (Utils::ClickableButton(MoveDown(startPos, 4), "Back", id++)) {
         screen = Enums::Screen::Menu;
     }
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        screen = Enums::Screen::Menu;
+    }
 
     PopDefaultGuiStyle();
 }
@@ -99,6 +102,7 @@ enum SettingScreens {
     SETTING_MAIN,
     SETTING_RESET,
     SETTING_BOARD,
+    SETTING_ENGINE,
 };
 
 static SettingScreens SettingsMain()
@@ -110,9 +114,13 @@ static SettingScreens SettingsMain()
 
     SettingScreens screen = SETTING_MAIN;
 
-    i8 id = 1;
+    u8 id = 1;
     if (Utils::ClickableButton(Utils::ButtonPos(1, 1, 3, 1), "Board", id++)) {
         screen = SETTING_BOARD;
+    }
+
+    if (Utils::ClickableButton(Utils::ButtonPos(4, 1, 3, 1), "Engine", id++)) {
+        screen = SETTING_ENGINE;
     }
 
     if (Utils::ClickableButton(Utils::ButtonPos(1, 6, 3, 1), "Reset", id++)) {
@@ -123,6 +131,10 @@ static SettingScreens SettingsMain()
         screen = SETTING_LEAVE;
     }
 
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        screen = SETTING_LEAVE;
+    }
+
     PopDefaultGuiStyle();
     return screen;
 }
@@ -130,28 +142,32 @@ static SettingScreens SettingsMain()
 static SettingScreens SettingsReset()
 {
     PushDefaultGuiStyle();
-    
+
     renderer.Update();
     renderer.Render("", MoveGen::INVALID, 64, true);
-    
+
     SettingScreens screen = SETTING_RESET;
-    
+
     Utils::ClickableButton(Utils::ButtonPos(1, 2, 6, 1), "Reset all settings to defaults?", 255);
 
-    i8 id = 1;
+    u8 id = 1;
     if (Utils::ClickableButton(Utils::ButtonPos(1, 4, 3, 1), "Yes", id++)) {
         screen = SETTING_MAIN;
         Settings::Reset();
     }
-    
+
     if (Utils::ClickableButton(Utils::ButtonPos(4, 4, 3, 1), "No", id++)) {
         screen = SETTING_MAIN;
     }
-    
+
     if (Utils::ClickableButton(Utils::ButtonPos(4, 6, 3, 1), "Cancel", id++)) {
         screen = SETTING_MAIN;
     }
-    
+
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        screen = SETTING_MAIN;
+    }
+
     PopDefaultGuiStyle();
     return screen;
 }
@@ -159,7 +175,7 @@ static SettingScreens SettingsReset()
 static SettingScreens SettingsBoard()
 {
     static bool    settingsLoaded = false;
-    static Vector3 darkHSV, lightHSV, promoHSV;
+    static Vector3 darkHSV, lightHSV, promoHSV, legalHSV;
     SettingScreens screen = SETTING_BOARD;
     if (!settingsLoaded) {
         settingsLoaded = true;
@@ -167,33 +183,44 @@ static SettingScreens SettingsBoard()
         Color dark  = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
         Color light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
         Color promo = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_PROMO));
+        Color legal = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LEGAL));
 
         darkHSV  = ColorToHSV(dark);
-        promoHSV = ColorToHSV(promo);
         lightHSV = ColorToHSV(light);
+        promoHSV = ColorToHSV(promo);
+        legalHSV = ColorToHSV(legal);
     }
     renderer.Update();
     renderer.Render("", MoveGen::INVALID, 64, true);
 
     float barSize =
         GuiGetStyle(COLORPICKER, HUEBAR_WIDTH) + GuiGetStyle(COLORPICKER, HUEBAR_PADDING);
-    Rectangle darkPicker  = Utils::ButtonPos(1, 1, 2, 2);
-    Rectangle lightPicker = Utils::ButtonPos(5, 1, 2, 2);
-    Rectangle promoPicker = Utils::ButtonPos(3, 1, 2, 2);
+    Rectangle darkPicker  = Utils::ButtonPos(0, 1, 2, 2);
+    Rectangle lightPicker = Utils::ButtonPos(2, 1, 2, 2);
+    Rectangle promoPicker = Utils::ButtonPos(4, 1, 2, 2);
+    Rectangle legalPicker = Utils::ButtonPos(6, 1, 2, 2);
     darkPicker.width -= barSize;
     lightPicker.width -= barSize;
     promoPicker.width -= barSize;
+    legalPicker.width -= barSize;
 
     PushDefaultGuiStyle();
 
+    Utils::ClickableButton(Utils::ButtonPos(0, 0, 2, 1), "Dark", 0);
     GuiColorPickerHSV(darkPicker, nullptr, &darkHSV);
+    Utils::ClickableButton(Utils::ButtonPos(2, 0, 2, 1), "Light", 0);
     GuiColorPickerHSV(lightPicker, nullptr, &lightHSV);
+    Utils::ClickableButton(Utils::ButtonPos(4, 0, 2, 1), "Promo", 0);
     GuiColorPickerHSV(promoPicker, nullptr, &promoHSV);
+    Utils::ClickableButton(Utils::ButtonPos(6, 0, 2, 1), "Legal", 0);
+    GuiColorPickerHSV(legalPicker, nullptr, &legalHSV);
 
     for (int i = 0; i < 18; i++) {
         i8 off = ((i / 6) * 8) + ((i % 6));
         if (i == 14 || i == 15) {
             renderer.RenderSquare(HSVToColor(promoHSV), 17 + off, true);
+        } else if (i == 2 || i == 3) {
+            renderer.RenderSquare(HSVToColor(legalHSV), 17 + off, true);
         } else if ((i + (i / 6)) % 2) {
             renderer.RenderSquare(HSVToColor(darkHSV), 17 + off, false);
         } else {
@@ -205,13 +232,14 @@ static SettingScreens SettingsBoard()
     Rectangle rect = {(grid.x + grid.z * 1), (grid.y + grid.z * 3), (grid.z * 6), (grid.z * 3)};
     DrawRectangleLinesEx(rect, DefaultButtonThickness(), DefaultButtonBorderColour());
 
-    int id = 1;
+    u8 id = 1;
     if (Utils::ClickableButton(Utils::ButtonPos(1, 6, 3, 1), "Save", id++)) {
         DebugPrintln("Menu::Settings: Saving settings.");
 
         Settings::i(Setting::BOARD_TILE_DARK, Convert::ColorToU32(HSVToColor(darkHSV)));
         Settings::i(Setting::BOARD_TILE_LIGHT, Convert::ColorToU32(HSVToColor(lightHSV)));
         Settings::i(Setting::BOARD_TILE_PROMO, Convert::ColorToU32(HSVToColor(promoHSV)));
+        Settings::i(Setting::BOARD_TILE_LEGAL, Convert::ColorToU32(HSVToColor(legalHSV)));
 
         DebugPrintln("Menu::Settings: Saved settings.");
     }
@@ -219,6 +247,57 @@ static SettingScreens SettingsBoard()
     if (Utils::ClickableButton(Utils::ButtonPos(4, 6, 3, 1), "Return", id++)) {
         settingsLoaded = false;
         screen         = SETTING_MAIN;
+    }
+
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        screen         = SETTING_MAIN;
+        settingsLoaded = false;
+    }
+
+    PopDefaultGuiStyle();
+
+    return screen;
+}
+
+static SettingScreens SettingsEngine()
+{
+    PushDefaultGuiStyle();
+
+    static bool isWhiteAI      = false;
+    static bool isBlackAI      = false;
+    static bool settingsLoaded = false;
+    if (!settingsLoaded) {
+        settingsLoaded = true;
+        isWhiteAI      = Settings::b(Setting::ENGINE_WHITE_AI);
+        isBlackAI      = Settings::b(Setting::ENGINE_BLACK_AI);
+    }
+
+    renderer.Update();
+    renderer.Render("", 0, 64, true);
+
+    SettingScreens screen = SETTING_ENGINE;
+
+    u8 id = 1;
+    if (Utils::ClickableButton(Utils::ButtonPos(1, 1, 3, 1),
+                               (isWhiteAI ? "White: AI" : "White: Human"), id++)) {
+        isWhiteAI = !isWhiteAI;
+        Settings::b(Setting::ENGINE_WHITE_AI, isWhiteAI);
+    }
+
+    if (Utils::ClickableButton(Utils::ButtonPos(4, 1, 3, 1),
+                               (isBlackAI ? "Black: AI" : "Black: Human"), id++)) {
+        isBlackAI = !isBlackAI;
+        Settings::b(Setting::ENGINE_BLACK_AI, isBlackAI);
+    }
+
+    if (Utils::ClickableButton(Utils::ButtonPos(4, 6, 3, 1), "Return", id++)) {
+        screen         = SETTING_MAIN;
+        settingsLoaded = false;
+    }
+
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        screen         = SETTING_MAIN;
+        settingsLoaded = false;
     }
 
     PopDefaultGuiStyle();
@@ -229,6 +308,7 @@ static SettingScreens SettingsBoard()
 void Menu::Settings(Enums::Screen& screen)
 {
     static SettingScreens setting = SETTING_MAIN;
+
     switch (setting) {
     case SETTING_LEAVE:
         setting = SETTING_MAIN;
@@ -244,6 +324,14 @@ void Menu::Settings(Enums::Screen& screen)
     case SETTING_BOARD:
         setting = SettingsBoard();
         break;
+    case SETTING_ENGINE:
+        setting = SettingsEngine();
+        break;
+    }
+
+    if (setting == SETTING_LEAVE) {
+        setting = SETTING_MAIN;
+        screen  = Enums::Screen::Menu;
     }
 }
 
@@ -267,6 +355,9 @@ void Menu::InGame(Enums::Screen& screen)
 
     if (IsKeyPressed(KEY_F)) {
         isWhitePerspective = !isWhitePerspective;
+    }
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        screen = Enums::Screen::Menu;
     }
 
     renderer.Update();
