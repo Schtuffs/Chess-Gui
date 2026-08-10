@@ -98,13 +98,13 @@ Board::Board(std::string_view fen)
     std::string_view halfMoves = enPassant.substr(enPassant.find(' ') + 1);
 
     std::string_view fullMoves = halfMoves.substr(halfMoves.find(' ') + 1);
-    if (fullMoves.length() == 1 && fullMoves[0] == '1') {
+    if (fullMoves.length() == 1 && fullMoves[0] == '1' && m_playerColour == Enums::Colour::White) {
         m_fen[m_fen.length() - 1] = '0';
     }
 
     // Detect promo
     for (int i = 0; i < 16; i++) {
-        if (i / 2 == 1) {
+        if (i / 8 == 1) {
             // White promo
             Index index = (i % 8) + 56;
             if (m_pieces[index].Type() == Enums::Type::Pawn) {
@@ -171,26 +171,15 @@ bool Board::MakeMove(std::string_view move)
     return true;
 }
 
-bool Board::PromotePawn(Index index, Enums::Type type)
+bool Board::PromotePawn(Enums::Type type)
 {
     if (!Utils::IsValidIndex(m_promotion)) {
         ErrorPrintln("Board::PromotePawn: Attempting promotion without valid pawn.");
         return false;
     }
 
-    if (!Utils::IsValidIndex(index)) {
-        ErrorPrintln("Board::PromotePawn: Received invalid index: {}", index);
-        return false;
-    }
-
-    Index rank = index / 8;
-    if ((rank != 0 && rank != 7)) {
-        WarningPrintln("Board::PromotePawn: Attempting to promote without reaching end rank.");
-        return false;
-    }
-
     // Piece must be pawn
-    Piece& piece = m_pieces[index];
+    Piece& piece = m_pieces[m_promotion];
     if (!piece.IsValid() || piece.Type() != Enums::Type::Pawn) {
         ErrorPrintln("Board::PromotePawn: Promotion piece is not pawn: {}", piece.ToString());
         return false;
@@ -207,9 +196,9 @@ bool Board::PromotePawn(Index index, Enums::Type type)
     // Add the piece
     InfoPrintln("Board::PromotePawn: Promoting: {} to {}.", piece.ToString(),
                 Enums::ToString::Type[(u8)type]);
-    piece          = Piece(piece.Colour(), type, piece.Position());
+    piece = Piece(piece.Colour(), type, piece.Position());
     m_playerColour = Utils::SwapColour(m_playerColour);
-    m_promotion    = INVALID_ENPASSANT;
+    m_promotion = INVALID_ENPASSANT;
 
     m_fen = RecalculateFen();
     DebugPrintln("Board::PromotePawn: Updated fen: {}", m_fen);
@@ -311,7 +300,7 @@ void Board::MovePromotion(std::string_view move)
         (rank == 7 && piece.Colour() == Enums::Colour::White)) {
 
         m_playerColour = Utils::SwapColour(m_playerColour);
-        m_promotion    = end;
+        m_promotion = end;
     }
 }
 
@@ -352,7 +341,7 @@ std::string Board::RecalculateFen()
     std::string castling  = RecalculateCastling();
     std::string enPassant = RecalculateEnPassant();
     u32         halfMoves = RecalculateHalfMoves(false) - 1;
-    u32         fullMoves = RecalculateFullMoves();
+    u32 fullMoves = RecalculateFullMoves() - (m_playerColour == Enums::Colour::White ? 1 : 0);
     if (m_playerColour == Enums::Colour::White) {
         fullMoves--;
     }

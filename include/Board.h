@@ -39,7 +39,7 @@ public:
     bool MakeMove(std::string_view move);
 
     // Promotes a pawn on the board to given type.
-    bool PromotePawn(Index index, Enums::Type type);
+    bool PromotePawn(Enums::Type type);
 
 private:
     std::string           m_fen;

@@ -42,6 +42,7 @@ GameManager::GameManager(std::string_view fen)
             Index index = (i % 8) + 56;
             if (m_board.Pieces()[index].Type() == Enums::Type::Pawn) {
                 m_promotionSquare = index;
+                m_isWhiteTurn = !m_isWhiteTurn;
                 break;
             }
         } else {
@@ -49,6 +50,7 @@ GameManager::GameManager(std::string_view fen)
             Index index = (i % 8);
             if (m_board.Pieces()[index].Type() == Enums::Type::Pawn) {
                 m_promotionSquare = index;
+                m_isWhiteTurn = !m_isWhiteTurn;
                 break;
             }
         }
@@ -257,7 +259,7 @@ void GameManager::ManagePromotion(std::string_view move)
             return;
         }
 
-        if (!m_board.PromotePawn(m_promotionSquare, PROMOTIONS[i])) {
+        if (!m_board.PromotePawn(PROMOTIONS[i])) {
             WarningPrintln("GameManager::ManagePromotion: Could not promote pawn.");
             return;
         }
@@ -266,22 +268,22 @@ void GameManager::ManagePromotion(std::string_view move)
             m_moves[m_moves.size() - 1] += PROMOTIONS_CHAR[i];
         }
         m_promotionSquare = 64;
-        m_isWhiteTurn = !m_isWhiteTurn;
         m_moveGen.Generate(m_board, Player());
-        
+
         return;
     }
-    
+
     Index clicked = Convert::MoveToIndex(move);
     i8    sign    = (m_promotionSquare / 8 == 0 ? 1 : -1);
-    
+
     for (u8 i = 0; i < TOTAL_PROMOTIONS; i++) {
         Index index = m_promotionSquare + (sign * (i8)(i * 8));
         if (clicked == index) {
-            if (m_board.PromotePawn(m_promotionSquare, PROMOTIONS[i])) {
-                m_moves[m_moves.size() - 1] += PROMOTIONS_CHAR[i];
+            if (m_board.PromotePawn(PROMOTIONS[i])) {
+                if (m_moves[m_moves.size() - 1].length() == 4) {
+                    m_moves[m_moves.size() - 1] += PROMOTIONS_CHAR[i];
+                }
                 m_promotionSquare = 64;
-                m_isWhiteTurn = !m_isWhiteTurn;
                 m_moveGen.Generate(m_board, Player());
             } else {
                 WarningPrintln("GameManager::ManagePromotion: Could not promote pawn.");
