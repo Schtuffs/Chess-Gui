@@ -8,7 +8,7 @@ PointerAlignment: Left
 AlignConsecutiveDeclarations: Consecutive
 AlignConsecutiveAssignments: Consecutive
 
-NamespaceIndentation: All
+# NamespaceIndentation: All
 BreakBeforeBraces: Custom
 BraceWrapping:
     AfterFunction: true
