@@ -101,6 +101,27 @@ Board::Board(std::string_view fen)
     if (fullMoves.length() == 1 && fullMoves[0] == '1') {
         m_fen[m_fen.length() - 1] = '0';
     }
+
+    // Detect promo
+    for (int i = 0; i < 16; i++) {
+        if (i / 2 == 1) {
+            // White promo
+            Index index = (i % 8) + 56;
+            if (m_pieces[index].Type() == Enums::Type::Pawn) {
+                m_promotion    = index;
+                m_playerColour = Utils::SwapColour(m_playerColour);
+                break;
+            }
+        } else {
+            // Black promo
+            Index index = (i % 8);
+            if (m_pieces[index].Type() == Enums::Type::Pawn) {
+                m_promotion    = index;
+                m_playerColour = Utils::SwapColour(m_playerColour);
+                break;
+            }
+        }
+    }
 }
 
 Board::~Board() {}
@@ -186,10 +207,9 @@ bool Board::PromotePawn(Index index, Enums::Type type)
     // Add the piece
     InfoPrintln("Board::PromotePawn: Promoting: {} to {}.", piece.ToString(),
                 Enums::ToString::Type[(u8)type]);
-    piece = Piece(piece.Colour(), type, piece.Position());
-    m_playerColour =
-        (m_playerColour == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White);
-    m_promotion = INVALID_ENPASSANT;
+    piece          = Piece(piece.Colour(), type, piece.Position());
+    m_playerColour = Utils::SwapColour(m_playerColour);
+    m_promotion    = INVALID_ENPASSANT;
 
     m_fen = RecalculateFen();
     DebugPrintln("Board::PromotePawn: Updated fen: {}", m_fen);
@@ -289,10 +309,9 @@ void Board::MovePromotion(std::string_view move)
     Index rank = end / 8;
     if ((rank == 0 && piece.Colour() == Enums::Colour::Black) ||
         (rank == 7 && piece.Colour() == Enums::Colour::White)) {
-        m_playerColour =
-            (m_playerColour == Enums::Colour::White ? Enums::Colour::Black : Enums::Colour::White);
 
-        m_promotion = end;
+        m_playerColour = Utils::SwapColour(m_playerColour);
+        m_promotion    = end;
     }
 }
 

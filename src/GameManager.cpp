@@ -34,6 +34,25 @@ GameManager::GameManager(std::string_view fen)
     m_moveGen.Generate(m_board, Player());
     m_isWhiteAI = Settings::b(Setting::ENGINE_WHITE_AI);
     m_isBlackAI = Settings::b(Setting::ENGINE_BLACK_AI);
+
+    // Detect promo
+    for (int i = 0; i < 16; i++) {
+        if ((i / 8) == 1) {
+            // White promo
+            Index index = (i % 8) + 56;
+            if (m_board.Pieces()[index].Type() == Enums::Type::Pawn) {
+                m_promotionSquare = index;
+                break;
+            }
+        } else {
+            // Black promo
+            Index index = (i % 8);
+            if (m_board.Pieces()[index].Type() == Enums::Type::Pawn) {
+                m_promotionSquare = index;
+                break;
+            }
+        }
+    }
 }
 
 GameManager::~GameManager() {}
@@ -217,6 +236,10 @@ void GameManager::ManagePromotion(std::string_view move)
         return;
     }
 
+    if (!Utils::IsValidIndex(m_promotionSquare)) {
+        return;
+    }
+
     if (move.length() % 2 == 1) {
         // The promotion char
         char promotion = move[move.length() - 1];
@@ -243,6 +266,7 @@ void GameManager::ManagePromotion(std::string_view move)
             m_moves[m_moves.size() - 1] += PROMOTIONS_CHAR[i];
         }
         m_promotionSquare = 64;
+        m_isWhiteTurn = !m_isWhiteTurn;
         m_moveGen.Generate(m_board, Player());
         
         return;
@@ -257,6 +281,7 @@ void GameManager::ManagePromotion(std::string_view move)
             if (m_board.PromotePawn(m_promotionSquare, PROMOTIONS[i])) {
                 m_moves[m_moves.size() - 1] += PROMOTIONS_CHAR[i];
                 m_promotionSquare = 64;
+                m_isWhiteTurn = !m_isWhiteTurn;
                 m_moveGen.Generate(m_board, Player());
             } else {
                 WarningPrintln("GameManager::ManagePromotion: Could not promote pawn.");
