@@ -5,11 +5,13 @@
 
 #include <print>
 
-HANDLE              s_engineStdin   = nullptr;
-HANDLE              s_engineStdout  = nullptr;
-HANDLE              s_engineProcess = nullptr;
-HANDLE              s_engineThread  = nullptr;
-PROCESS_INFORMATION pi;
+#include "Pipes/WinPipes.h"
+
+HANDLE              s_engineStdin[255]   = {nullptr};
+HANDLE              s_engineStdout[255]  = {nullptr};
+HANDLE              s_engineProcess[255] = {nullptr};
+HANDLE              s_engineThread[255]  = {nullptr};
+PROCESS_INFORMATION pi[255];
 
 namespace Pipes::WinPipes {
 
@@ -45,7 +47,7 @@ static bool HandleClose(HANDLE handle)
     return true;
 }
 
-bool Start(const std::string& path)
+bool Start(u8 id, const std::string& path)
 {
     // Prepare pipes
     HANDLE tempStdin  = nullptr;
@@ -57,22 +59,20 @@ bool Start(const std::string& path)
     sAttrs.bInheritHandle       = TRUE;
 
     // file -> engine stdin
-    if (!CreatePipe(&tempStdin, &s_engineStdin, &sAttrs, 0)) {
+    if (!CreatePipe(&tempStdin, &s_engineStdin[id], &sAttrs, 0)) {
         std::println(stderr, "ERROR: Pipes::Start: Failed to start engine stdin");
         return false;
     }
-    SetHandleInformation(s_engineStdin, HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(s_engineStdin[id], HANDLE_FLAG_INHERIT, 0);
 
     // engine stdout -> file
-    if (!CreatePipe(&s_engineStdout, &tempStdout, &sAttrs, 0)) {
+    if (!CreatePipe(&s_engineStdout[id], &tempStdout, &sAttrs, 0)) {
         std::println(stderr, "ERROR: Pipes::Start: Failed to start engine stdout");
         HandleClose(tempStdout);
-        HandleClose(s_engineStdin);
-
-        s_engineStdin = nullptr;
+        HandleClose(s_engineStdin[id]);
         return false;
     }
-    SetHandleInformation(s_engineStdout, HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(s_engineStdout[id], HANDLE_FLAG_INHERIT, 0);
 
     // Info for startup
     STARTUPINFOW info{};
@@ -94,42 +94,52 @@ bool Start(const std::string& path)
 
     if (!success) {
         std::println(stderr, "ERROR: Pipes::Start: Failed to start engine process");
-        HandleClose(s_engineStdin);
-        HandleClose(s_engineStdout);
+        HandleClose(s_engineStdin[id]);
+        HandleClose(s_engineStdout[id]);
 
         return false;
     }
 
-    s_engineProcess = processInfo.hProcess;
-    s_engineThread  = processInfo.hThread;
-    pi              = processInfo;
+    s_engineProcess[id] = processInfo.hProcess;
+    s_engineThread[id]  = processInfo.hThread;
+    pi[id]              = processInfo;
 
     return true;
 }
 
 // ----- READ -----
 
-std::string Read()
+std::string Read(u8 id, bool isBlocking)
 {
-    DWORD available = 0;
-    if (!PeekNamedPipe(s_engineStdout, nullptr, 0, nullptr, &available, nullptr) ||
-        available == 0) {
-        return "";
-    }
+    if (isBlocking) {
+        std::string buffer;
+        buffer.resize(4096);
 
-    std::string buffer;
-    buffer.resize(available + 1);
-    DWORD read;
-    if (!ReadFile(s_engineStdout, buffer.data(), available, &read, nullptr) || read == 0) {
-        return "";
-    }
+        DWORD read;
+        ReadFile(s_engineStdout[id], buffer.data(), 4096, &read, nullptr);
 
-    return std::string(buffer.data(), read);
+        return buffer;
+    } else {
+        DWORD available = 0;
+        if (!PeekNamedPipe(s_engineStdout[id], nullptr, 0, nullptr, &available, nullptr) ||
+            available == 0) {
+            return "";
+        }
+
+        std::string buffer;
+        buffer.resize(available + 1);
+        DWORD read;
+        if (!ReadFile(s_engineStdout[id], buffer.data(), available, &read, nullptr) || read == 0) {
+            return "";
+        }
+
+        return buffer;
+    }
 }
 
 // ----- WRITE -----
 
-bool Write(const std::string& data)
+bool Write(u8 id, const std::string& data)
 {
     std::string message = data;
     if (message.empty() || message.back() != '\n') {
@@ -137,30 +147,30 @@ bool Write(const std::string& data)
     }
 
     DWORD written = 0;
-    BOOL success = WriteFile(s_engineStdin, message.c_str(), (DWORD)message.size(), &written, NULL);
+    BOOL success = WriteFile(s_engineStdin[id], message.c_str(), (DWORD)message.size(), &written, NULL);
     return (success && written == message.size());
 }
 
 // ----- STOP -----
 
-bool Stop()
+bool Stop(u8 id)
 {
-    DWORD result = WaitForSingleObject(s_engineProcess, 1000);
+    DWORD result = WaitForSingleObject(s_engineProcess[id], 1000);
     if (result == WAIT_TIMEOUT) {
-        TerminateProcess(s_engineProcess, 0);
+        TerminateProcess(s_engineProcess[id], 0);
     }
 
     bool closure = true;
-    if (!HandleClose(s_engineProcess)) {
+    if (!HandleClose(s_engineProcess[id])) {
         closure = false;
     }
-    if (!HandleClose(s_engineThread)) {
+    if (!HandleClose(s_engineThread[id])) {
         closure = false;
     }
-    if (!HandleClose(s_engineStdout)) {
+    if (!HandleClose(s_engineStdout[id])) {
         closure = false;
     }
-    if (!HandleClose(s_engineStdin)) {
+    if (!HandleClose(s_engineStdin[id])) {
         closure = false;
     }
     return closure;

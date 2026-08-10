@@ -13,54 +13,63 @@
 
 #include <print>
 
-static bool s_engineRunning = false;
+static u8   s_newId              = 0;
+static bool s_engineRunning[255] = {};
 
 namespace Pipes {
 
-bool Start(const std::string& path)
+u8 Start(const std::string& path)
 {
-    if (s_engineRunning) {
-        Pipes::Stop();
+    u8   id      = ++s_newId;
+    bool success = Platform::Start(id, path);
+
+    if (success) {
+        s_engineRunning[id] = true;
+    } else {
+        Pipes::Stop(id);
     }
 
-    bool success = Platform::Start(path);
-
-    if (!success) {
-        Pipes::Stop();
-    }
-    s_engineRunning = success;
-    return success;
+    return id;
 }
 
-std::string Read()
+bool IsValid(u8 id) { return id; }
+
+std::string Read(u8 id, bool isBlocking)
 {
-    if (!s_engineRunning) {
+    if (!s_engineRunning[id]) {
         return "";
     }
 
-    return Platform::Read();
+    return Platform::Read(id, isBlocking);
 }
 
-bool Write(const std::string& data)
+bool Write(u8 id, const std::string& data)
 {
-    if (!s_engineRunning) {
+    if (!s_engineRunning[id]) {
         return false;
     }
 
-    return Platform::Write(data);
+    return Platform::Write(id, data);
 }
 
-bool Stop()
+bool Stop(u8 id)
 {
-    if (!s_engineRunning) {
+    if (!s_engineRunning[id]) {
         return true;
     }
 
     // Generic quit message
-    Pipes::Write("quit");
-    s_engineRunning = false;
+    Pipes::Write(id, "quit");
+    s_engineRunning[id] = false;
 
-    return Platform::Stop();
+    return Platform::Stop(id);
+}
+
+void StopAll()
+{
+    for (u8 i = 0; i < 255; i++) {
+        Pipes::Stop(i);
+    }
 }
 
 } // namespace Pipes
