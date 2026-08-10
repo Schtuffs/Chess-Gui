@@ -15,12 +15,16 @@ using Index    = u8;
 using BitBoard = u64;
 
 namespace Pipes {
-u8 Start(const std::string& path);
-bool IsValid(u8 id);
+using ID = u8;
 
-std::string Read(u8 id, bool isBlocking);
-bool        Write(u8 id, const std::string& data);
+constexpr Pipes::ID ID_INVALID = 0;
 
-bool Stop(u8 id);
+ID   Start(const std::string& path);
+bool IsValid(ID id);
+
+std::string Read(ID id, bool isBlocking);
+bool        Write(ID id, const std::string& data);
+
+bool Stop(ID id);
 void StopAll();
 } // namespace Pipes

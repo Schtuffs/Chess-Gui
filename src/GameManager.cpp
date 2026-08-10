@@ -1,5 +1,7 @@
 #include "GameManager.h"
 
+#include <thread>
+
 #include "Convert.h"
 #include "Settings.h"
 #include "Utils.h"
@@ -8,7 +10,7 @@
 
 GameManager::GameManager(std::string_view fen)
     : m_board(fen), m_moveGen(), m_possibleMoves(0), m_promotionSquare(64), m_isWhiteTurn(true),
-      m_isWhiteAI(false), m_isBlackAI(false)
+      m_isWhiteAI(false), m_isBlackAI(false), m_isReady(false)
 {
     fen                     = m_board.Fen();
     u64              index  = fen.find(' ');
@@ -34,6 +36,9 @@ GameManager::GameManager(std::string_view fen)
     m_moveGen.Generate(m_board, Player());
     m_isWhiteAI = Settings::b(Setting::ENGINE_WHITE_AI);
     m_isBlackAI = Settings::b(Setting::ENGINE_BLACK_AI);
+    if (!m_isWhiteAI && !m_isBlackAI) {
+        m_isReady = true;
+    }
 
     // Detect promo
     for (int i = 0; i < 16; i++) {
@@ -42,7 +47,7 @@ GameManager::GameManager(std::string_view fen)
             Index index = (i % 8) + 56;
             if (m_board.Pieces()[index].Type() == Enums::Type::Pawn) {
                 m_promotionSquare = index;
-                m_isWhiteTurn = !m_isWhiteTurn;
+                m_isWhiteTurn     = !m_isWhiteTurn;
                 break;
             }
         } else {
@@ -50,7 +55,7 @@ GameManager::GameManager(std::string_view fen)
             Index index = (i % 8);
             if (m_board.Pieces()[index].Type() == Enums::Type::Pawn) {
                 m_promotionSquare = index;
-                m_isWhiteTurn = !m_isWhiteTurn;
+                m_isWhiteTurn     = !m_isWhiteTurn;
                 break;
             }
         }
@@ -58,6 +63,36 @@ GameManager::GameManager(std::string_view fen)
 }
 
 GameManager::~GameManager() {}
+
+static void EngineStart(Pipes::ID& id, const std::string& path)
+{
+    id = Pipes::Start(path);
+    if (!Pipes::IsValid(id)) {
+        ErrorPrintln("GameManager::EngineStart: Invalid Pipe created for path: {}", path);
+        return;
+    }
+
+    Pipes::Read(id, true);
+    std::println("Loaded: {}", path);
+}
+
+void GameManager::IsReady()
+{
+    // Already ready
+    if (m_isReady) {
+        return;
+    }
+    m_isReady = true;
+
+    // Get ready
+    std::jthread wEngine, bEngine;
+    if (m_isWhiteAI) {
+        wEngine = std::jthread(EngineStart, std::ref(m_whiteID), Settings::s(Setting::ENGINE_WHITE_PATH));
+    }
+    if (m_isBlackAI) {
+        bEngine = std::jthread(EngineStart, std::ref(m_blackID), Settings::s(Setting::ENGINE_BLACK_PATH));
+    }
+}
 
 // ----- Read -----
 
@@ -101,6 +136,13 @@ void GameManager::Update(std::string_view move)
     }
 
     if (move.length() < 2) {
+        // Check for engine ops
+        if (m_isWhiteTurn && m_isWhiteAI) {
+            Update(Pipes::Read(m_whiteID, false), false);
+        }
+        else if (!m_isWhiteTurn && m_isBlackAI) {
+            Update(Pipes::Read(m_blackID, false), false);
+        }
         return;
     }
 

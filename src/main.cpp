@@ -1,17 +1,3 @@
-/*------------------------------
-
-===== TODO =====
-
-Renderer:
-- Texture resizing for FixSize
-
-Board:
-- MakeMove needs to validate
-- Needs piece movement
-- Move calculation logic
-
-------------------------------*/
-
 #include <cstdio>
 #include <cstring>
 #include <vector>
@@ -20,6 +6,7 @@ Board:
 
 #include "Constants.h"
 #include "Menus.h"
+#include "Pipes/Pipes.h"
 #include "Settings.h"
 #include "Utils.h"
 
@@ -53,10 +40,6 @@ int main(void)
     Enums::Screen currentScreen  = Enums::Screen::Menu;
     bool          shouldExitGame = false;
     while (!WindowShouldClose() && !shouldExitGame) {
-        // Drawing
-        BeginDrawing();
-        ClearBackground(BLACK);
-
         if (IsKeyPressed(KEY_D)) {
             inDebugMode = !inDebugMode;
         }
@@ -68,6 +51,10 @@ int main(void)
                 SetExitKey(KEY_NULL);
             }
         }
+
+        // Drawing
+        BeginDrawing();
+        ClearBackground(BLACK);
 
         switch (currentScreen) {
         case Enums::Screen::Quit: {
@@ -99,7 +86,7 @@ int main(void)
             Vector2 pos  = Utils::CenterText(text, font, fontSize, 1.f,
                                              {GetScreenWidth() / 2.f, GetScreenHeight() / 2.f});
 
-            DrawText(text, pos.x, pos.y, fontSize, WHITE);
+            DrawTextEx(font, text, pos, fontSize, 1.f, WHITE);
             break;
         }
         }
@@ -112,9 +99,15 @@ int main(void)
     }
 
     // Cleanup
+
+    int retCode = 0;
+
     CloseWindow();
+    Pipes::StopAll();
+    if (!Settings::SaveSettings()) {
+        ErrorPrintln("Failed to save settings.");
+        retCode |= 1;
+    }
 
-    Settings::SaveSettings();
-
-    return 0;
+    return retCode;
 }

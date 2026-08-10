@@ -1,5 +1,6 @@
 #include "Pipes/Pipes.h"
 
+#include <atomic>
 #include <vector>
 
 // clang-format off
@@ -13,28 +14,29 @@
 
 #include <print>
 
-static u8   s_newId              = 0;
-static bool s_engineRunning[255] = {};
+std::atomic<Pipes::ID> s_newId              = 0;
+bool                   s_engineRunning[255] = {};
 
 namespace Pipes {
 
-u8 Start(const std::string& path)
+Pipes::ID Start(const std::string& path)
 {
-    u8   id      = ++s_newId;
-    bool success = Platform::Start(id, path);
+    Pipes::ID id        = ++s_newId;
+    s_engineRunning[id] = true;
+    bool success        = Platform::Start(id, path);
 
-    if (success) {
-        s_engineRunning[id] = true;
-    } else {
+    if (!success) {
         Pipes::Stop(id);
+        --s_newId;
+        id = Pipes::ID_INVALID;
     }
 
     return id;
 }
 
-bool IsValid(u8 id) { return id; }
+bool IsValid(Pipes::ID id) { return id != Pipes::ID_INVALID; }
 
-std::string Read(u8 id, bool isBlocking)
+std::string Read(Pipes::ID id, bool isBlocking)
 {
     if (!s_engineRunning[id]) {
         return "";
@@ -43,7 +45,7 @@ std::string Read(u8 id, bool isBlocking)
     return Platform::Read(id, isBlocking);
 }
 
-bool Write(u8 id, const std::string& data)
+bool Write(Pipes::ID id, const std::string& data)
 {
     if (!s_engineRunning[id]) {
         return false;
@@ -52,7 +54,7 @@ bool Write(u8 id, const std::string& data)
     return Platform::Write(id, data);
 }
 
-bool Stop(u8 id)
+bool Stop(Pipes::ID id)
 {
     if (!s_engineRunning[id]) {
         return true;
