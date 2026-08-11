@@ -22,7 +22,11 @@ bool IsScreenSwapped(Enums::Screen screen)
 
 int main(void)
 {
+#ifdef NDEBUG
+    Utils::SetLogLevel(Utils::LogLevel::PRINT);
+#else
     Utils::SetLogLevel(Utils::LogLevel::INFO);
+#endif
     Settings::LoadSettings();
 
     // Prepare window

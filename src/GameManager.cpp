@@ -212,7 +212,7 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
 
     // Prepare state information
     if (passedMove.length() >= 3) {
-        m_currentMove = passedMove;
+        m_currentMove = Convert::CastleToMove(passedMove, Player());
     } else {
         m_currentMove += passedMove;
     }
@@ -234,11 +234,15 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
     }
 
     // Try to play the move
-    bool moveCheck = CheckMove(m_currentMove);
-    if (moveCheck) {
+    bool validMove = CheckMove(m_currentMove);
+    if (validMove) {
         OnValidMove(m_currentMove);
     } else {
-        CheckForPromotion(passedMove);
+        // If we have a promotion, no need for reselection
+        CheckForPromotion(m_currentMove);
+        if (Utils::IsValidIndex(m_promotionSquare)) {
+            return;
+        }
     }
 
     // Prepare indexes for reselection
@@ -251,12 +255,12 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
 
     // Try to reselect
     bool isSameIndex = (start == end);
-    if (!moveCheck && tryReselect && !isSameIndex) {
+    if (!validMove && tryReselect && !isSameIndex) {
         Update(passedMove, false);
     }
 }
 
-bool GameManager::CheckMove(std::string& move)
+bool GameManager::CheckMove(std::string_view move)
 {
     Index    start  = Convert::MoveToIndex(move);
     Index    endIdx = Convert::MoveToIndex(move.substr(2));
@@ -312,32 +316,34 @@ void GameManager::OnValidMove(std::string_view move)
 
 void GameManager::CheckForPromotion(std::string_view move)
 {
-    move               = move.substr(2);
-    Index        index = Convert::MoveToIndex(move);
-    const Piece& piece = m_board.Pieces()[index];
+    Index        start = Convert::MoveToIndex(move);
+    Index        end   = Convert::MoveToIndex(move.substr(2));
+    const Piece& piece = m_board.Pieces()[start];
 
     if (piece.Type() != Enums::Type::Pawn) {
         return;
     }
 
-    if ((index / 8) == 0 && piece.Colour() == Enums::Colour::Black) {
-        m_promotionSquare = index;
-    } else if ((index / 8) == 7 && piece.Colour() == Enums::Colour::White) {
-        m_promotionSquare = index;
+    if ((end / 8) == 0 && piece.Colour() == Enums::Colour::Black) {
+        m_promotionSquare = end;
+        m_possibleMoves   = MoveGen::INVALID;
+    } else if ((end / 8) == 7 && piece.Colour() == Enums::Colour::White) {
+        m_promotionSquare = end;
+        m_possibleMoves   = MoveGen::INVALID;
     } else {
         m_promotionSquare = 64;
     }
 
-    ManagePromotion(move.substr(2));
+    // Only if it contains promotion details
+    if (move.length() % 2 == 1) {
+        ManagePromotion(move.substr(2));
+    }
 }
 
 void GameManager::ManagePromotion(std::string_view move)
 {
-    constexpr u8 TOTAL_PROMOTIONS = 4;
-    // constexpr Enums::Type PROMOTIONS[TOTAL_PROMOTIONS] = {Enums::Type::Queen, Enums::Type::Rook,
-    //                                                       Enums::Type::Bishop,
-    //                                                       Enums::Type::Knight};
-    constexpr const char* PROMOTIONS_CHAR = "qrbn";
+    constexpr u8          TOTAL_PROMOTIONS = 4;
+    constexpr const char* PROMOTIONS_CHAR  = "qrbn";
 
     if (move.length() == 0) {
         return;
@@ -353,22 +359,24 @@ void GameManager::ManagePromotion(std::string_view move)
 
         // Determine the type
         size_t i;
-        for (i = 0; i < sizeof(PROMOTIONS_CHAR); i++) {
+        for (i = 0; i < TOTAL_PROMOTIONS; i++) {
             if (promotion == PROMOTIONS_CHAR[i]) {
                 break;
             }
         }
 
-        if (i == sizeof(PROMOTIONS_CHAR)) {
+        if (i == TOTAL_PROMOTIONS) {
             WarningPrintln("GameManager::ManagePromotion: Invalid promotion type: {}", promotion);
             return;
         }
 
-        if (m_moves[m_moves.size() - 1].length() == 4) {
-            m_moves[m_moves.size() - 1] += PROMOTIONS_CHAR[i];
+        if (!m_board.MakeMove(move)) {
+            WarningPrintln("GameManager::ManagePromotion: Board could not promote: {}", move);
+            return;
         }
+
         m_promotionSquare = 64;
-        m_moveGen.Generate(m_board, Player());
+        OnValidMove(move);
 
         return;
     }
@@ -379,15 +387,13 @@ void GameManager::ManagePromotion(std::string_view move)
     for (u8 i = 0; i < TOTAL_PROMOTIONS; i++) {
         Index index = m_promotionSquare + (sign * (i8)(i * 8));
         if (clicked == index) {
-            // if (m_board.PromotePawn(PROMOTIONS[i])) {
-            //     if (m_moves[m_moves.size() - 1].length() == 4) {
-            //         m_moves[m_moves.size() - 1] += PROMOTIONS_CHAR[i];
-            //     }
-            //     m_promotionSquare = 64;
-            //     m_moveGen.Generate(m_board, Player());
-            // } else {
-            //     WarningPrintln("GameManager::ManagePromotion: Could not promote pawn.");
-            // }
+            std::string promo = m_currentMove + PROMOTIONS_CHAR[i];
+            if (m_board.MakeMove(promo)) {
+                m_promotionSquare = 64;
+                OnValidMove(promo);
+            } else {
+                WarningPrintln("GameManager::ManagePromotion: Could not promote pawn.");
+            }
             return;
         }
     }

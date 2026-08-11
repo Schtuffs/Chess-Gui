@@ -89,7 +89,7 @@ private:
     void Update(std::string_view move, bool tryReselect);
     void EngineUpdate(Pipes::ID id);
 
-    bool CheckMove(std::string& move);
+    bool CheckMove(std::string_view move);
     bool CheckPieceSelectable(Index index);
     void OnValidMove(std::string_view move);
 

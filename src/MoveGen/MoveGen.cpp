@@ -9,7 +9,7 @@
 
 // ----- Creation ----- Destruction -----
 
-MoveGen::MoveGen() : m_hasGenerated(false) { Magic::GetKingAttacks(1, 2, true); }
+MoveGen::MoveGen() : m_hasGenerated(false) {}
 
 // ----- Read -----
 
@@ -56,32 +56,35 @@ void MoveGen::Generate(const Board& board, Enums::Colour colour)
 void MoveGen::Reset()
 {
     // Parameters
-    m_hasGenerated = false;
-    m_genColour    = Enums::Colour::Invalid;
-    m_board        = nullptr;
+    m_genColour = Enums::Colour::Invalid;
+    m_board     = nullptr;
 
     // Calculation items
-    m_pins.fill(MoveGen::INVALID);
-    m_pseudoLegal.fill(MoveGen::INVALID);
-    m_friendly  = 0;
-    m_enemies   = 0;
-    m_occupied  = 0;
+    m_generatingAttacks = false;
+    m_inCheck           = false;
+    m_inDoubleCheck     = false;
+
+    m_friendly = 0;
+    m_enemies  = 0;
+    m_occupied = 0;
+
+    m_bishops   = 0;
+    m_kings     = 0;
+    m_knights   = 0;
+    m_pawns     = 0;
+    m_queens    = 0;
+    m_rooks     = 0;
     m_enPassant = 0;
 
-    m_bishops = 0;
-    m_kings   = 0;
-    m_knights = 0;
-    m_pawns   = 0;
-    m_queens  = 0;
-    m_rooks   = 0;
+    m_attacks     = 0;
+    m_kingAttacks = 0;
 
-    m_attacks       = 0;
-    m_kingAttacks   = 0;
-    m_inCheck       = false;
-    m_inDoubleCheck = false;
+    m_pins.fill(0);
+    m_pseudoLegal.fill(0);
 
     // Output items
-    m_legal.fill(MoveGen::INVALID);
+    m_hasGenerated = false;
+    m_legal.fill(0);
     m_totalLegal = 0;
 }
 
@@ -306,12 +309,12 @@ BitBoard MoveGen::GenPawn(const Piece& piece) const noexcept
     // Gen atttacks first
     if (m_generatingAttacks) {
         // Left attack
-        if (((m1 >> 1) & m_friendly) && file != 0) {
+        if (file != 0) {
             bb |= m1 >> 1;
         }
 
         // Right attack
-        if (((m1 << 1) & m_friendly) && file != 7) {
+        if (file != 7) {
             bb |= m1 << 1;
         }
 
@@ -415,9 +418,27 @@ void MoveGen::GenAttacks()
             Index    pinPos;
             bool     isPinning = false;
 
+            // No leftside wrap
+            if (kingFile == 0 && ((kingPos + offset) % 8) == 7) {
+                continue;
+            }
+
+            // No rightside wrap
+            if (kingFile == 7 && ((kingPos + offset) % 8) == 0) {
+                continue;
+            }
+
             // Loop through rays
+            bool lastCheck = false;
             for (i8 sq = kingPos + offset; 0 <= sq && sq < 64; sq += offset) {
-                if ((kingFile == 0) && ((sq % 8) == 0)) {
+                // Check lastcheck
+                if (lastCheck) {
+                    break;
+                }
+
+                // Set lastcheck
+                if (sq % 8 == 0 || sq % 8 == 7) {
+                    lastCheck = true;
                 }
 
                 BitBoard bb = Convert::IndexToBitBoard(sq);
@@ -437,7 +458,7 @@ void MoveGen::GenAttacks()
 
                 // Pinning, check for pinner
                 if (isPinning) {
-                    // No enemy, continue
+                    // No friendly, continue
                     if ((bb & m_enemies) == 0) {
                         continue;
                     }

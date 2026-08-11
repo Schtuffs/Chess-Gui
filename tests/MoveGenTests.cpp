@@ -209,7 +209,7 @@ static void WhiteLondonTests()
 
 static void WhitePuzzleTests()
 {
-    constexpr const char* fen = "2kr2nr/B5p1/2p5/1pb1p3/4P1b1/1BN3P1/PP6/R4RK w - - 1 2";
+    constexpr const char* fen = "2kr2nr/B5p1/2p5/1pb1p3/4P1b1/1BN3P1/PP6/R4RK1 w - - 1 2";
 
     TEST("MoveGen::Generate: puzzle king in check - move dark bishop", [&fen]() {
         BitBoard    expected = 0x00'01'00'04'00'00'00'00;
@@ -402,6 +402,17 @@ static void CheckTests()
         Assert::Equal(actual, expected);
     });
 
+    TEST("MoveGen::Generate: queen check - bishop", []() {
+        BitBoard expected = 0x20'40'00'00'00'00'00'00;
+        Board    b("rnbqk1Q1/ppppp1bp/8/8/8/8/PPPP1PPP/RNBQKBNR b KQq - 0 6");
+
+        MoveGen gen;
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(54);
+
+        Assert::Equal(actual, expected);
+    });
+
     TEST("MoveGen::Generate: queen checkmate - pawn", []() {
         BitBoard expected = 0x00'01'00'00'00'00'00'00;
         Board    b("rnbqkbnr/ppppp2p/5p2/6pQ/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 3");
@@ -546,8 +557,8 @@ static void MiscTests()
         Assert::Equal(actual, expected);
     });
 
-    TEST("MoveGen::Generate: Random rook", [](){
-        BitBoard expected = 0x00'80'f0'80'80'80'00'00;
+    TEST("MoveGen::Generate: random rook", [](){
+        BitBoard expected = 0x00'00'80'80'80'f0'80'00;
         Board b("2k2r2/ppp3pp/3b4/8/1P6/2P1R2r/P2P1P1P/R1B3K1 b - - 2 18");
         MoveGen gen;
 

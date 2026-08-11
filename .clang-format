@@ -9,6 +9,7 @@ AlignConsecutiveDeclarations: Consecutive
 AlignConsecutiveAssignments: Consecutive
 
 # NamespaceIndentation: All
+InsertBraces: true
 BreakBeforeBraces: Custom
 BraceWrapping:
     AfterFunction: true
