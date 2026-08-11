@@ -6,6 +6,8 @@
 #include "Settings.h"
 #include "Utils.h"
 
+constexpr const char* DEPTH_COMMAND = "go depth 10";
+
 // ----- Creation / Destruction -----
 
 GameManager::GameManager(std::string_view fen)
@@ -72,8 +74,11 @@ static void EngineStart(Pipes::ID& id, const std::string& path)
         return;
     }
 
-    Pipes::Read(id, true);
-    std::println("Loaded: {}", path);
+    DebugPrintln("{}", Pipes::Read(id, true));
+    Pipes::Write(id, "uci");
+    DebugPrintln("{}", Pipes::Read(id, true));
+    Pipes::Write(id, "isready");
+    DebugPrintln("{}", Pipes::Read(id, true));
 }
 
 void GameManager::IsReady()
@@ -85,12 +90,22 @@ void GameManager::IsReady()
     m_isReady = true;
 
     // Get ready
-    std::jthread wEngine, bEngine;
     if (m_isWhiteAI) {
-        wEngine = std::jthread(EngineStart, std::ref(m_whiteID), Settings::s(Setting::ENGINE_WHITE_PATH));
+        std::thread wEngine(EngineStart, std::ref(m_whiteID),
+                            Settings::s(Setting::ENGINE_WHITE_PATH));
+        wEngine.join();
+        Pipes::Write(m_whiteID, "position startpos");
+        Pipes::Write(m_whiteID, DEPTH_COMMAND);
     }
     if (m_isBlackAI) {
-        bEngine = std::jthread(EngineStart, std::ref(m_blackID), Settings::s(Setting::ENGINE_BLACK_PATH));
+        std::thread bEngine(EngineStart, std::ref(m_blackID),
+                            Settings::s(Setting::ENGINE_BLACK_PATH));
+        bEngine.join();
+        if (!m_isWhiteTurn) {
+            std::string command = "position startpos moves" + AllMoves();
+            Pipes::Write(m_blackID, command);
+            Pipes::Write(m_blackID, DEPTH_COMMAND);
+        }
     }
 }
 
@@ -135,14 +150,17 @@ void GameManager::Update(std::string_view move)
         return;
     }
 
+    // Check for engine ops
+    if (m_isWhiteTurn && m_isWhiteAI) {
+        EngineUpdate(m_whiteID);
+        return;
+    }
+    if (!m_isWhiteTurn && m_isBlackAI) {
+        EngineUpdate(m_blackID);
+        return;
+    }
+
     if (move.length() < 2) {
-        // Check for engine ops
-        if (m_isWhiteTurn && m_isWhiteAI) {
-            Update(Pipes::Read(m_whiteID, false), false);
-        }
-        else if (!m_isWhiteTurn && m_isBlackAI) {
-            Update(Pipes::Read(m_blackID, false), false);
-        }
         return;
     }
 
@@ -155,6 +173,28 @@ void GameManager::Update(std::string_view move)
 }
 
 // ----- Hidden -----
+
+void GameManager::EngineUpdate(Pipes::ID id)
+{
+    constexpr const char SEARCH[] = "bestmove";
+    std::string          str      = Pipes::Read(id, false);
+    u64                  index    = str.find(SEARCH);
+    if (index == std::string::npos) {
+        return;
+    }
+
+    index += sizeof(SEARCH);
+    str       = str.substr(index);
+    u64 space = str.find(' ');
+    if (space == std::string::npos) {
+        space = 4;
+    }
+
+    str = str.substr(0, space);
+    if (str.length() >= 4) {
+        Update(str, false);
+    }
+}
 
 void GameManager::Update(std::string_view passedMove, bool tryReselect)
 {
@@ -197,6 +237,8 @@ void GameManager::Update(std::string_view passedMove, bool tryReselect)
     bool moveCheck = CheckMove(m_currentMove);
     if (moveCheck) {
         OnValidMove(m_currentMove);
+    } else {
+        CheckForPromotion(passedMove);
     }
 
     // Prepare indexes for reselection
@@ -243,7 +285,27 @@ void GameManager::OnValidMove(std::string_view move)
     Settings::s(Setting::GAME_FEN, Fen().data());
     Settings::s(Setting::GAME_MOVES, AllMoves());
 
-    CheckForPromotion(move);
+    if (m_isWhiteTurn) {
+        if (m_isWhiteAI) {
+            std::string command = "position startpos moves " + AllMoves();
+            if (!Pipes::Write(m_whiteID, command)) {
+                ErrorPrintln("GameManager::OnValidMove: Failed to write to white engine.");
+            }
+            if (!Pipes::Write(m_whiteID, DEPTH_COMMAND)) {
+                ErrorPrintln("GameManager::OnValidMove: Failed to write to white engine.");
+            }
+        }
+    } else {
+        if (m_isBlackAI) {
+            std::string command = "position startpos moves " + AllMoves();
+            if (!Pipes::Write(m_blackID, command)) {
+                ErrorPrintln("GameManager::OnValidMove: Failed to write to black engine.");
+            }
+            if (!Pipes::Write(m_blackID, DEPTH_COMMAND)) {
+                ErrorPrintln("GameManager::OnValidMove: Failed to write to black engine.");
+            }
+        }
+    }
 
     m_moveGen.Generate(m_board, Player());
 }
@@ -271,10 +333,11 @@ void GameManager::CheckForPromotion(std::string_view move)
 
 void GameManager::ManagePromotion(std::string_view move)
 {
-    constexpr u8          TOTAL_PROMOTIONS             = 4;
-    constexpr Enums::Type PROMOTIONS[TOTAL_PROMOTIONS] = {Enums::Type::Queen, Enums::Type::Rook,
-                                                          Enums::Type::Bishop, Enums::Type::Knight};
-    constexpr const char* PROMOTIONS_CHAR              = "qrbn";
+    constexpr u8 TOTAL_PROMOTIONS = 4;
+    // constexpr Enums::Type PROMOTIONS[TOTAL_PROMOTIONS] = {Enums::Type::Queen, Enums::Type::Rook,
+    //                                                       Enums::Type::Bishop,
+    //                                                       Enums::Type::Knight};
+    constexpr const char* PROMOTIONS_CHAR = "qrbn";
 
     if (move.length() == 0) {
         return;
@@ -301,11 +364,6 @@ void GameManager::ManagePromotion(std::string_view move)
             return;
         }
 
-        if (!m_board.PromotePawn(PROMOTIONS[i])) {
-            WarningPrintln("GameManager::ManagePromotion: Could not promote pawn.");
-            return;
-        }
-
         if (m_moves[m_moves.size() - 1].length() == 4) {
             m_moves[m_moves.size() - 1] += PROMOTIONS_CHAR[i];
         }
@@ -321,15 +379,15 @@ void GameManager::ManagePromotion(std::string_view move)
     for (u8 i = 0; i < TOTAL_PROMOTIONS; i++) {
         Index index = m_promotionSquare + (sign * (i8)(i * 8));
         if (clicked == index) {
-            if (m_board.PromotePawn(PROMOTIONS[i])) {
-                if (m_moves[m_moves.size() - 1].length() == 4) {
-                    m_moves[m_moves.size() - 1] += PROMOTIONS_CHAR[i];
-                }
-                m_promotionSquare = 64;
-                m_moveGen.Generate(m_board, Player());
-            } else {
-                WarningPrintln("GameManager::ManagePromotion: Could not promote pawn.");
-            }
+            // if (m_board.PromotePawn(PROMOTIONS[i])) {
+            //     if (m_moves[m_moves.size() - 1].length() == 4) {
+            //         m_moves[m_moves.size() - 1] += PROMOTIONS_CHAR[i];
+            //     }
+            //     m_promotionSquare = 64;
+            //     m_moveGen.Generate(m_board, Player());
+            // } else {
+            //     WarningPrintln("GameManager::ManagePromotion: Could not promote pawn.");
+            // }
             return;
         }
     }

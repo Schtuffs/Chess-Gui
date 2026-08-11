@@ -350,9 +350,8 @@ void Menu::InGame(Enums::Screen& screen)
             gameManager = new GameManager(Settings::s(Setting::GAME_FEN));
         }
         screen = Enums::Screen::Game;
+        gameManager->IsReady();
     }
-
-    gameManager->IsReady();
 
     if (IsKeyPressed(KEY_F)) {
         isWhitePerspective = !isWhitePerspective;

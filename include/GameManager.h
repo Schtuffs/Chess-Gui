@@ -87,6 +87,7 @@ private:
     Pipes::ID                m_whiteID, m_blackID;
 
     void Update(std::string_view move, bool tryReselect);
+    void EngineUpdate(Pipes::ID id);
 
     bool CheckMove(std::string& move);
     bool CheckPieceSelectable(Index index);

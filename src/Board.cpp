@@ -18,6 +18,7 @@ Board::Board(std::string_view fen)
     }
     DebugPrintln("Board::Board: Fen: {}", m_fen);
 
+    // Get pieces
     u8 index = 0;
     for (u64 rank = 8 - 1; rank < 8; rank--) {
         for (u64 file = 0; file < 8; file++) {
@@ -34,44 +35,18 @@ Board::Board(std::string_view fen)
                 break;
             }
 
-            Enums::Colour colour;
-            if (isupper(c)) {
-                colour = Enums::Colour::White;
-            } else {
-                colour = Enums::Colour::Black;
-            }
-            c = tolower(c);
-
-            switch (c) {
-            case 'b':
-                m_pieces[i] = Piece(colour, Enums::Type::Bishop, i);
-                break;
-            case 'k':
-                m_pieces[i] = Piece(colour, Enums::Type::King, i);
-                break;
-            case 'n':
-                m_pieces[i] = Piece(colour, Enums::Type::Knight, i);
-                break;
-            case 'q':
-                m_pieces[i] = Piece(colour, Enums::Type::Queen, i);
-                break;
-            case 'p':
-                m_pieces[i] = Piece(colour, Enums::Type::Pawn, i);
-                break;
-            case 'r':
-                m_pieces[i] = Piece(colour, Enums::Type::Rook, i);
-                break;
-            default:
-                m_pieces[i] = Piece();
-                break;
-            }
+            m_pieces[i] = Piece::FromChar(c, i);
         }
     }
 
+    // Get player
     m_playerColour = (m_fen[index + 1] == 'w' ? Enums::Colour::White : Enums::Colour::Black);
+
+    // Get castling
     std::string_view castling = m_fen.substr(index + 3);
-    index                     = 0;
+
     char c;
+    index = 0;
     while ((c = castling[index++]) != ' ') {
         switch (c) {
         case 'K':
@@ -89,38 +64,18 @@ Board::Board(std::string_view fen)
         }
     }
 
+    // Get en passant
     std::string_view enPassant = castling.substr(index);
     if (enPassant[0] != '-') {
         m_enPassant           = Convert::MoveToIndex(enPassant);
         m_pieces[m_enPassant] = Piece(m_enPassant);
     }
 
+    // Get move counts
     std::string_view halfMoves = enPassant.substr(enPassant.find(' ') + 1);
-
     std::string_view fullMoves = halfMoves.substr(halfMoves.find(' ') + 1);
     if (fullMoves.length() == 1 && fullMoves[0] == '1' && m_playerColour == Enums::Colour::White) {
         m_fen[m_fen.length() - 1] = '0';
-    }
-
-    // Detect promo
-    for (int i = 0; i < 16; i++) {
-        if (i / 8 == 1) {
-            // White promo
-            Index index = (i % 8) + 56;
-            if (m_pieces[index].Type() == Enums::Type::Pawn) {
-                m_promotion    = index;
-                m_playerColour = Utils::SwapColour(m_playerColour);
-                break;
-            }
-        } else {
-            // Black promo
-            Index index = (i % 8);
-            if (m_pieces[index].Type() == Enums::Type::Pawn) {
-                m_promotion    = index;
-                m_playerColour = Utils::SwapColour(m_playerColour);
-                break;
-            }
-        }
     }
 }
 
@@ -143,23 +98,22 @@ bool Board::MakeMove(std::string_view move)
     if (move.length() < 4) {
         return false;
     }
-    Index startPos = Convert::MoveToIndex(move);
-    Index endPos   = Convert::MoveToIndex(move.substr(2));
 
     // Attempt to play the move
-    if (!ValidateMove(startPos, endPos)) {
+    if (!ValidateMove(move)) {
         InfoPrintln("Board::MakeMove: Could not play move: {}", move);
         return false;
     }
 
     // Perform specific piece based functions
     MoveEnPassant(move);
-    MovePromotion(move);
     MoveCastling(move);
 
     // Play the move and swap turns
-    Piece piece = m_pieces[startPos];
-    Piece other = m_pieces[endPos];
+    Index startPos = Convert::MoveToIndex(move);
+    Index endPos   = Convert::MoveToIndex(move.substr(2));
+    Piece piece    = m_pieces[startPos];
+    Piece other    = m_pieces[endPos];
     MovePiece(move);
     piece = m_pieces[endPos];
     bool captureOrPawn =
@@ -171,44 +125,13 @@ bool Board::MakeMove(std::string_view move)
     return true;
 }
 
-bool Board::PromotePawn(Enums::Type type)
-{
-    if (!Utils::IsValidIndex(m_promotion)) {
-        ErrorPrintln("Board::PromotePawn: Attempting promotion without valid pawn.");
-        return false;
-    }
-
-    // Piece must be pawn
-    Piece& piece = m_pieces[m_promotion];
-    if (!piece.IsValid() || piece.Type() != Enums::Type::Pawn) {
-        ErrorPrintln("Board::PromotePawn: Promotion piece is not pawn: {}", piece.ToString());
-        return false;
-    }
-
-    // Valid promotion type
-    if (type != Enums::Type::Bishop && type != Enums::Type::Knight && type != Enums::Type::Queen &&
-        type != Enums::Type::Rook) {
-        ErrorPrintln("Board::PromotePawn: Received invalid promotion type: {}",
-                     Enums::ToString::Type[(u64)type]);
-        return false;
-    }
-
-    // Add the piece
-    InfoPrintln("Board::PromotePawn: Promoting: {} to {}.", piece.ToString(),
-                Enums::ToString::Type[(u8)type]);
-    piece = Piece(piece.Colour(), type, piece.Position());
-    m_playerColour = Utils::SwapColour(m_playerColour);
-    m_promotion = INVALID_ENPASSANT;
-
-    m_fen = RecalculateFen();
-    DebugPrintln("Board::PromotePawn: Updated fen: {}", m_fen);
-    return true;
-}
-
 // ----- Update ----- Hidden -----
 
-bool Board::ValidateMove(Index start, Index end)
+bool Board::ValidateMove(std::string_view move)
 {
+    Index start = Convert::MoveToIndex(move);
+    Index end   = Convert::MoveToIndex(move.substr(2));
+
     // Check indexes
     if (!Utils::IsValidIndex(start) || !Utils::IsValidIndex(end)) {
         WarningPrintln("Board::ValidateMove: Invalid start or end pos: {}, {}", start, end);
@@ -229,6 +152,61 @@ bool Board::ValidateMove(Index start, Index end)
         return false;
     }
 
+    if (piece.Type() == Enums::Type::Pawn) {
+        if (!ValidatePromotion(move)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool Board::ValidatePromotion(std::string_view move)
+{
+    // Gather information
+    Index  start = Convert::MoveToIndex(move);
+    Index  end   = Convert::MoveToIndex(move.substr(2));
+    Piece& piece = m_pieces[start];
+
+    // Must be pawn to check promo
+    if (piece.Type() != Enums::Type::Pawn) {
+        return true;
+    }
+
+    // Check if promoting
+    Index rank = end / 8;
+    if (piece.Colour() == Enums::Colour::White && rank != 7) {
+        return true;
+    }
+    if (piece.Colour() == Enums::Colour::Black && rank != 0) {
+        return true;
+    }
+
+    // Must have promo info
+    if (move.length() < 5) {
+        return false;
+    }
+
+    // Turn the piece into promo
+    char promo = tolower(move[4]);
+    switch (promo) {
+    case 'q':
+        piece = Piece(piece.Colour(), Enums::Type::Queen, piece.Position());
+        break;
+    case 'r':
+        piece = Piece(piece.Colour(), Enums::Type::Rook, piece.Position());
+        break;
+    case 'b':
+        piece = Piece(piece.Colour(), Enums::Type::Bishop, piece.Position());
+        break;
+    case 'n':
+        piece = Piece(piece.Colour(), Enums::Type::Knight, piece.Position());
+        break;
+    default:
+        WarningPrintln("Board::ValidatePromotion: Invalid promotion type: {}", promo);
+        return false;
+    }
+    
     return true;
 }
 
@@ -277,30 +255,6 @@ void Board::MoveEnPassant(std::string_view move)
     if (end == enPassant) {
         // Eliminate the peasant
         m_pieces[enPassant - offset] = Piece();
-    }
-}
-
-void Board::MovePromotion(std::string_view move)
-{
-    // Gather information
-    Index start = Convert::MoveToIndex(move);
-    Index end   = Convert::MoveToIndex(move.substr(2));
-    Piece piece = m_pieces[start];
-    Piece other = m_pieces[end];
-    (void)other;
-
-    // Must be pawn
-    if (piece.Type() != Enums::Type::Pawn) {
-        return;
-    }
-
-    // Check rank
-    Index rank = end / 8;
-    if ((rank == 0 && piece.Colour() == Enums::Colour::Black) ||
-        (rank == 7 && piece.Colour() == Enums::Colour::White)) {
-
-        m_playerColour = Utils::SwapColour(m_playerColour);
-        m_promotion = end;
     }
 }
 

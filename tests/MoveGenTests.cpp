@@ -545,6 +545,28 @@ static void MiscTests()
 
         Assert::Equal(actual, expected);
     });
+
+    TEST("MoveGen::Generate: Random rook", [](){
+        BitBoard expected = 0x00'80'f0'80'80'80'00'00;
+        Board b("2k2r2/ppp3pp/3b4/8/1P6/2P1R2r/P2P1P1P/R1B3K1 b - - 2 18");
+        MoveGen gen;
+
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(23);
+
+        Assert::Equal(actual, expected);
+    });
+
+    TEST("MoveGen::Generate: Random queen", [](){
+        BitBoard expected = 0x00'00'00'00'00'10'38'00;
+        Board b("8/4Np1k/p4n2/1p2p1p1/2P1P1Pp/P3QP2/1Pq3KP/8 w - - 6 42");
+        MoveGen gen;
+
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(20);
+
+        Assert::Equal(actual, expected);
+    });
 }
 
 //

@@ -366,6 +366,7 @@ void MoveGen::AddAttacks(const Piece& piece, Index king, BitBoard moves)
         m_kingAttacks |= Magic::GetKingAttacks(piece.Position(), king, true);
         break;
     case Enums::Type::Pawn:
+        m_kingAttacks |= moves;
         break;
     case Enums::Type::Rook:
         m_kingAttacks |= Magic::GetKingAttacks(piece.Position(), king, true);
