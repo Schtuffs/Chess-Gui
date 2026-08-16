@@ -94,17 +94,36 @@ void GameManager::IsReady()
         std::thread wEngine(EngineStart, std::ref(m_whiteID),
                             Settings::s(Setting::ENGINE_WHITE_PATH));
         wEngine.join();
-        Pipes::Write(m_whiteID, "position startpos");
-        Pipes::Write(m_whiteID, DEPTH_COMMAND);
+        std::string position = "position startpos";
+        if (!m_moves.empty()) {
+            position += " moves ";
+            position += AllMoves();
+        }
+        if (m_isWhiteTurn) {
+            if (!Pipes::Write(m_whiteID, position)) {
+                ErrorPrintln("GameManager::IsReady: Failed to write position to pipe.");
+            }
+            if (!Pipes::Write(m_whiteID, DEPTH_COMMAND)) {
+                ErrorPrintln("GameManager::IsReady: Failed to write search command to pipe.");
+            }
+        }
     }
     if (m_isBlackAI) {
         std::thread bEngine(EngineStart, std::ref(m_blackID),
                             Settings::s(Setting::ENGINE_BLACK_PATH));
         bEngine.join();
+        std::string position = "position startpos";
+        if (!m_moves.empty()) {
+            position += " moves ";
+            position += AllMoves();
+        }
         if (!m_isWhiteTurn) {
-            std::string command = "position startpos moves" + AllMoves();
-            Pipes::Write(m_blackID, command);
-            Pipes::Write(m_blackID, DEPTH_COMMAND);
+            if (!Pipes::Write(m_blackID, position)) {
+                ErrorPrintln("GameManager::IsReady: Failed to write position to pipe.");
+            }
+            if (!Pipes::Write(m_blackID, DEPTH_COMMAND)) {
+                ErrorPrintln("GameManager::IsReady: Failed to write search command to pipe.");
+            }
         }
     }
 }

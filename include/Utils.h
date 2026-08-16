@@ -180,14 +180,12 @@ void UnlockPrint(Utils::LogLevel ll);
     do {                                                                                           \
     } while (false)
 #else
-#define DebugPrintln(...)                                                                          \
-    FilePrintln(Utils::LogLevel::DEBUG, Utils::Detail::debugFile, "DEBUG:   ", __VA_ARGS__)
-#define ErrorPrintln(...)                                                                          \
-    FilePrintln(Utils::LogLevel::ERROR, Utils::Detail::errorFile, "ERROR:   ", __VA_ARGS__)
-#define InfoPrintln(...)                                                                           \
-    FilePrintln(Utils::LogLevel::INFO, Utils::Detail::infoFile, "INFO:    ", __VA_ARGS__)
-#define WarningPrintln(...)                                                                        \
-    FilePrintln(Utils::LogLevel::WARNING, Utils::Detail::warningFile, "WARNING: ", __VA_ARGS__)
+// clang-format off
+#define   DebugPrintln(...) FilePrintln(Utils::LogLevel::DEBUG,   Utils::Detail::debugFile,   "DEBUG:   ", __VA_ARGS__)
+#define   ErrorPrintln(...) FilePrintln(Utils::LogLevel::ERROR,   Utils::Detail::errorFile,   "ERROR:   ", __VA_ARGS__)
+#define    InfoPrintln(...) FilePrintln(Utils::LogLevel::INFO,    Utils::Detail::infoFile,    "INFO:    ", __VA_ARGS__)
+#define WarningPrintln(...) FilePrintln(Utils::LogLevel::WARNING, Utils::Detail::warningFile, "WARNING: ", __VA_ARGS__)
+// clang-format on
 #endif
 #define SyncPrintln(...) FilePrintln(Utils::LogLevel::PRINT, stdout, "", __VA_ARGS__)
 

@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdlib>
+#include <cstring>
 #include <tuple>
 #include <utility>
 
@@ -261,15 +262,31 @@ static SettingScreens SettingsBoard()
 
 static SettingScreens SettingsEngine()
 {
+    constexpr u64 MAX_PATH_SIZE = 200;
     PushDefaultGuiStyle();
 
     static bool isWhiteAI      = false;
     static bool isBlackAI      = false;
     static bool settingsLoaded = false;
+
+    static char* whiteEngine = nullptr;
+    static bool  whiteTyping = false;
+    static char* blackEngine = nullptr;
+    static bool  blackTyping = false;
     if (!settingsLoaded) {
         settingsLoaded = true;
         isWhiteAI      = Settings::b(Setting::ENGINE_WHITE_AI);
         isBlackAI      = Settings::b(Setting::ENGINE_BLACK_AI);
+
+        whiteTyping = false;
+        whiteEngine = new char[MAX_PATH_SIZE];
+        std::strncpy(whiteEngine, Settings::s(Setting::ENGINE_WHITE_PATH).c_str(), MAX_PATH_SIZE);
+        whiteEngine[MAX_PATH_SIZE - 1] = '\0';
+
+        blackTyping = false;
+        blackEngine = new char[MAX_PATH_SIZE];
+        std::strncpy(blackEngine, Settings::s(Setting::ENGINE_BLACK_PATH).c_str(), MAX_PATH_SIZE);
+        blackEngine[MAX_PATH_SIZE - 1] = '\0';
     }
 
     renderer.Update();
@@ -283,21 +300,31 @@ static SettingScreens SettingsEngine()
         isWhiteAI = !isWhiteAI;
         Settings::b(Setting::ENGINE_WHITE_AI, isWhiteAI);
     }
+    if (GuiTextBox(Utils::ButtonPos(1, 2, 3, 1), whiteEngine, MAX_PATH_SIZE, whiteTyping)) {
+        whiteTyping = !whiteTyping;
+    }
 
     if (Utils::ClickableButton(Utils::ButtonPos(4, 1, 3, 1),
                                (isBlackAI ? "Black: AI" : "Black: Human"), id++)) {
         isBlackAI = !isBlackAI;
         Settings::b(Setting::ENGINE_BLACK_AI, isBlackAI);
     }
+    if (GuiTextBox(Utils::ButtonPos(4, 2, 3, 1), blackEngine, MAX_PATH_SIZE, blackTyping)) {
+        blackTyping = !blackTyping;
+    }
 
     if (Utils::ClickableButton(Utils::ButtonPos(4, 6, 3, 1), "Return", id++)) {
         screen         = SETTING_MAIN;
         settingsLoaded = false;
+        Settings::s(Setting::ENGINE_WHITE_PATH, whiteEngine);
+        Settings::s(Setting::ENGINE_BLACK_PATH, blackEngine);
     }
 
     if (IsKeyPressed(KEY_ESCAPE)) {
         screen         = SETTING_MAIN;
         settingsLoaded = false;
+        Settings::s(Setting::ENGINE_WHITE_PATH, whiteEngine);
+        Settings::s(Setting::ENGINE_BLACK_PATH, blackEngine);
     }
 
     PopDefaultGuiStyle();

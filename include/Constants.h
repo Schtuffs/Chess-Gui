@@ -70,20 +70,6 @@ enum class Colour {
 };
 
 /**
- * @brief Screen state information.
- * @enum Screen
- * @date 2026-06-08
- */
-enum class Screen {
-    Quit,        /**< Quitting the game. */
-    Menu,        /**< Main menu screen. */
-    NewGame,     /**< New game options screen. */
-    Game,        /**< Playing a game screen. */
-    Multiplayer, /**< Setup multiplayer screen. */
-    Settings,    /**< Settings screen. */
-};
-
-/**
  * @brief Holds information for the type of piece.
  * @enum Type
  * @date 2026-06-08
@@ -96,6 +82,20 @@ enum class Type {
     Queen,   /**< Queen type. */
     Rook,    /**< Rook type. */
     Invalid, /**< Invalid piece. */
+};
+
+/**
+ * @brief Screen state information.
+ * @enum Screen
+ * @date 2026-06-08
+ */
+enum class Screen {
+    Quit,        /**< Quitting the game. */
+    Menu,        /**< Main menu screen. */
+    NewGame,     /**< New game options screen. */
+    Game,        /**< Playing a game screen. */
+    Multiplayer, /**< Setup multiplayer screen. */
+    Settings,    /**< Settings screen. */
 };
 
 /**

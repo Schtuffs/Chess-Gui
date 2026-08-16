@@ -147,7 +147,8 @@ bool Write(u8 id, const std::string& data)
     }
 
     DWORD written = 0;
-    BOOL success = WriteFile(s_engineStdin[id], message.c_str(), (DWORD)message.size(), &written, NULL);
+    BOOL  success =
+        WriteFile(s_engineStdin[id], message.c_str(), (DWORD)message.size(), &written, NULL);
     return (success && written == message.size());
 }
 
