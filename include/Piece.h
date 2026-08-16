@@ -2,8 +2,6 @@
 
 #include <string>
 
-#include "raylib.h"
-
 #include "Constants.h"
 
 /**
@@ -36,6 +34,9 @@ public:
      * @date 2026-06-08
      */
     Piece(Enums::Colour colour, Enums::Type type, Index index);
+
+    // Convert a char to a `Piece` with given `Index`.
+    static Piece FromChar(char c, Index i);
 
     /**
      * @brief Frees any allocated memory associated with the `Piece`.

@@ -38,21 +38,18 @@ public:
     // Try to play given move (long algebraic notation).
     bool MakeMove(std::string_view move);
 
-    // Promotes a pawn on the board to given type.
-    bool PromotePawn(Index index, Enums::Type type);
-
 private:
     std::string           m_fen;
     std::array<Piece, 64> m_pieces;
     u8                    m_castling;
-    Index                 m_enPassant, m_promotion;
+    Index                 m_enPassant;
     Enums::Colour         m_playerColour;
 
     // ----- Update -----
 
-    bool ValidateMove(Index start, Index end);
+    bool ValidateMove(std::string_view move);
+    bool ValidatePromotion(std::string_view move);
     void MovePiece(std::string_view move);
-    void MovePromotion(std::string_view move);
     void MoveEnPassant(std::string_view move);
     void MoveCastling(std::string_view move);
 

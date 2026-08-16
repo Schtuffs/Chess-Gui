@@ -21,6 +21,33 @@ Piece::Piece(Enums::Colour colour, Enums::Type type, Index pos)
 {
 }
 
+Piece Piece::FromChar(char c, Index i)
+{
+    if (!Utils::IsValidIndex(i)) {
+        return Piece();
+    }
+
+    Enums::Colour colour = (isupper(c) ? Enums::Colour::White : Enums::Colour::Black);
+
+    c = tolower(c);
+    switch (c) {
+    case 'b':
+        return Piece(colour, Enums::Type::Bishop, i);
+    case 'k':
+        return Piece(colour, Enums::Type::King, i);
+    case 'n':
+        return Piece(colour, Enums::Type::Knight, i);
+    case 'q':
+        return Piece(colour, Enums::Type::Queen, i);
+    case 'p':
+        return Piece(colour, Enums::Type::Pawn, i);
+    case 'r':
+        return Piece(colour, Enums::Type::Rook, i);
+    default:
+        return Piece();
+    }
+}
+
 Piece::~Piece() {}
 
 // ----- Read -----

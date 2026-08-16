@@ -46,92 +46,93 @@ constexpr std::string_view PATH_PIECES = "../resources/pieces";
  * @date 2026-06-08
  */
 namespace Enums {
-    /**
-     * @brief Holds information for castling rights.
-     * @enum Castling
-     * @date 2026-07-03
-     */
-    enum class Castling {
-        Black_King  = 1, /**< Black castling kingside */
-        Black_Queen = 2, /**< Black castling queenside */
-        White_King  = 4, /**< White castling kingside */
-        White_Queen = 8, /**< White castling queenside */
-    };
+/**
+ * @brief Holds information for castling rights.
+ * @enum Castling
+ * @date 2026-07-03
+ */
+enum class Castling {
+    Black_King  = 1, /**< Black castling kingside */
+    Black_Queen = 2, /**< Black castling queenside */
+    White_King  = 4, /**< White castling kingside */
+    White_Queen = 8, /**< White castling queenside */
+};
 
-    /**
-     * @brief Holds information for the colour of the piece.
-     * @enum Colour
-     * @date 2026-06-08
-     */
-    enum class Colour {
-        Black,   /**< Piece colour black */
-        White,   /**< Piece colour white */
-        Invalid, /**< Invalid piece. */
-    };
+/**
+ * @brief Holds information for the colour of the piece.
+ * @enum Colour
+ * @date 2026-06-08
+ */
+enum class Colour {
+    Black,   /**< Piece colour black */
+    White,   /**< Piece colour white */
+    Invalid, /**< Invalid piece. */
+};
 
-    /**
-     * @brief Screen state information.
-     * @enum Screen
-     * @date 2026-06-08
-     */
-    enum class Screen {
-        Quit,        /**< Quitting the game. */
-        Menu,        /**< Main menu screen. */
-        NewGame,     /**< New game options screen. */
-        Game,        /**< Playing a game screen. */
-        Multiplayer, /**< Setup multiplayer screen. */
-        Settings,    /**< Settings screen. */
-    };
+/**
+ * @brief Holds information for the type of piece.
+ * @enum Type
+ * @date 2026-06-08
+ */
+enum class Type {
+    Bishop,  /**< Bishop type. */
+    King,    /**< King type. */
+    Knight,  /**< Knight type. */
+    Pawn,    /**< Pawn type. */
+    Queen,   /**< Queen type. */
+    Rook,    /**< Rook type. */
+    Invalid, /**< Invalid piece. */
+};
 
-    /**
-     * @brief Holds information for the type of piece.
-     * @enum Type
-     * @date 2026-06-08
-     */
-    enum class Type {
-        Bishop,  /**< Bishop type. */
-        King,    /**< King type. */
-        Knight,  /**< Knight type. */
-        Pawn,    /**< Pawn type. */
-        Queen,   /**< Queen type. */
-        Rook,    /**< Rook type. */
-        Invalid, /**< Invalid piece. */
-    };
+/**
+ * @brief Screen state information.
+ * @enum Screen
+ * @date 2026-06-08
+ */
+enum class Screen {
+    Quit,        /**< Quitting the game. */
+    Menu,        /**< Main menu screen. */
+    NewGame,     /**< New game options screen. */
+    Game,        /**< Playing a game screen. */
+    Multiplayer, /**< Setup multiplayer screen. */
+    Settings,    /**< Settings screen. */
+};
 
-    /**
-     * @brief Convert an enum variable to a string via indexing with enum value.
-     * @namespace ToString
-     * @date 2026-06-08
-     */
-    namespace ToString {
-        /**
-         * @brief Convert `Enums::Colour` to string.
-         * @date 2026-06-08
-         */
-        constexpr const char* Colour[] = {
-            "black",
-            "white",
-            "invalid",
-        };
+/**
+ * @brief Convert an enum variable to a string via indexing with enum value.
+ * @namespace ToString
+ * @date 2026-06-08
+ */
+namespace ToString {
+/**
+ * @brief Convert `Enums::Colour` to string.
+ * @date 2026-06-08
+ */
+constexpr const char* Colour[] = {
+    "black",
+    "white",
+    "invalid",
+};
 
-        /**
-         * @brief Convert `Enums::Type` to string.
-         * @date 2026-06-08
-         */
-        constexpr const char* Type[] = {
-            "bishop", "king", "knight", "pawn", "queen", "rook", "invalid",
-        };
+/**
+ * @brief Convert `Enums::Type` to string.
+ * @date 2026-06-08
+ */
+constexpr const char* Type[] = {
+    "bishop", "king", "knight", "pawn", "queen", "rook", "invalid",
+};
 
-        /**
-         * @brief Convert `Utils::Setting` to string.
-         * @date 2026-07-01
-         */
-        // clang-format off
-        constexpr const char* Setting[] = {
-            "GAME_LOAD",       "GAME_FEN",         "GAME_MOVES",
-            "BOARD_TILE_DARK", "BOARD_TILE_LIGHT", "BOARD_TILE_PROMO",
-            "TOTAL_SETTINGS"
-        };
-        // clang-format on
-    } // namespace ToString
+/**
+ * @brief Convert `Utils::Setting` to string.
+ * @date 2026-07-01
+ */
+// clang-format off
+constexpr const char* Setting[] = {
+    "GAME_LOAD",       "GAME_FEN",          "GAME_MOVES",
+    "ENGINE_WHITE_AI", "ENGINE_WHITE_PATH", "ENGINE_BLACK_AI",  "ENGINE_BLACK_PATH",
+    "BOARD_TILE_DARK", "BOARD_TILE_LIGHT",  "BOARD_TILE_PROMO", "BOARD_TILE_LEGAL",
+    "TOTAL_SETTINGS"
+};
+// clang-format on
+} // namespace ToString
 } // namespace Enums

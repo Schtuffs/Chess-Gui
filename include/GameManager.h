@@ -6,6 +6,7 @@
 
 #include "Board.h"
 #include "MoveGen/MoveGen.h"
+#include "Pipes/Pipes.h"
 
 /**
  * @brief Manages game based workflows.
@@ -27,6 +28,9 @@ public:
      * @date 2026-07-01
      */
     ~GameManager();
+
+    // Check for `GameManager` being ready to play game.
+    void IsReady();
 
     // ----- Read -----
 
@@ -79,11 +83,13 @@ private:
     std::string              m_currentMove;
     BitBoard                 m_possibleMoves;
     Index                    m_promotionSquare;
-    bool                     m_isWhiteTurn, m_isWhiteAI, m_isBlackAI;
+    bool                     m_isWhiteTurn, m_isWhiteAI, m_isBlackAI, m_isReady;
+    Pipes::ID                m_whiteID, m_blackID;
 
     void Update(std::string_view move, bool tryReselect);
+    void EngineUpdate(Pipes::ID id);
 
-    bool CheckMove(std::string& move);
+    bool CheckMove(std::string_view move);
     bool CheckPieceSelectable(Index index);
     void OnValidMove(std::string_view move);
 

@@ -46,6 +46,8 @@ Renderer::Renderer()
 
     m_dark  = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     m_light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
+    m_promo = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_PROMO));
+    m_legal = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LEGAL));
 }
 
 Renderer::~Renderer()
@@ -105,6 +107,8 @@ void Renderer::Update()
 
     m_dark  = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     m_light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
+    m_promo = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_PROMO));
+    m_legal = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LEGAL));
 }
 
 std::string Renderer::Render(std::string_view fen, BitBoard moves, Index promoSquare,
@@ -228,7 +232,7 @@ void Renderer::RenderMoves(BitBoard bb, bool isWhitePerspective) const noexcept
         Index index = (Index)(isWhitePerspective ? i : 63 - i);
 
         if ((bb >> index) & 1) {
-            RenderSquare({255, 0, 0, 255}, index, true);
+            RenderSquare(m_legal, index, true);
         }
     }
 }
@@ -311,8 +315,7 @@ void Renderer::RenderPromotion(Index promotionSquare, bool isWhitePerspective) c
         Index tex  = (u8)TYPES[promo] * 2 + (u8)colour;
         int   file = i % 8;
         int   rank = 7 - (i / 8);
-        RenderSquare(Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_PROMO)),
-                     (7 - rank) * 8 + file, true);
+        RenderSquare(m_promo, (7 - rank) * 8 + file, true);
         RenderPiece(m_textures[tex], rank * 8 + file);
     }
 }

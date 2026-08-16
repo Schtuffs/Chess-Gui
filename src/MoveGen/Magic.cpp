@@ -2,6 +2,7 @@
 
 #include <array>
 #include <bit>
+#include <cmath>
 #include <print>
 
 #include "Convert.h"
@@ -317,7 +318,6 @@ static constexpr BitBoard CalculateBishopAttacks(Index bishop, Index king)
     }
 
     Index end = std::abs(kf - bf);
-
     for (Index i = 0; i < end; i++) {
         bb |= Convert::IndexToBitBoard((offset * i) + bishop);
     }
@@ -365,16 +365,18 @@ static constexpr u64 RookTableHash(Index rook, Index king)
     // i32 west  = kc;
 
     u64 hash;
-    if (rc == kc) {  // Same file
-        if (rr < kr) // North
+    if (rc == kc) {    // Same file
+        if (rr < kr) { // North
             hash = kr - rr - 1;
-        else // South
+        } else { // South
             hash = north + (rr - kr - 1);
-    } else {         // Same rank
-        if (rc > kc) // East
+        }
+    } else {           // Same rank
+        if (rc > kc) { // East
             hash = north + south + (rc - kc - 1);
-        else // West
+        } else { // West
             hash = north + south + east + (kc - rc - 1);
+        }
     }
     return ((king * 14) + hash);
 }
@@ -385,8 +387,8 @@ static constexpr BitBoard CalculateRookAttacks(Index rook, Index king)
 
     // Horizontal
     if ((rook / 8) == (king / 8)) {
-        Index start = Utils::Min(rook % 8, king % 8);
-        Index end   = Utils::Max(rook % 8, king % 8);
+        Index start = Utils::Min(rook, king);
+        Index end   = Utils::Max(rook, king);
 
         for (Index i = start; i < end; i++) {
             bb |= Convert::IndexToBitBoard(i);
@@ -394,11 +396,11 @@ static constexpr BitBoard CalculateRookAttacks(Index rook, Index king)
     }
     // Vertical
     else if ((rook % 8) == (king % 8)) {
-        Index start = Utils::Min(rook / 8, king / 8);
-        Index end   = Utils::Max(rook / 8, king / 8);
+        Index start = Utils::Min(rook, king);
+        Index end   = Utils::Max(rook, king);
 
-        for (Index i = start; i < end; i++) {
-            bb |= Convert::IndexToBitBoard((i * 8) + (rook % 8));
+        for (Index i = start; i < end; i += 8) {
+            bb |= Convert::IndexToBitBoard(i);
         }
     }
 
@@ -439,19 +441,21 @@ constexpr KingTable CreateKingTable()
 inline constexpr MagicTable magics = CreateMagicTable();
 #endif
 
-// inline constexpr KingTable kingAttacks = CreateKingTable();
+inline constexpr KingTable kingAttacks = CreateKingTable();
 
 // ----- Secrets -----
 
 #ifndef SHUSH
-static BitBoard GetBishopAttacks(Index index, BitBoard blockers)
+static constexpr BitBoard GetBishopAttacks(Index index, BitBoard blockers)
 {
     blockers &= magics.bishopMagic[index].mask;
     u32 hash = (blockers * magics.bishopMagic[index].magic) >> magics.bishopMagic[index].shift;
     return magics.bishopAttacks[magics.bishopMagic[index].offset + hash];
 }
 
-static BitBoard GetRookAttacks(Index index, BitBoard blockers)
+static_assert(GetBishopAttacks(54, 0x58'd8'00'00'00'00'ef'ff) == 0xa0'00'a0'10'08'04'02'00);
+
+static constexpr BitBoard GetRookAttacks(Index index, BitBoard blockers)
 {
     blockers &= magics.rookMagic[index].mask;
     u32 hash = (blockers * magics.rookMagic[index].magic) >> magics.rookMagic[index].shift;
@@ -459,16 +463,22 @@ static BitBoard GetRookAttacks(Index index, BitBoard blockers)
 }
 #endif
 
-static BitBoard GetBishopKingAttacks(Index bishop, Index king)
+static constexpr BitBoard GetBishopKingAttacks(Index bishop, Index king)
 {
-    KingTable kingAttacks = CreateKingTable();
-    return kingAttacks.bishop[BishopTableHash(bishop, king)];
+    u64 hash = BishopTableHash(bishop, king);
+    if (hash == INVALID_HASH) {
+        return 0;
+    }
+    return kingAttacks.bishop[hash];
 }
 
-static BitBoard GetRookKingAttacks(Index rook, Index king)
+static constexpr BitBoard GetRookKingAttacks(Index rook, Index king)
 {
-    KingTable kingAttacks = CreateKingTable();
-    return kingAttacks.rook[RookTableHash(rook, king)];
+    u64 hash = RookTableHash(rook, king);
+    if (hash == INVALID_HASH) {
+        return 0;
+    }
+    return kingAttacks.rook[hash];
 }
 
 // ----- Public Functions -----

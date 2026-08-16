@@ -44,6 +44,16 @@ static bool ValidatePieces(std::string_view fen)
 
         else if (c == 'b' || c == 'B' || c == 'k' || c == 'K' || c == 'n' || c == 'N' || c == 'p' ||
                  c == 'P' || c == 'q' || c == 'Q' || c == 'r' || c == 'R') {
+            // No last rank pawns
+            if (c == 'p') {
+                if (ranks == 7) {
+                    std::println("Bad");
+                }
+            } else if (c == 'P') {
+                if (ranks == 0) {
+                    std::println("Bad");
+                }
+            }
             files++;
         }
 
@@ -57,6 +67,10 @@ static bool ValidatePieces(std::string_view fen)
         }
 
         index++;
+    }
+
+    if (files != 8 && ranks != 8) {
+        return false;
     }
 
     return true;
