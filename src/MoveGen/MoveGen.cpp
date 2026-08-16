@@ -1,11 +1,14 @@
 #include "MoveGen/MoveGen.h"
 
 #include <bit>
+#include <iostream>
 
 #include "MoveGen/Magic.h"
 
 #include "Convert.h"
 #include "Utils.h"
+
+#define NO_ILLEGAL
 
 // ----- Creation ----- Destruction -----
 
@@ -47,6 +50,24 @@ void MoveGen::Generate(const Board& board, Enums::Colour colour)
     GenAttacks();
     GenPseudoLegal();
     GenLegal();
+
+// Check for king temp debug
+#if not defined(NDEBUG) && not defined(NO_ILLEGAL)
+    FILE* file = fopen("IllegalKingAttacks.log", "a");
+    if (!file) {
+        return;
+    }
+    
+    for (u8 i = 0; i < 64; i++) {
+        BitBoard bb = m_legal[i];
+        if (bb & (m_kings & m_enemies)) {
+            std::println(file, "{}", m_board->Fen());
+        }
+    }
+
+    std::fflush(file);
+    std::fclose(file);
+#endif
 }
 
 // ----- Update ----- Hidden -----
@@ -168,7 +189,11 @@ BitBoard MoveGen::GenBishop(const Piece& piece) const noexcept
 {
     BitBoard bb = 0;
 
-    bb |= Magic::GetSlidingAttacks(piece.Position(), m_friendly | m_enemies, false);
+    if (m_generatingAttacks) {
+        bb |= Magic::GetSlidingAttacks(piece.Position(), (m_friendly | m_enemies) & ~(m_kings & m_friendly), false);
+    } else {
+        bb |= Magic::GetSlidingAttacks(piece.Position(), m_friendly | m_enemies, false);
+    }
 
     return bb;
 }
@@ -346,7 +371,11 @@ BitBoard MoveGen::GenRook(const Piece& piece) const noexcept
 {
     BitBoard bb = 0;
 
-    bb |= Magic::GetSlidingAttacks(piece.Position(), m_friendly | m_enemies, true);
+    if (m_generatingAttacks) {
+        bb |= Magic::GetSlidingAttacks(piece.Position(), (m_friendly | m_enemies) & ~(m_kings & m_friendly), true);
+    } else {
+        bb |= Magic::GetSlidingAttacks(piece.Position(), (m_friendly | m_enemies), true);
+    }
 
     return bb;
 }
@@ -521,6 +550,10 @@ void MoveGen::GenLegal()
     for (Index i = 0; i < 64; i++) {
         const Piece& piece = m_board->Pieces()[i];
         if (!piece.IsValid()) {
+            continue;
+        }
+
+        if (piece.Colour() != m_genColour) {
             continue;
         }
 

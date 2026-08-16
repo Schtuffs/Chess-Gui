@@ -286,12 +286,12 @@ static void BlackLondonTests()
     });
 
     TEST("MoveGen::Generate: london piece movements - black pinned pawn e3", [&fen]() {
-        BitBoard    expected = 0x00'00'00'00'00'04'00'00;
+        BitBoard    expected = 0x00'40'00'00'00'00'00'00;
         const Board b(fen);
 
         MoveGen gen;
         gen.Generate(b, Enums::Colour::Black);
-        BitBoard actual = gen.GetMoves(18);
+        BitBoard actual = gen.GetMoves(54);
 
         Assert::Equal(actual, expected);
     });
@@ -420,6 +420,17 @@ static void CheckTests()
         MoveGen gen;
         gen.Generate(b, Enums::Colour::Black);
         BitBoard actual = gen.GetMoves(48);
+
+        Assert::Equal(actual, expected);
+    });
+
+    TEST("MoveGen::Generate: rook check - skewer", [](){
+        BitBoard expected = 0x00'14'0c'04'00'00'00'00;
+        Board b("8/1P6/3k4/8/1b6/p2RnK2/B6p/B7 b - - 9 83");
+
+        MoveGen gen;
+        gen.Generate(b, Enums::Colour::Black);
+        BitBoard actual = gen.GetMoves(43);
 
         Assert::Equal(actual, expected);
     });
