@@ -424,9 +424,9 @@ static void CheckTests()
         Assert::Equal(actual, expected);
     });
 
-    TEST("MoveGen::Generate: rook check - skewer", [](){
+    TEST("MoveGen::Generate: rook check - skewer", []() {
         BitBoard expected = 0x00'14'0c'04'00'00'00'00;
-        Board b("8/1P6/3k4/8/1b6/p2RnK2/B6p/B7 b - - 9 83");
+        Board    b("8/1P6/3k4/8/1b6/p2RnK2/B6p/B7 b - - 9 83");
 
         MoveGen gen;
         gen.Generate(b, Enums::Colour::Black);
@@ -557,6 +557,17 @@ static void MiscTests()
         Assert::Equal(actual, expected);
     });
 
+    TEST("MoveGen::Generate: en passant - enemy pinned", []() {
+        BitBoard expected = 0x00'00'10'10'00'00'00'00;
+        Board    b("k7/8/6b1/4Pp2/8/8/8/1K6 w - f6 0 1");
+
+        MoveGen gen;
+        gen.Generate(b, Enums::Colour::White);
+        BitBoard actual = gen.GetMoves(36);
+
+        Assert::Equal(actual, expected);
+    });
+
     TEST("MoveGen::Generate: castle through check", []() {
         BitBoard expected = 0x00'00'00'00'00'00'18'18;
         Board    b("5r2/8/8/8/8/8/8/4K2R w K - 0 1");
@@ -568,10 +579,10 @@ static void MiscTests()
         Assert::Equal(actual, expected);
     });
 
-    TEST("MoveGen::Generate: random rook", [](){
+    TEST("MoveGen::Generate: random rook", []() {
         BitBoard expected = 0x00'00'80'80'80'f0'80'00;
-        Board b("2k2r2/ppp3pp/3b4/8/1P6/2P1R2r/P2P1P1P/R1B3K1 b - - 2 18");
-        MoveGen gen;
+        Board    b("2k2r2/ppp3pp/3b4/8/1P6/2P1R2r/P2P1P1P/R1B3K1 b - - 2 18");
+        MoveGen  gen;
 
         gen.Generate(b, Enums::Colour::Black);
         BitBoard actual = gen.GetMoves(23);
@@ -579,10 +590,10 @@ static void MiscTests()
         Assert::Equal(actual, expected);
     });
 
-    TEST("MoveGen::Generate: Random queen", [](){
+    TEST("MoveGen::Generate: Random queen", []() {
         BitBoard expected = 0x00'00'00'00'00'10'38'00;
-        Board b("8/4Np1k/p4n2/1p2p1p1/2P1P1Pp/P3QP2/1Pq3KP/8 w - - 6 42");
-        MoveGen gen;
+        Board    b("8/4Np1k/p4n2/1p2p1p1/2P1P1Pp/P3QP2/1Pq3KP/8 w - - 6 42");
+        MoveGen  gen;
 
         gen.Generate(b, Enums::Colour::White);
         BitBoard actual = gen.GetMoves(20);

@@ -8,7 +8,7 @@
 #include "Convert.h"
 #include "Utils.h"
 
-#define NO_ILLEGAL
+#define NO_ILLEGAL_LOG
 
 // ----- Creation ----- Destruction -----
 
@@ -51,13 +51,13 @@ void MoveGen::Generate(const Board& board, Enums::Colour colour)
     GenPseudoLegal();
     GenLegal();
 
-// Check for king temp debug
-#if not defined(NDEBUG) && not defined(NO_ILLEGAL)
+#if not defined(NDEBUG) && not defined(NO_ILLEGAL_LOG)
+    // Check for king temp debug
     FILE* file = fopen("IllegalKingAttacks.log", "a");
     if (!file) {
         return;
     }
-    
+
     for (u8 i = 0; i < 64; i++) {
         BitBoard bb = m_legal[i];
         if (bb & (m_kings & m_enemies)) {
@@ -190,7 +190,8 @@ BitBoard MoveGen::GenBishop(const Piece& piece) const noexcept
     BitBoard bb = 0;
 
     if (m_generatingAttacks) {
-        bb |= Magic::GetSlidingAttacks(piece.Position(), (m_friendly | m_enemies) & ~(m_kings & m_friendly), false);
+        bb |= Magic::GetSlidingAttacks(piece.Position(),
+                                       (m_friendly | m_enemies) & ~(m_kings & m_friendly), false);
     } else {
         bb |= Magic::GetSlidingAttacks(piece.Position(), m_friendly | m_enemies, false);
     }
@@ -372,7 +373,8 @@ BitBoard MoveGen::GenRook(const Piece& piece) const noexcept
     BitBoard bb = 0;
 
     if (m_generatingAttacks) {
-        bb |= Magic::GetSlidingAttacks(piece.Position(), (m_friendly | m_enemies) & ~(m_kings & m_friendly), true);
+        bb |= Magic::GetSlidingAttacks(piece.Position(),
+                                       (m_friendly | m_enemies) & ~(m_kings & m_friendly), true);
     } else {
         bb |= Magic::GetSlidingAttacks(piece.Position(), (m_friendly | m_enemies), true);
     }
