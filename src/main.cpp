@@ -73,6 +73,10 @@ int main(void)
             Menu::NewGame(currentScreen);
             break;
         }
+        case Enums::Screen::GameCreation: {
+            Menu::CreateGame(currentScreen);
+            break;
+        }
         case Enums::Screen::Game: {
             Menu::InGame(currentScreen);
             break;

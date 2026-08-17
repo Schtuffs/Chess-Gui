@@ -23,6 +23,13 @@ namespace Menu {
     void NewGame(Enums::Screen& screen);
 
     /**
+     * @brief The game creation menu.
+     * @param screen The screen state which can be changed by this `Menu`.
+     * @date 2026-06-28
+     */
+    void CreateGame(Enums::Screen& screen);
+
+    /**
      * @brief The settings menu.
      * @param screen The screen state which can be changed by this `Menu`.
      * @date 2026-06-28

@@ -9,14 +9,18 @@
 #include "raygui.h"
 
 #include "Convert.h"
+#include "Fen.h"
 #include "GameManager.h"
 #include "Renderer.h"
 #include "Settings.h"
 #include "Utils.h"
 
-static Renderer renderer;
-float           DefaultButtonThickness();
-Color           DefaultButtonBorderColour();
+constexpr u8          LOAD_DEFAULT_FEN = 1;
+constexpr u8          LOAD_SAVED_FEN   = 2;
+constexpr const char* BACK_MESSAGE     = "Return";
+static Renderer       renderer;
+float                 DefaultButtonThickness();
+Color                 DefaultButtonBorderColour();
 
 std::array defaultGuiStyle{
     std::tuple{DEFAULT, (int)TEXT_SIZE, 0},
@@ -73,24 +77,73 @@ void Menu::NewGame(Enums::Screen& screen)
 {
     renderer.Update();
     renderer.Render("", 0, 64, true);
-    Rectangle startPos = Utils::ButtonPos(1, 1, 6, 1);
 
     PushDefaultGuiStyle();
 
     int id = 1;
-    if (Utils::ClickableButton(startPos, "New game", id++)) {
+    if (Utils::ClickableButton(Utils::ButtonPos(1, 1, 6, 1), "New game", id++)) {
         screen = Enums::Screen::Game;
-        Settings::b(Setting::GAME_LOAD, 1);
+        Settings::b(Setting::GAME_LOAD, LOAD_DEFAULT_FEN);
     }
-    if (Utils::ClickableButton(MoveDown(startPos, 1), "Load game", id++)) {
+    if (Utils::ClickableButton(Utils::ButtonPos(1, 2, 6, 1), "Load game", id++)) {
         screen = Enums::Screen::Game;
-        Settings::b(Setting::GAME_LOAD, 2);
+        Settings::b(Setting::GAME_LOAD, LOAD_SAVED_FEN);
     }
-    if (Utils::ClickableButton(MoveDown(startPos, 4), "Back", id++)) {
+    if (Utils::ClickableButton(Utils::ButtonPos(1, 3, 6, 1), "Custom game", id++)) {
+        screen = Enums::Screen::GameCreation;
+    }
+    if (Utils::ClickableButton(Utils::ButtonPos(1, 6, 6, 1), BACK_MESSAGE, id++)) {
         screen = Enums::Screen::Menu;
     }
     if (IsKeyPressed(KEY_ESCAPE)) {
         screen = Enums::Screen::Menu;
+    }
+
+    PopDefaultGuiStyle();
+}
+
+void Menu::CreateGame(Enums::Screen& screen)
+{
+    PushDefaultGuiStyle();
+
+    constexpr u64 MAX_FEN_SIZE = 200;
+
+    static bool  settingsLoaded = false;
+    static bool  isTypingFen    = false;
+    static char* fen            = nullptr;
+    if (!settingsLoaded) {
+        settingsLoaded = true;
+        delete[] fen;
+        fen = new char[MAX_FEN_SIZE];
+        std::strncpy(fen, DEFAULT_FEN.data(), MAX_FEN_SIZE);
+    }
+
+    renderer.Update();
+    // if (!Fen::IsValidFen(fen)) {
+    //     renderer.Render("", MoveGen::INVALID, 65, true);
+    // } else {
+        renderer.Render(fen, MoveGen::INVALID, 65, true);
+    // }
+
+    if (GuiTextBox(Utils::ButtonPos(8, 1, 3, 1), fen, MAX_FEN_SIZE, isTypingFen)) {
+        isTypingFen = !isTypingFen;
+    }
+
+    u8 id = 1;
+    if (Utils::ClickableButton(Utils::ButtonPos(8, 6, 3, 1), "Begin with fen", id++)) {
+        settingsLoaded = false;
+        screen         = Enums::Screen::Game;
+        Settings::s(Setting::GAME_FEN, fen);
+        Settings::b(Setting::GAME_LOAD, LOAD_SAVED_FEN);
+    }
+    if (Utils::ClickableButton(Utils::ButtonPos(8, 7, 3, 1), BACK_MESSAGE, id++)) {
+        settingsLoaded = false;
+        screen         = Enums::Screen::NewGame;
+    }
+
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        settingsLoaded = false;
+        screen         = Enums::Screen::NewGame;
     }
 
     PopDefaultGuiStyle();
@@ -128,7 +181,7 @@ static SettingScreens SettingsMain()
         screen = SETTING_RESET;
     }
 
-    if (Utils::ClickableButton(Utils::ButtonPos(4, 6, 3, 1), "Return", id++)) {
+    if (Utils::ClickableButton(Utils::ButtonPos(4, 6, 3, 1), BACK_MESSAGE, id++)) {
         screen = SETTING_LEAVE;
     }
 
@@ -245,7 +298,7 @@ static SettingScreens SettingsBoard()
         DebugPrintln("Menu::Settings: Saved settings.");
     }
 
-    if (Utils::ClickableButton(Utils::ButtonPos(4, 6, 3, 1), "Return", id++)) {
+    if (Utils::ClickableButton(Utils::ButtonPos(4, 6, 3, 1), BACK_MESSAGE, id++)) {
         settingsLoaded = false;
         screen         = SETTING_MAIN;
     }
@@ -279,11 +332,13 @@ static SettingScreens SettingsEngine()
         isBlackAI      = Settings::b(Setting::ENGINE_BLACK_AI);
 
         whiteTyping = false;
+        delete[] whiteEngine;
         whiteEngine = new char[MAX_PATH_SIZE];
         std::strncpy(whiteEngine, Settings::s(Setting::ENGINE_WHITE_PATH).c_str(), MAX_PATH_SIZE);
         whiteEngine[MAX_PATH_SIZE - 1] = '\0';
 
         blackTyping = false;
+        delete[] blackEngine;
         blackEngine = new char[MAX_PATH_SIZE];
         std::strncpy(blackEngine, Settings::s(Setting::ENGINE_BLACK_PATH).c_str(), MAX_PATH_SIZE);
         blackEngine[MAX_PATH_SIZE - 1] = '\0';
@@ -313,7 +368,7 @@ static SettingScreens SettingsEngine()
         blackTyping = !blackTyping;
     }
 
-    if (Utils::ClickableButton(Utils::ButtonPos(4, 6, 3, 1), "Return", id++)) {
+    if (Utils::ClickableButton(Utils::ButtonPos(4, 6, 3, 1), BACK_MESSAGE, id++)) {
         screen         = SETTING_MAIN;
         settingsLoaded = false;
         Settings::s(Setting::ENGINE_WHITE_PATH, whiteEngine);
@@ -371,10 +426,10 @@ void Menu::InGame(Enums::Screen& screen)
     if (load > 0) {
         Settings::b(Setting::GAME_LOAD, 0);
         delete gameManager;
-        if (load == 1) {
-            gameManager = new GameManager(DEFAULT_FEN);
-        } else {
+        if (load == LOAD_SAVED_FEN) {
             gameManager = new GameManager(Settings::s(Setting::GAME_FEN));
+        } else {
+            gameManager = new GameManager(DEFAULT_FEN);
         }
         screen = Enums::Screen::Game;
         gameManager->IsReady();

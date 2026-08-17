@@ -52,9 +52,9 @@ namespace Enums {
  * @date 2026-07-03
  */
 enum class Castling {
-    Black_King  = 1, /**< Black castling kingside */
+    Black_King  = 1, /**< Black castling kingside  */
     Black_Queen = 2, /**< Black castling queenside */
-    White_King  = 4, /**< White castling kingside */
+    White_King  = 4, /**< White castling kingside  */
     White_Queen = 8, /**< White castling queenside */
 };
 
@@ -66,7 +66,7 @@ enum class Castling {
 enum class Colour {
     Black,   /**< Piece colour black */
     White,   /**< Piece colour white */
-    Invalid, /**< Invalid piece. */
+    Invalid, /**< Invalid piece.     */
 };
 
 /**
@@ -75,12 +75,12 @@ enum class Colour {
  * @date 2026-06-08
  */
 enum class Type {
-    Bishop,  /**< Bishop type. */
-    King,    /**< King type. */
-    Knight,  /**< Knight type. */
-    Pawn,    /**< Pawn type. */
-    Queen,   /**< Queen type. */
-    Rook,    /**< Rook type. */
+    Bishop,  /**< Bishop type.   */
+    King,    /**< King type.     */
+    Knight,  /**< Knight type.   */
+    Pawn,    /**< Pawn type.     */
+    Queen,   /**< Queen type.    */
+    Rook,    /**< Rook type.     */
     Invalid, /**< Invalid piece. */
 };
 
@@ -90,12 +90,13 @@ enum class Type {
  * @date 2026-06-08
  */
 enum class Screen {
-    Quit,        /**< Quitting the game. */
-    Menu,        /**< Main menu screen. */
-    NewGame,     /**< New game options screen. */
-    Game,        /**< Playing a game screen. */
-    Multiplayer, /**< Setup multiplayer screen. */
-    Settings,    /**< Settings screen. */
+    Quit,         /**< Quitting the game.        */
+    Menu,         /**< Main menu screen.         */
+    NewGame,      /**< New game options screen.  */
+    GameCreation, /**< Playing a game screen.    */
+    Game,         /**< Playing a game screen.    */
+    Multiplayer,  /**< Setup multiplayer screen. */
+    Settings,     /**< Settings screen.          */
 };
 
 /**
