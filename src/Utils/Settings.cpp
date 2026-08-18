@@ -1,4 +1,4 @@
-#include "Settings.h"
+#include "Utils/Settings.h"
 
 #include <array>
 #include <cstring>
@@ -9,8 +9,8 @@
 #include <sstream>
 #include <utility>
 
-#include "Convert.h"
-#include "Utils.h"
+#include "Utils/Convert.h"
+#include "Utils/Utils.h"
 
 constexpr const char* SETTINGS_FILE  = "./settings.txt";
 constexpr char        SETTINGS_DELIM = ':';

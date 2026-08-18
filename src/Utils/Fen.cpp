@@ -1,4 +1,4 @@
-#include "Fen.h"
+#include "Utils/Fen.h"
 
 #include <cmath>
 #include <sstream>
@@ -6,7 +6,7 @@
 
 #include "Fen.h"
 
-#include "Utils.h"
+#include "Utils/Utils.h"
 
 // ----- Hidden -----
 

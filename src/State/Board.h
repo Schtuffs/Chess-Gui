@@ -5,7 +5,7 @@
 #include <string>
 #include <string_view>
 
-#include "Piece.h"
+#include "State/Piece.h"
 
 /**
  * @brief Holds the state of the game board.

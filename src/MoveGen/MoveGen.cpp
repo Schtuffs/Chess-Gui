@@ -4,9 +4,8 @@
 #include <iostream>
 
 #include "MoveGen/Magic.h"
-
-#include "Convert.h"
-#include "Utils.h"
+#include "Utils/Convert.h"
+#include "Utils/Utils.h"
 
 #define NO_ILLEGAL_LOG
 
@@ -34,7 +33,7 @@ bool MoveGen::IsStalemate() const noexcept { return (m_totalLegal == 0 && !m_inC
 void MoveGen::Generate(const Board& board, Enums::Colour colour)
 {
     // Reset state
-    Reset();
+    // Reset();
     m_board     = &board;
     m_genColour = colour;
 
@@ -44,12 +43,12 @@ void MoveGen::Generate(const Board& board, Enums::Colour colour)
     }
 
     // Prepare bitboards
-    SetupPieceBoards();
+    // SetupPieceBoards();
 
-    // Generate moves
-    GenAttacks();
-    GenPseudoLegal();
-    GenLegal();
+    // // Generate moves
+    // GenAttacks();
+    // GenPseudoLegal();
+    // GenLegal();
 
 #if not defined(NDEBUG) && not defined(NO_ILLEGAL_LOG)
     // Check for king temp debug

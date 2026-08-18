@@ -1,8 +1,8 @@
-#include "Board.h"
+#include "State/Board.h"
 
-#include "Convert.h"
-#include "Fen.h"
-#include "Utils.h"
+#include "Utils/Convert.h"
+#include "Utils/Fen.h"
+#include "Utils/Utils.h"
 
 constexpr Index INVALID_ENPASSANT = 64;
 

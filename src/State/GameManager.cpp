@@ -1,10 +1,10 @@
-#include "GameManager.h"
+#include "State/GameManager.h"
 
 #include <thread>
 
-#include "Convert.h"
-#include "Settings.h"
-#include "Utils.h"
+#include "Utils/Convert.h"
+#include "Utils/Settings.h"
+#include "Utils/Utils.h"
 
 constexpr const char* DEPTH_COMMAND = "go depth 10";
 

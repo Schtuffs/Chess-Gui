@@ -2,8 +2,8 @@
 
 #include "TestSuite/TestSuite.h"
 
-#include "Settings.h"
-#include "Utils.h"
+#include "Utils/Settings.h"
+#include "Utils/Utils.h"
 
 void BoardTests(void);
 void GameManagerTests(void);

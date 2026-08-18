@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SRC ${CMAKE_CURRENT_LIST_DIR}/src)
 set(SUITE ${CMAKE_CURRENT_LIST_DIR}/TestSuite)
-set(INCLUDES ../include ../third_party)
+set(INCLUDES ../include ../third_party ../src)
 set(SOURCES ../src)
 
 file(GLOB_RECURSE ALL_SOURCE_FILES ${SOURCES}/*.cpp)
@@ -30,7 +30,7 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Werror -Wpedantic $<$<COMPILE_LANGUAGE:CXX>:-fconstexpr-ops-limit=1000000000>)
 endif()
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${SUITE} ${INCLUDES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${SUITE} ${SRC} ${INCLUDES})
 target_link_libraries(${PROJECT_NAME} PRIVATE TestSuite)
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
 

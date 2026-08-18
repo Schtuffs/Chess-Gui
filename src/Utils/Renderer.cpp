@@ -1,11 +1,11 @@
-#include "Renderer.h"
+#include "Utils/Renderer.h"
 
 #include <cctype>
 #include <cstring>
 
-#include "Convert.h"
-#include "Settings.h"
-#include "Utils.h"
+#include "Utils/Convert.h"
+#include "Utils/Settings.h"
+#include "Utils/Utils.h"
 
 float DefaultButtonThickness()
 {

@@ -4,7 +4,7 @@
 #include "TestSuite/Assert.h"
 #include "TestSuite/TestSuite.h"
 
-#include "GameManager.h"
+#include "State/GameManager.h"
 
 static void Promotion()
 {

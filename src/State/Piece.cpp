@@ -1,7 +1,7 @@
-#include "Piece.h"
+#include "State/Piece.h"
 
-#include "Convert.h"
-#include "Utils.h"
+#include "Utils/Convert.h"
+#include "Utils/Utils.h"
 
 // ----- Creation / Destruction -----
 

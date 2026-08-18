@@ -8,9 +8,9 @@
 #include <string>
 #include <vector>
 
-#include "Board.h"
-#include "Convert.h"
 #include "MoveGen/MoveGen.h"
+#include "State/Board.h"
+#include "Utils/Convert.h"
 
 namespace chrono = std::chrono;
 
@@ -606,19 +606,14 @@ static void MiscTests()
 
 static chrono::nanoseconds RunTimeTest(std::string_view fen, Enums::Colour colour, u64 count)
 {
-    chrono::nanoseconds totalTime = {};
+    Board   b(fen);
+    MoveGen gen;
+    auto start = chrono::steady_clock::now();
     for (u64 i = 0; i < count; i++) {
-        Board   b(fen);
-        MoveGen gen;
-
-        auto start = chrono::steady_clock::now();
         gen.Generate(b, colour);
-        auto end = chrono::steady_clock::now();
-
-        auto delta = chrono::nanoseconds(end - start);
-        totalTime += delta;
     }
-    return totalTime;
+    auto end = chrono::steady_clock::now();
+    return (end - start) / count;
 }
 
 static void TimeTests1()
@@ -628,23 +623,25 @@ static void TimeTests1()
     static std::mutex          mtx;
     std::shared_ptr<FILE>      file(fopen("MoveGenV3.log", "a"), fclose);
 
-    TEST("MoveGen::Time: 1 - white", [file]() {
+    TEST("MoveGen::Generate: time 1 - white", [file]() {
         chrono::nanoseconds expected(3360);
-        auto actual = chrono::nanoseconds(RunTimeTest(fen, Enums::Colour::White, count) / count);
+        auto actual = chrono::nanoseconds(RunTimeTest(fen, Enums::Colour::White, count));
 
         mtx.lock();
         std::println(file.get(), "1w:{}", actual);
         mtx.unlock();
+        std::println("W1: {}", actual);
         Assert::LessThan(actual, expected);
     });
 
-    TEST("MoveGen::Time: 1 - black", [file]() {
+    TEST("MoveGen::Generate: time 1 - black", [file]() {
         chrono::nanoseconds expected(3215);
-        auto actual = chrono::nanoseconds(RunTimeTest(fen, Enums::Colour::Black, count) / count);
+        auto actual = chrono::nanoseconds(RunTimeTest(fen, Enums::Colour::Black, count));
 
         mtx.lock();
         std::println(file.get(), "1b:{}", actual);
         mtx.unlock();
+        std::println("B1: {}", actual);
         Assert::LessThan(actual, expected);
     });
 }

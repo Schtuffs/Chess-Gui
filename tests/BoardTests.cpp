@@ -1,7 +1,7 @@
 #include "TestSuite/Assert.h"
 #include "TestSuite/TestSuite.h"
 
-#include "Board.h"
+#include "State/Board.h"
 
 void BoardTests(void)
 {

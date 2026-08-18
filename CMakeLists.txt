@@ -4,11 +4,12 @@ project(ChessGui C CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(INCLUDE     ${CMAKE_CURRENT_LIST_DIR}/include)
 set(LIB         ${CMAKE_CURRENT_LIST_DIR}/lib)
 set(SRC         ${CMAKE_CURRENT_LIST_DIR}/src)
 set(MOVEGEN     ${SRC}/MoveGen)
 set(PIPES       ${SRC}/Pipes)
+set(STATE       ${SRC}/State)
+set(UTILS       ${SRC}/Utils)
 set(THIRD_PARTY ${CMAKE_CURRENT_LIST_DIR}/third_party)
 
 include(FetchContent)
@@ -26,25 +27,25 @@ if(WIN32)
 endif()
 
 add_executable(${PROJECT_NAME}
-    ${SRC}/Board.cpp
-    ${SRC}/Convert.cpp
-    ${SRC}/Fen.cpp
-    ${SRC}/GameManager.cpp
     ${SRC}/main.cpp
-    ${SRC}/Menus.cpp
-    ${SRC}/Piece.cpp
-    ${SRC}/Renderer.cpp
-    ${SRC}/Settings.cpp
-    ${SRC}/Utils.cpp
     ${MOVEGEN}/Magic.cpp
     ${MOVEGEN}/MoveGen.cpp
     ${PIPES}/Pipes.cpp
     ${PIPES}/WinPipes.cpp
+    ${STATE}/Board.cpp
+    ${STATE}/GameManager.cpp
+    ${STATE}/Menus.cpp
+    ${STATE}/Piece.cpp
+    ${UTILS}/Convert.cpp
+    ${UTILS}/Fen.cpp
+    ${UTILS}/Renderer.cpp
+    ${UTILS}/Settings.cpp
+    ${UTILS}/Utils.cpp
     ${THIRD_PARTY}/raygui.c
     ${RESOURCE_FILES}
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE})
+target_include_directories(${PROJECT_NAME} PRIVATE ${SRC})
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${THIRD_PARTY})
 
 if(WIN32)

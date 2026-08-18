@@ -3,9 +3,9 @@
 #include <array>
 #include <span>
 
-#include "Board.h"
-#include "Constants.h"
-#include "Piece.h"
+#include "State/Board.h"
+#include "State/Piece.h"
+#include "Utils/Constants.h"
 
 class MoveGen {
 public:

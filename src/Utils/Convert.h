@@ -6,8 +6,8 @@
 
 #include "raylib.h"
 
-#include "Constants.h"
-#include "Piece.h"
+#include "State/Piece.h"
+#include "Utils/Constants.h"
 
 /**
  * @brief Conversion utility

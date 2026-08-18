@@ -5,7 +5,7 @@
 
 #include "raylib.h"
 
-#include "Constants.h"
+#include "Utils/Constants.h"
 
 constexpr Color BOARD_SQUARE_LIGHT       = {175, 150, 120, 255};
 constexpr Color BOARD_SQUARE_DARK        = {100, 75, 60, 255};

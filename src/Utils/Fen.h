@@ -4,8 +4,8 @@
 #include <string>
 #include <string_view>
 
-#include "Constants.h"
-#include "Piece.h"
+#include "State/Piece.h"
+#include "Utils/Constants.h"
 
 /**
  * @brief Helpful utilities for dealing with `Fen` items.

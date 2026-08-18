@@ -8,12 +8,12 @@
 
 #include "raygui.h"
 
-#include "Convert.h"
-#include "Fen.h"
-#include "GameManager.h"
-#include "Renderer.h"
-#include "Settings.h"
-#include "Utils.h"
+#include "State/GameManager.h"
+#include "Utils/Convert.h"
+#include "Utils/Fen.h"
+#include "Utils/Renderer.h"
+#include "Utils/Settings.h"
+#include "Utils/Utils.h"
 
 constexpr u8          LOAD_DEFAULT_FEN = 1;
 constexpr u8          LOAD_SAVED_FEN   = 2;

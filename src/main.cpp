@@ -4,11 +4,11 @@
 
 #include "raylib.h"
 
-#include "Constants.h"
-#include "Menus.h"
 #include "Pipes/Pipes.h"
-#include "Settings.h"
-#include "Utils.h"
+#include "State/Menus.h"
+#include "Utils/Constants.h"
+#include "Utils/Settings.h"
+#include "Utils/Utils.h"
 
 bool inDebugMode = false;
 

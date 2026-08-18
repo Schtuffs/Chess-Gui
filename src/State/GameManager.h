@@ -4,9 +4,9 @@
 #include <string_view>
 #include <vector>
 
-#include "Board.h"
 #include "MoveGen/MoveGen.h"
 #include "Pipes/Pipes.h"
+#include "State/Board.h"
 
 /**
  * @brief Manages game based workflows.
