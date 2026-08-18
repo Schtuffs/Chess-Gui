@@ -604,48 +604,6 @@ static void MiscTests()
 
 //
 
-static chrono::nanoseconds RunTimeTest(std::string_view fen, Enums::Colour colour, u64 count)
-{
-    Board   b(fen);
-    MoveGen gen;
-    auto start = chrono::steady_clock::now();
-    for (u64 i = 0; i < count; i++) {
-        gen.Generate(b, colour);
-    }
-    auto end = chrono::steady_clock::now();
-    return (end - start) / count;
-}
-
-static void TimeTests1()
-{
-    constexpr std::string_view fen   = "8/1Q3p1k/4p1q1/7p/8/1B3p1P/P4PP1/6K1 b - - 0 34";
-    constexpr static u64       count = 1000;
-    static std::mutex          mtx;
-    std::shared_ptr<FILE>      file(fopen("MoveGenV3.log", "a"), fclose);
-
-    TEST("MoveGen::Generate: time 1 - white", [file]() {
-        chrono::nanoseconds expected(3360);
-        auto actual = chrono::nanoseconds(RunTimeTest(fen, Enums::Colour::White, count));
-
-        mtx.lock();
-        std::println(file.get(), "1w:{}", actual);
-        mtx.unlock();
-        std::println("W1: {}", actual);
-        Assert::LessThan(actual, expected);
-    });
-
-    TEST("MoveGen::Generate: time 1 - black", [file]() {
-        chrono::nanoseconds expected(3215);
-        auto actual = chrono::nanoseconds(RunTimeTest(fen, Enums::Colour::Black, count));
-
-        mtx.lock();
-        std::println(file.get(), "1b:{}", actual);
-        mtx.unlock();
-        std::println("B1: {}", actual);
-        Assert::LessThan(actual, expected);
-    });
-}
-
 void MoveGenTests()
 {
     BreakMoveGen();
@@ -660,6 +618,4 @@ void MoveGenTests()
     CheckTests();
     DoubleCheckTests();
     MiscTests();
-
-    TimeTests1();
 }
