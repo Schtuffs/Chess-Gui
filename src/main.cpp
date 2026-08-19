@@ -3,6 +3,8 @@
 #include <vector>
 
 #include "raylib.h"
+#undef WHITE
+#undef BLACK
 
 #include "Pipes/Pipes.h"
 #include "State/Menus.h"
@@ -58,7 +60,7 @@ int main(void)
 
         // Drawing
         BeginDrawing();
-        ClearBackground(BLACK);
+        ClearBackground({0, 0, 0, 255});
 
         switch (currentScreen) {
         case Enums::Screen::Quit: {
@@ -94,7 +96,7 @@ int main(void)
             Vector2 pos  = Utils::CenterText(text, font, fontSize, 1.f,
                                              {GetScreenWidth() / 2.f, GetScreenHeight() / 2.f});
 
-            DrawTextEx(font, text, pos, fontSize, 1.f, WHITE);
+            DrawTextEx(font, text, pos, fontSize, 1.f, {255, 255, 255, 255});
             break;
         }
         }

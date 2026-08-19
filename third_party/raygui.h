@@ -1498,7 +1498,7 @@ static const char *guiTooltipPtr = NULL;        // Tooltip string pointer (strin
 static bool guiControlExclusiveMode = false;    // Gui control exclusive mode (no inputs processed except current control)
 static Rectangle guiControlExclusiveRec = { 0 }; // Gui control exclusive bounds rectangle, used as an unique identifier
 
-static int textBoxCursorIndex = 0;              // Cursor index, shared by all GuiTextBox*()
+static int textBoxCursorIndex = 0;              // Cursor sq, shared by all GuiTextBox*()
 //static int blinkCursorFrameCounter = 0;       // Frame counter for cursor blinking
 static int autoCursorCounter = 0;               // Frame counter for automatic repeated cursor movement on key-down (cooldown and delay)
 
@@ -2167,7 +2167,7 @@ int GuiToggleGroup(Rectangle bounds, const char *text, int *active)
     for (int c = 0, k = 0, itemIndex = 0, row = 0, col = 0, exit = 0; exit == 0; c++)
     {
         // Process text to get items one by one
-        // NOTE: Setting columns and rows index properly
+        // NOTE: Setting columns and rows sq properly
         if (textPtr[c] == '\n')
         {
             row++;
@@ -2575,7 +2575,7 @@ int GuiTextBox(Rectangle bounds, char *text, int textSize, bool editMode)
     int thisCursorIndex = textBoxCursorIndex;
     if (thisCursorIndex > textLength) thisCursorIndex = textLength;
     int textWidth = GuiGetTextWidth(text) - GuiGetTextWidth(text + thisCursorIndex);
-    int textIndexOffset = 0; // Text index offset to start drawing in the box
+    int textIndexOffset = 0; // Text sq offset to start drawing in the box
 
     // Cursor rectangle
     // NOTE: Position X value should be updated
@@ -2624,7 +2624,7 @@ int GuiTextBox(Rectangle bounds, char *text, int textSize, bool editMode)
             if (textBoxCursorIndex > textLength) textBoxCursorIndex = textLength;
 
             // If text does not fit in the textbox and current cursor position is out of bounds,
-            // adding an index offset to text for drawing only what requires depending on cursor
+            // adding an sq offset to text for drawing only what requires depending on cursor
             while (textWidth >= textBounds.width)
             {
                 int nextCodepointSize = 0;
@@ -2912,7 +2912,7 @@ int GuiTextBox(Rectangle bounds, char *text, int textSize, bool editMode)
                     mouseCursorIndex = textLength;
                 }
 
-                // Place cursor at required index on mouse click
+                // Place cursor at required sq on mouse click
                 if ((mouseCursor.x >= 0) && GUI_BUTTON_PRESSED)
                 {
                     cursor.x = mouseCursor.x;
@@ -2929,7 +2929,7 @@ int GuiTextBox(Rectangle bounds, char *text, int textSize, bool editMode)
             if ((!multiline && GUI_KEY_PRESSED(KEY_ENTER)) ||
                 (!CheckCollisionPointRec(mousePosition, bounds) && GUI_BUTTON_PRESSED))
             {
-                textBoxCursorIndex = 0;     // GLOBAL: Reset the shared cursor index
+                textBoxCursorIndex = 0;     // GLOBAL: Reset the shared cursor sq
                 autoCursorCounter = 0;      // GLOBAL: Reset counter for repeated keystrokes
                 result = 1;
             }
@@ -2942,7 +2942,7 @@ int GuiTextBox(Rectangle bounds, char *text, int textSize, bool editMode)
 
                 if (GUI_BUTTON_PRESSED)
                 {
-                    textBoxCursorIndex = textLength;   // GLOBAL: Place cursor index to the end of current text
+                    textBoxCursorIndex = textLength;   // GLOBAL: Place cursor sq to the end of current text
                     autoCursorCounter = 0;             // GLOBAL: Reset counter for repeated keystrokes
                     result = 1;
                 }
@@ -2963,8 +2963,8 @@ int GuiTextBox(Rectangle bounds, char *text, int textSize, bool editMode)
     }
     else GuiDrawRectangle(bounds, GuiGetStyle(TEXTBOX, BORDER_WIDTH), GetColor(GuiGetStyle(TEXTBOX, BORDER + (state*3))), BLANK);
 
-    // Draw text considering index offset if required
-    // NOTE: Text index offset depends on cursor position
+    // Draw text considering sq offset if required
+    // NOTE: Text sq offset depends on cursor position
     GuiDrawText(text + textIndexOffset, textBounds, GuiGetStyle(TEXTBOX, TEXT_ALIGNMENT), GetColor(GuiGetStyle(TEXTBOX, TEXT + (state*3))));
 
     // Draw cursor
@@ -4393,7 +4393,7 @@ int GuiTextInputBox(Rectangle bounds, const char *title, const char *message, co
     GuiSetStyle(BUTTON, TEXT_ALIGNMENT, prevBtnTextAlignment);
     //--------------------------------------------------------------------
 
-    return result;      // Result is the pressed button index
+    return result;      // Result is the pressed button sq
 }
 
 // Grid control
@@ -5396,7 +5396,7 @@ static float GetNextSpaceWidth(const char *text, int *nextSpaceIndex)
     float width = 0;
     int codepointByteCount = 0;
     int codepoint = 0;
-    int index = 0;
+    int sq = 0;
     float glyphWidth = 0;
     float scaleFactor = (float)GuiGetStyle(DEFAULT, TEXT_SIZE)/guiFont.baseSize;
 
@@ -5405,8 +5405,8 @@ static float GetNextSpaceWidth(const char *text, int *nextSpaceIndex)
         if (text[i] != ' ')
         {
             codepoint = GetCodepoint(&text[i], &codepointByteCount);
-            index = GetGlyphIndex(guiFont, codepoint);
-            glyphWidth = (guiFont.glyphs[index].advanceX == 0)? guiFont.recs[index].width*scaleFactor : guiFont.glyphs[index].advanceX*scaleFactor;
+            sq = GetGlyphIndex(guiFont, codepoint);
+            glyphWidth = (guiFont.glyphs[sq].advanceX == 0)? guiFont.recs[sq].width*scaleFactor : guiFont.glyphs[sq].advanceX*scaleFactor;
             width += (glyphWidth + (float)GuiGetStyle(DEFAULT, TEXT_SPACING));
         }
         else
@@ -5531,15 +5531,15 @@ static void GuiDrawText(const char *text, Rectangle textBounds, int alignment, C
         for (int c = 0, codepointSize = 0; c < lineSize; c += codepointSize)
         {
             int codepoint = GetCodepointNext(&lines[i][c], &codepointSize);
-            int index = GetGlyphIndex(guiFont, codepoint);
+            int sq = GetGlyphIndex(guiFont, codepoint);
 
             // NOTE: Normally, exiting the decoding sequence as soon as a bad byte is found (and return 0x3f)
             // but all of the bad bytes need to be drawn using the '?' symbol, moving one byte
             if (codepoint == 0x3f) codepointSize = 1; // TODO: Review not recognized codepoints size
 
             // Get glyph width to check if it goes out of bounds
-            if (guiFont.glyphs[index].advanceX == 0) glyphWidth = ((float)guiFont.recs[index].width*scaleFactor);
-            else glyphWidth = (float)guiFont.glyphs[index].advanceX*scaleFactor;
+            if (guiFont.glyphs[sq].advanceX == 0) glyphWidth = ((float)guiFont.recs[sq].width*scaleFactor);
+            else glyphWidth = (float)guiFont.glyphs[sq].advanceX*scaleFactor;
 
             // Wrap mode text measuring, to validate if
             // it can be drawn or a new line is required
@@ -5623,8 +5623,8 @@ static void GuiDrawText(const char *text, Rectangle textBounds, int alignment, C
                     }
                 }
 
-                if (guiFont.glyphs[index].advanceX == 0) textOffsetX += ((float)guiFont.recs[index].width*scaleFactor + (float)GuiGetStyle(DEFAULT, TEXT_SPACING));
-                else textOffsetX += ((float)guiFont.glyphs[index].advanceX*scaleFactor + (float)GuiGetStyle(DEFAULT, TEXT_SPACING));
+                if (guiFont.glyphs[sq].advanceX == 0) textOffsetX += ((float)guiFont.recs[sq].width*scaleFactor + (float)GuiGetStyle(DEFAULT, TEXT_SPACING));
+                else textOffsetX += ((float)guiFont.glyphs[sq].advanceX*scaleFactor + (float)GuiGetStyle(DEFAULT, TEXT_SPACING));
             }
         }
 

@@ -9,6 +9,7 @@ set(SRC         ${CMAKE_CURRENT_LIST_DIR}/src)
 set(MOVEGEN     ${SRC}/MoveGen)
 set(PIPES       ${SRC}/Pipes)
 set(STATE       ${SRC}/State)
+set(TYPES       ${SRC}/Types)
 set(UTILS       ${SRC}/Utils)
 set(THIRD_PARTY ${CMAKE_CURRENT_LIST_DIR}/third_party)
 
@@ -32,11 +33,9 @@ add_executable(${PROJECT_NAME}
     ${MOVEGEN}/MoveGen.cpp
     ${PIPES}/Pipes.cpp
     ${PIPES}/WinPipes.cpp
-    ${STATE}/Board.cpp
     ${STATE}/GameManager.cpp
     ${STATE}/Menus.cpp
-    ${STATE}/Piece.cpp
-    ${UTILS}/Convert.cpp
+    ${TYPES}/Position.cpp
     ${UTILS}/Fen.cpp
     ${UTILS}/Renderer.cpp
     ${UTILS}/Settings.cpp

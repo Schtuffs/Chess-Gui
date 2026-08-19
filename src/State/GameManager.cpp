@@ -11,56 +11,31 @@ constexpr const char* DEPTH_COMMAND = "go depth 10";
 // ----- Creation / Destruction -----
 
 GameManager::GameManager(std::string_view fen)
-    : m_board(fen), m_moveGen(), m_possibleMoves(0), m_promotionSquare(64), m_isWhiteTurn(true),
+    : m_position(fen), m_possibleMoves(0), m_promotionSquare(SQ_BAD), m_isWhiteTurn(true),
       m_isWhiteAI(false), m_isBlackAI(false), m_isReady(false)
 {
-    fen                     = m_board.Fen();
-    u64              index  = fen.find(' ');
-    std::string_view player = fen.substr(index + 1);
+    // fen                     = m_position.Fen();
+    u64              sq     = fen.find(' ');
+    std::string_view player = fen.substr(sq + 1);
 
     if (player[0] == 'b') {
         m_isWhiteTurn = false;
     }
 
     // Load moves from settings
-    std::string defaultNoLastMove                   = DEFAULT_FEN.data();
-    defaultNoLastMove[defaultNoLastMove.size() - 1] = '0';
-    if (m_board.Fen() != defaultNoLastMove) {
-        std::string moves = Settings::s(Setting::GAME_MOVES);
-        u64         start = 0, end = 0;
-        while ((end = moves.find(" ", start)) != std::string::npos) {
-            m_moves.push_back(moves.substr(start, end - start));
-            start = end + 1;
-        }
-        m_moves.push_back(moves.substr(start));
+    std::string moves = Settings::s(Setting::GAME_MOVES);
+    u64         start = 0, end = 0;
+    while ((end = moves.find(" ", start)) != std::string::npos) {
+        m_allMoves.push_back(moves.substr(start, end - start));
+        start = end + 1;
     }
+    m_allMoves.push_back(moves.substr(start));
 
-    m_moveGen.Generate(m_board, Player());
+    // Setup engines
     m_isWhiteAI = Settings::b(Setting::ENGINE_WHITE_AI);
     m_isBlackAI = Settings::b(Setting::ENGINE_BLACK_AI);
     if (!m_isWhiteAI && !m_isBlackAI) {
         m_isReady = true;
-    }
-
-    // Detect promo
-    for (int i = 0; i < 16; i++) {
-        if ((i / 8) == 1) {
-            // White promo
-            Index index = (i % 8) + 56;
-            if (m_board.Pieces()[index].Type() == Enums::Type::Pawn) {
-                m_promotionSquare = index;
-                m_isWhiteTurn     = !m_isWhiteTurn;
-                break;
-            }
-        } else {
-            // Black promo
-            Index index = (i % 8);
-            if (m_board.Pieces()[index].Type() == Enums::Type::Pawn) {
-                m_promotionSquare = index;
-                m_isWhiteTurn     = !m_isWhiteTurn;
-                break;
-            }
-        }
     }
 }
 
@@ -95,7 +70,7 @@ void GameManager::IsReady()
                             Settings::s(Setting::ENGINE_WHITE_PATH));
         wEngine.join();
         std::string position = "position startpos";
-        if (!m_moves.empty()) {
+        if (!m_allMoves.empty()) {
             position += " moves ";
             position += AllMoves();
         }
@@ -113,7 +88,7 @@ void GameManager::IsReady()
                             Settings::s(Setting::ENGINE_BLACK_PATH));
         bEngine.join();
         std::string position = "position startpos";
-        if (!m_moves.empty()) {
+        if (!m_allMoves.empty()) {
             position += " moves ";
             position += AllMoves();
         }
@@ -133,39 +108,51 @@ void GameManager::IsReady()
 std::string GameManager::AllMoves() const noexcept
 {
     std::string moves;
-    if (m_moves.size() == 0) {
+    if (m_allMoves.size() == 0) {
         return moves;
     }
 
-    moves += m_moves[0];
-    for (size_t i = 1; i < m_moves.size(); i++) {
+    moves += m_allMoves[0];
+    for (size_t i = 1; i < m_allMoves.size(); i++) {
         moves += ' ';
-        moves += m_moves[i];
+        moves += m_allMoves[i];
     }
 
     return moves;
 }
 
-bool GameManager::InCheckmate() const noexcept { return m_moveGen.IsCheckmate(); }
+bool GameManager::InCheckmate() const noexcept { return false; }
 
-bool GameManager::InStalemate() const noexcept { return m_moveGen.IsStalemate(); }
+bool GameManager::InStalemate() const noexcept { return false; }
 
-std::string_view GameManager::Fen() { return m_board.Fen(); }
+std::string_view GameManager::Fen() { return ""; }
 
 BitBoard GameManager::Moves() const noexcept { return m_possibleMoves; }
 
-Enums::Colour GameManager::Player() const noexcept
-{
-    return (m_isWhiteTurn ? Enums::Colour::White : Enums::Colour::Black);
-}
+Colour GameManager::Player() const noexcept { return m_position.Player(); }
 
-Index GameManager::Promotion() const noexcept { return m_promotionSquare; }
+Square GameManager::Promotion() const noexcept { return m_promotionSquare; }
 
 // ----- Update -----
 
-void GameManager::Update(std::string_view move)
+bool GameManager::Pickup(Square sq)
 {
-    if (m_moveGen.IsCheckmate() || m_moveGen.IsStalemate()) {
+    m_selectedSquare = SQ_BAD;
+
+    // Pickup piece of current player
+    if (!(m_position.Pieces(Player()) & sq)) {
+        return false;
+    }
+
+    m_selectedSquare = sq;
+    return true;
+}
+
+void GameManager::Update() { Update(Move(0)); }
+
+void GameManager::Update(Move move)
+{
+    if (InCheckmate() || InStalemate()) {
         return;
     }
 
@@ -179,16 +166,17 @@ void GameManager::Update(std::string_view move)
         return;
     }
 
-    if (move.length() < 2) {
+    if (!move.IsValid()) {
         return;
     }
 
-    move = Convert::CastleToMove(move, Player());
-    if (!Utils::IsValidIndex(Convert::MoveToIndex(move))) {
+    // Check for piece selection being required
+    if (m_selectedSquare != SQ_BAD && move.From() != m_selectedSquare) {
+        Pickup(move.From());
         return;
     }
 
-    Update(move, true);
+    MakeMove(move);
 }
 
 // ----- Hidden -----
@@ -196,14 +184,15 @@ void GameManager::Update(std::string_view move)
 void GameManager::EngineUpdate(Pipes::ID id)
 {
     constexpr const char SEARCH[] = "bestmove";
-    std::string          str      = Pipes::Read(id, false);
-    u64                  index    = str.find(SEARCH);
-    if (index == std::string::npos) {
+
+    std::string str = Pipes::Read(id, false);
+    auto        sq  = str.find(SEARCH);
+    if (sq == std::string::npos) {
         return;
     }
 
-    index += sizeof(SEARCH);
-    str       = str.substr(index);
+    sq += sizeof(SEARCH);
+    str       = str.substr(sq);
     u64 space = str.find(' ');
     if (space == std::string::npos) {
         space = 4;
@@ -211,103 +200,59 @@ void GameManager::EngineUpdate(Pipes::ID id)
 
     str = str.substr(0, space);
     if (str.length() >= 4) {
-        Update(str, false);
+        Update(Convert::StrToMove(str));
     }
 }
 
-void GameManager::Update(std::string_view passedMove, bool tryReselect)
+void GameManager::MakeMove(Move move)
 {
-    // Move requires file and rank
-    if (passedMove.length() < 2) {
-        WarningPrintln("GameManager::Update: passed move too small: \"{}\"", passedMove);
+    if (!move.IsValid()) {
+        ErrorPrintln("GameManager::MakeMove: Invalid move: {}", move.Str());
         return;
     }
 
     // Manage the promotion taking place
-    if (Utils::IsValidIndex(m_promotionSquare)) {
-        ManagePromotion(passedMove);
-        return;
-    }
-
-    // Prepare state information
-    if (passedMove.length() >= 3) {
-        m_currentMove = Convert::CastleToMove(passedMove, Player());
-    } else {
-        m_currentMove += passedMove;
-    }
-
-    // Player attempting to pick up a piece
-    if (m_currentMove.length() == 2) {
-        // Current move not complete, add it in
-        Index index = Convert::MoveToIndex(passedMove);
-        if (CheckPieceSelectable(index)) {
-            m_possibleMoves = m_moveGen.GetMoves(index);
-        }
-
-        // Failed to get moves
-        if (m_possibleMoves == MoveGen::INVALID) {
-            m_currentMove.clear();
-        }
-
+    if (Utils::IsValidSquare(m_promotionSquare)) {
+        ManagePromotion(move);
         return;
     }
 
     // Try to play the move
-    bool validMove = CheckMove(m_currentMove);
-    if (validMove) {
-        OnValidMove(m_currentMove);
-    } else {
-        // If we have a promotion, no need for reselection
-        CheckForPromotion(m_currentMove);
-        if (Utils::IsValidIndex(m_promotionSquare)) {
-            return;
-        }
+    if (CheckMove(move)) {
+        OnValidMove(move);
+        return;
     }
 
-    // Prepare indexes for reselection
-    Index start = Convert::MoveToIndex(m_currentMove);
-    Index end   = Convert::MoveToIndex(m_currentMove.substr(2));
-
-    // Clear old data
-    m_currentMove.clear();
-    m_possibleMoves = MoveGen::INVALID;
-
-    // Try to reselect
-    bool isSameIndex = (start == end);
-    if (!validMove && tryReselect && !isSameIndex) {
-        Update(passedMove, false);
+    // Reselection
+    if (move.From() != m_selectedSquare) {
+        Pickup(move.From());
     }
 }
 
-bool GameManager::CheckMove(std::string_view move)
-{
-    Index    start  = Convert::MoveToIndex(move);
-    Index    endIdx = Convert::MoveToIndex(move.substr(2));
-    BitBoard end    = Convert::IndexToBitBoard(endIdx);
+bool GameManager::CheckMove(Move move) { return m_position.IsLegal(move); }
 
-    BitBoard moves = m_moveGen.GetMoves(start);
-    if ((moves & end) == 0) {
-        return false;
+bool GameManager::CheckPieceSelectable(Square sq)
+{
+    return (m_position.Pieces(Player()) & sq).raw();
+}
+
+void GameManager::OnValidMove(Move move)
+{
+    // Set data
+    m_selectedSquare = SQ_BAD;
+    m_isWhiteTurn    = !m_isWhiteTurn;
+    m_allMoves.push_back(Convert::MoveToStr(move));
+
+    // Manage the promotion
+    if (move.IsPromo()) {
+        ManagePromotion(move);
     }
 
-    return (m_board.MakeMove(move));
-}
-
-bool GameManager::CheckPieceSelectable(Index index)
-{
-    Enums::Colour col = m_board.Pieces()[index].Colour();
-    return ((m_isWhiteTurn && col == Enums::Colour::White) ||
-            (!m_isWhiteTurn && col == Enums::Colour::Black));
-}
-
-void GameManager::OnValidMove(std::string_view move)
-{
-    m_isWhiteTurn = !m_isWhiteTurn;
-    m_moves.push_back(move.data());
-
+    // Save data
     Settings::s(Setting::GAME_FEN, Fen().data());
     Settings::s(Setting::GAME_MOVES, AllMoves());
 
+    // Setup engine for next move
     if (m_isWhiteTurn) {
         if (m_isWhiteAI) {
             std::string command = "position startpos moves " + AllMoves();
@@ -329,91 +274,69 @@ void GameManager::OnValidMove(std::string_view move)
             }
         }
     }
-
-    m_moveGen.Generate(m_board, Player());
 }
 
-void GameManager::CheckForPromotion(std::string_view move)
+void GameManager::ManagePromotion(Move move)
 {
-    Index        start = Convert::MoveToIndex(move);
-    Index        end   = Convert::MoveToIndex(move.substr(2));
-    const Piece& piece = m_board.Pieces()[start];
-
-    if (piece.Type() != Enums::Type::Pawn) {
+    // Must be promo
+    if (!move.IsPromo()) {
         return;
     }
 
-    if ((end / 8) == 0 && piece.Colour() == Enums::Colour::Black) {
-        m_promotionSquare = end;
-        m_possibleMoves   = MoveGen::INVALID;
-    } else if ((end / 8) == 7 && piece.Colour() == Enums::Colour::White) {
-        m_promotionSquare = end;
-        m_possibleMoves   = MoveGen::INVALID;
-    } else {
-        m_promotionSquare = 64;
-    }
+    // m_promotionSquare                      = SQ_BAD;
+    // constexpr u8          TOTAL_PROMOTIONS = 4;
+    // constexpr const char* PROMOTIONS_CHAR  = "qrbn";
 
-    // Only if it contains promotion details
-    if (move.length() % 2 == 1) {
-        ManagePromotion(move.substr(2));
-    }
-}
+    // if (move.length() == 0) {
+    //     return;
+    // }
 
-void GameManager::ManagePromotion(std::string_view move)
-{
-    constexpr u8          TOTAL_PROMOTIONS = 4;
-    constexpr const char* PROMOTIONS_CHAR  = "qrbn";
+    // if (!Utils::IsValidSquare(m_promotionSquare)) {
+    //     return;
+    // }
 
-    if (move.length() == 0) {
-        return;
-    }
+    // if (move.length() % 2 == 1) {
+    //     // The promotion char
+    //     char promotion = move[move.length() - 1];
 
-    if (!Utils::IsValidIndex(m_promotionSquare)) {
-        return;
-    }
+    //     // Determine the type
+    //     size_t i;
+    //     for (i = 0; i < TOTAL_PROMOTIONS; i++) {
+    //         if (promotion == PROMOTIONS_CHAR[i]) {
+    //             break;
+    //         }
+    //     }
 
-    if (move.length() % 2 == 1) {
-        // The promotion char
-        char promotion = move[move.length() - 1];
+    //     if (i == TOTAL_PROMOTIONS) {
+    //         WarningPrintln("GameManager::ManagePromotion: Invalid promotion type: {}", promotion);
+    //         return;
+    //     }
 
-        // Determine the type
-        size_t i;
-        for (i = 0; i < TOTAL_PROMOTIONS; i++) {
-            if (promotion == PROMOTIONS_CHAR[i]) {
-                break;
-            }
-        }
+    //     if (!m_position.IsLegal(move)) {
+    //         WarningPrintln("GameManager::ManagePromotion: Board could not promote: {}", move);
+    //         return;
+    //     }
 
-        if (i == TOTAL_PROMOTIONS) {
-            WarningPrintln("GameManager::ManagePromotion: Invalid promotion type: {}", promotion);
-            return;
-        }
+    //     m_promotionSquare = 64;
+    //     OnValidMove(move);
 
-        if (!m_board.MakeMove(move)) {
-            WarningPrintln("GameManager::ManagePromotion: Board could not promote: {}", move);
-            return;
-        }
+    //     return;
+    // }
 
-        m_promotionSquare = 64;
-        OnValidMove(move);
+    // Square clicked = Convert::MoveToIndex(move);
+    // i8     sign    = (m_promotionSquare / 8 == 0 ? 1 : -1);
 
-        return;
-    }
-
-    Index clicked = Convert::MoveToIndex(move);
-    i8    sign    = (m_promotionSquare / 8 == 0 ? 1 : -1);
-
-    for (u8 i = 0; i < TOTAL_PROMOTIONS; i++) {
-        Index index = m_promotionSquare + (sign * (i8)(i * 8));
-        if (clicked == index) {
-            std::string promo = m_currentMove + PROMOTIONS_CHAR[i];
-            if (m_board.MakeMove(promo)) {
-                m_promotionSquare = 64;
-                OnValidMove(promo);
-            } else {
-                WarningPrintln("GameManager::ManagePromotion: Could not promote pawn.");
-            }
-            return;
-        }
-    }
+    // for (u8 i = 0; i < TOTAL_PROMOTIONS; i++) {
+    //     Square sq = m_promotionSquare + (sign * (i8)(i * 8));
+    //     if (clicked == sq) {
+    //         std::string promo = m_currentMove + PROMOTIONS_CHAR[i];
+    //         if (m_board.MakeMove(promo)) {
+    //             m_promotionSquare = 64;
+    //             OnValidMove(promo);
+    //         } else {
+    //             WarningPrintln("GameManager::ManagePromotion: Could not promote pawn.");
+    //         }
+    //         return;
+    //     }
+    // }
 }

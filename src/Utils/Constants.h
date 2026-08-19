@@ -1,18 +1,6 @@
 #pragma once
 
-#include <cstdint>
 #include <string_view>
-
-using i8       = int8_t;
-using u8       = uint8_t;
-using i16      = int16_t;
-using u16      = uint16_t;
-using i32      = int32_t;
-using u32      = uint32_t;
-using i64      = int64_t;
-using u64      = uint64_t;
-using Index    = u8;
-using BitBoard = u64;
 
 extern bool inDebugMode;
 
@@ -21,15 +9,10 @@ extern bool inDebugMode;
  * @tparam T The desired datatype.
  * @date 2026-06-11
  */
-template <typename T> struct Vec2 {
+template <typename T>
+struct Vec2 {
     T x, y;
 };
-
-/**
- * @brief Default fen string.
- * @date 2026-06-11
- */
-constexpr std::string_view DEFAULT_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 // Resources path.
 constexpr std::string_view PATH_RESOURCES = "../resources";
@@ -59,32 +42,6 @@ enum class Castling {
 };
 
 /**
- * @brief Holds information for the colour of the piece.
- * @enum Colour
- * @date 2026-06-08
- */
-enum class Colour {
-    Black,   /**< Piece colour black */
-    White,   /**< Piece colour white */
-    Invalid, /**< Invalid piece.     */
-};
-
-/**
- * @brief Holds information for the type of piece.
- * @enum Type
- * @date 2026-06-08
- */
-enum class Type {
-    Bishop,  /**< Bishop type.   */
-    King,    /**< King type.     */
-    Knight,  /**< Knight type.   */
-    Pawn,    /**< Pawn type.     */
-    Queen,   /**< Queen type.    */
-    Rook,    /**< Rook type.     */
-    Invalid, /**< Invalid piece. */
-};
-
-/**
  * @brief Screen state information.
  * @enum Screen
  * @date 2026-06-08
@@ -110,18 +67,17 @@ namespace ToString {
  * @date 2026-06-08
  */
 constexpr const char* Colour[] = {
-    "black",
-    "white",
-    "invalid",
+    "WHITE",
+    "BLACK",
+    "COLOUR_TOTAL",
 };
 
 /**
  * @brief Convert `Enums::Type` to string.
  * @date 2026-06-08
  */
-constexpr const char* Type[] = {
-    "bishop", "king", "knight", "pawn", "queen", "rook", "invalid",
-};
+constexpr const char* Type[] = {"TYPE_NONE", "KNIGHT", "BISHOP", "ROOK",      "QUEEN",
+                                "PAWN",      "KING",   "N/A",    "TYPE_TOTAL"};
 
 /**
  * @brief Convert `Utils::Setting` to string.

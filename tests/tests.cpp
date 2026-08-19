@@ -5,7 +5,6 @@
 #include "Utils/Settings.h"
 #include "Utils/Utils.h"
 
-void BoardTests(void);
 void GameManagerTests(void);
 void MoveGenTests(void);
 
@@ -25,7 +24,6 @@ int main(int argc, char** argv)
 
     SetupSettings();
 
-    BoardTests();
     GameManagerTests();
     MoveGenTests();
 

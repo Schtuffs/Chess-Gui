@@ -256,78 +256,78 @@ static Setting DetermineSetting(const std::string& key)
 
 bool Settings::b(Setting setting, u8 value)
 {
-    u64 index = static_cast<u64>(setting);
-    if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::U8) {
+    u64 sq = static_cast<u64>(setting);
+    if (sq >= s_settingData.size() || (s_settingData[sq]).first != ActualType::U8) {
         return false;
     }
 
     bMtx.lock();
-    (s_settingData[index]).second.b = value;
+    (s_settingData[sq]).second.b = value;
     bMtx.unlock();
     return true;
 }
 
 bool Settings::i(Setting setting, u32 value)
 {
-    u64 index = static_cast<u64>(setting);
-    if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::U32) {
+    u64 sq = static_cast<u64>(setting);
+    if (sq >= s_settingData.size() || (s_settingData[sq]).first != ActualType::U32) {
         return false;
     }
 
     iMtx.lock();
-    (s_settingData[index]).second.i = value;
+    (s_settingData[sq]).second.i = value;
     iMtx.unlock();
     return true;
 }
 
 bool Settings::l(Setting setting, u64 value)
 {
-    u64 index = static_cast<u64>(setting);
-    if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::U64) {
+    u64 sq = static_cast<u64>(setting);
+    if (sq >= s_settingData.size() || (s_settingData[sq]).first != ActualType::U64) {
         return false;
     }
 
     lMtx.lock();
-    (s_settingData[index]).second.l = value;
+    (s_settingData[sq]).second.l = value;
     lMtx.unlock();
     return true;
 }
 
 bool Settings::f(Setting setting, float value)
 {
-    u64 index = static_cast<u64>(setting);
-    if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::FLOAT) {
+    u64 sq = static_cast<u64>(setting);
+    if (sq >= s_settingData.size() || (s_settingData[sq]).first != ActualType::FLOAT) {
         return false;
     }
 
     fMtx.lock();
-    (s_settingData[index]).second.f = value;
+    (s_settingData[sq]).second.f = value;
     fMtx.unlock();
     return true;
 }
 
 bool Settings::d(Setting setting, double value)
 {
-    u64 index = static_cast<u64>(setting);
-    if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::DOUBLE) {
+    u64 sq = static_cast<u64>(setting);
+    if (sq >= s_settingData.size() || (s_settingData[sq]).first != ActualType::DOUBLE) {
         return false;
     }
 
     dMtx.lock();
-    (s_settingData[index]).second.d = value;
+    (s_settingData[sq]).second.d = value;
     dMtx.unlock();
     return true;
 }
 
 bool Settings::s(Setting setting, const std::string& value)
 {
-    u64 index = static_cast<u64>(setting);
-    if (index >= s_settingData.size() || (s_settingData[index]).first != ActualType::STRING) {
+    u64 sq = static_cast<u64>(setting);
+    if (sq >= s_settingData.size() || (s_settingData[sq]).first != ActualType::STRING) {
         return false;
     }
 
     sMtx.lock();
-    (s_settingData[index]).second.s = value;
+    (s_settingData[sq]).second.s = value;
     sMtx.unlock();
     return true;
 }

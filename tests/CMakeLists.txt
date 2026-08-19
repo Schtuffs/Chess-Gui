@@ -18,7 +18,6 @@ add_executable(${PROJECT_NAME}
     ${ALL_SOURCE_FILES}
     ../third_party/raygui.c
     tests.cpp
-    BoardTests.cpp
     GameManagerTests.cpp
     MoveGenTests.cpp
 )

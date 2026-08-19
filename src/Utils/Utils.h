@@ -4,13 +4,10 @@
 #include <print>
 
 #include "raylib.h"
+#undef WHITE
+#undef BLACK
 
-#include "Utils/Constants.h"
-
-constexpr Color BOARD_SQUARE_LIGHT       = {175, 150, 120, 255};
-constexpr Color BOARD_SQUARE_DARK        = {100, 75, 60, 255};
-constexpr Color BOARD_SQUARE_LIGHT_ALPHA = {175, 150, 120, 75};
-constexpr Color BOARD_SQUARE_DARK_ALPHA  = {100, 75, 60, 75};
+#include "Types/Types.h"
 
 #define UTILS_LOG_CONSOLE
 
@@ -27,7 +24,11 @@ namespace Utils {
  * @return The smaller of the 2. Returns value `a` on equivalent.
  * @date 2026-06-06
  */
-template <typename T> constexpr T Min(T a, T b) { return (b < a) ? b : a; }
+template <typename T>
+constexpr T Min(T a, T b)
+{
+    return (b < a) ? b : a;
+}
 /**
  * @brief Calculate the maximum of 2 values of type `T`.
  * @param a The first value.
@@ -35,7 +36,11 @@ template <typename T> constexpr T Min(T a, T b) { return (b < a) ? b : a; }
  * @return The larger of the 2. Returns value `a` on equivalent.
  * @date 2026-06-06
  */
-template <typename T> constexpr T Max(T a, T b) { return (b > a) ? b : a; }
+template <typename T>
+constexpr T Max(T a, T b)
+{
+    return (b > a) ? b : a;
+}
 
 /**
  * @brief Creates a clickable button that only gets clicked on both press and release hovering.
@@ -79,38 +84,30 @@ Rectangle ButtonPos(u8 x, u8 y, u8 width, u8 height);
 
 /**
  * @brief Loads a `Texture2D` to the GPU.
- * @param `Enums::Colour` The `Piece` colour.
- * @param `Enums::Type` The `Piece` type.
+ * @param `Colour` The `Piece` colour.
+ * @param `PieceType` The `Piece` type.
  * @param size The size of the `Texture2D`.
  * @return The loaded `Texture2D`. Check with `IsTextureValid(Texture2D)`.
  * @date 2026-06-06
  */
-Texture2D LoadTexture(Enums::Colour colour, Enums::Type type, int size);
+Texture2D LoadTexture(Colour colour, PieceType type, int size);
 
 /**
  * @brief Unloads a `Texture2D` from the GPU.
  * @param `Texture2D` The texture to unload.
- * @param `Enums::Colour` The `Piece` colour.
- * @param `Enums::Type` The `Piece` type.
+ * @param `Colour` The `Piece` colour.
+ * @param `PieceType` The `Piece` type.
  * @date 2026-06-06
  */
-void UnloadTexture(Texture2D& texture, Enums::Colour colour, Enums::Type type);
+void UnloadTexture(Texture2D& texture, Colour colour, PieceType type);
 
 /**
- * @brief Checks if an `Index` is valid.
- * @param index The `Index` to check.
+ * @brief Checks if an `Square` is valid.
+ * @param sq The `Square` to check.
  * @return `true` on valid.
  * @date 2026-07-22
  */
-bool IsValidIndex(Index index);
-
-/**
- * @brief Swaps a `Enums::Colour` from one to the other.
- * @param colour The `Enums::Colour` to swap.
- * @return The opposite `Enums::Colour`.
- * @date 2026-08-04
- */
-Enums::Colour SwapColour(Enums::Colour colour);
+constexpr bool IsValidSquare(Square sq) { return (int)sq < SQ_TOTAL; }
 
 /**
  * @brief Specify the level of logging.

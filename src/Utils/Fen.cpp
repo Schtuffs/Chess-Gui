@@ -4,8 +4,6 @@
 #include <sstream>
 #include <string>
 
-#include "Fen.h"
-
 #include "Utils/Utils.h"
 
 // ----- Hidden -----
@@ -17,9 +15,9 @@ static bool ValidatePieces(std::string_view fen)
 {
     // Check files and ranks
     i8     files = 0, ranks = 0;
-    size_t index = 0;
-    while (index < fen.size()) {
-        char c = fen[index];
+    size_t sq = 0;
+    while (sq < fen.size()) {
+        char c = fen[sq];
 
         // Marks end of rank data, validate
         if (c == '/') {
@@ -47,11 +45,11 @@ static bool ValidatePieces(std::string_view fen)
             // No last rank pawns
             if (c == 'p') {
                 if (ranks == 7) {
-                    std::println("Bad");
+                    return false;
                 }
             } else if (c == 'P') {
                 if (ranks == 0) {
-                    std::println("Bad");
+                    return false;
                 }
             }
             files++;
@@ -66,7 +64,7 @@ static bool ValidatePieces(std::string_view fen)
             return false;
         }
 
-        index++;
+        sq++;
     }
 
     if (files != 8 && ranks != 8) {
@@ -185,111 +183,4 @@ bool Fen::IsValidFen(const char* data)
     }
 
     return true;
-}
-
-static std::string GenPieces(std::span<const Piece, 64> pieces)
-{
-    std::string fen;
-    u8          extra = 0;
-    for (u64 rank = 8 - 1; rank < 8; rank--) {
-        if (extra > 0) {
-            fen += std::to_string(extra);
-            extra = 0;
-        }
-
-        if (rank != 8 - 1) {
-            fen += "/";
-        }
-
-        for (u64 file = 0; file < 8; file++) {
-            u64 i = rank * 8 + file;
-
-            const Piece& piece = pieces[i];
-            char         p     = piece.AsChar();
-            if (!p) {
-                extra++;
-                continue;
-            }
-
-            if (extra > 0) {
-                fen += std::to_string(extra);
-                extra = 0;
-            }
-
-            fen += p;
-        }
-    }
-
-    if (extra > 0) {
-        fen += std::to_string(extra);
-        extra = 0;
-    }
-
-    return fen;
-}
-
-static std::string GenPlayer(char player)
-{
-    std::string fen = " ";
-
-    fen += player;
-
-    return fen;
-}
-
-static std::string GenCastling(std::string_view castling)
-{
-    std::string fen = " ";
-
-    fen += castling;
-
-    return fen;
-}
-
-static std::string GenEnPassant(std::string_view enPassant)
-{
-    std::string fen = " ";
-
-    fen += enPassant;
-
-    return fen;
-}
-
-static std::string GenHalfMoves(u32 halfMoves)
-{
-    std::string fen = " ";
-
-    fen += std::to_string(halfMoves);
-
-    return fen;
-}
-
-static std::string GenFullMoves(u32 fullMoves)
-{
-    std::string fen = " ";
-
-    fen += std::to_string(fullMoves);
-
-    return fen;
-}
-
-std::string Fen::GenerateFen(std::span<const Piece, 64> pieces, char player,
-                             std::string_view castling, std::string_view enPassant, u32 halfMoves,
-                             u32 fullMoves)
-{
-    std::string fen = "";
-
-    fen += GenPieces(pieces);
-    fen += GenPlayer(player);
-    fen += GenCastling(castling);
-    fen += GenEnPassant(enPassant);
-    fen += GenHalfMoves(halfMoves);
-    fen += GenFullMoves(fullMoves);
-
-    if (!IsValidFen(fen.c_str())) {
-        WarningPrintln("Fen::GenerateFen: Could not generate valid fen.");
-        return "";
-    }
-
-    return fen;
 }
