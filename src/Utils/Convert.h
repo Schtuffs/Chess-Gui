@@ -95,6 +95,14 @@ inline constexpr Square StrToSquare(std::string_view str)
     return (Square)(((str[1] - '1') * 8) + (str[0] - 'a'));
 }
 
+inline std::string SquareToStr(Square sq)
+{
+    std::string str;
+    str += (char((sq % 8) + 'a'));
+    str += (char((sq / 8) + '1'));
+    return str;
+}
+
 inline constexpr Move StrToMove(std::string_view str)
 {
     Square from  = Convert::StrToSquare(str);

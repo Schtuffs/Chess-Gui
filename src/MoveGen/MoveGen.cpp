@@ -31,27 +31,24 @@ void GenerateMoves(const Position& pos, MoveList& list, BitBoard targets)
 template <Colour us, GenType type>
 void GeneratePawnMoves(const Position& pos, MoveList& list, BitBoard targets)
 {
-    (void)targets;
-
-    constexpr Direction forward  = (us == WHITE ? NORTH : SOUTH);
-    constexpr Direction attLeft  = (Direction)std::abs(forward + WEST);
-    constexpr Direction attRight = (Direction)std::abs(forward + EAST);
-    constexpr BitBoard  promo    = (us == WHITE ? RANK_7 : RANK_2);
+    constexpr BitBoard promo = (us == WHITE ? RANK_7 : RANK_2);
 
     if constexpr (type != CAPTURES) {
         BitBoard pawns = pos.Pieces(us, PAWN);
 
         while (pawns) {
-            Square   from = pawns.PopLSB();
+            Square   from   = pawns.PopLSB();
+            BitBoard bbFrom = from;
             BitBoard target;
 
-            if constexpr (forward == NORTH) {
-                target |= (BitBoard(from) << (u8)forward);
-                target |= (BitBoard(from) << (u8)(forward * 2));
+            if constexpr (us == WHITE) {
+                target |= (bbFrom << 8);
+                target |= (bbFrom << 16) & ((bbFrom & RANK_2) << 16);
             } else {
-                target |= (BitBoard(from) >> (u8)forward);
-                target |= (BitBoard(from) >> (u8)(forward * 2));
+                target |= (bbFrom >> 8);
+                target |= (bbFrom >> 16) & ((bbFrom & RANK_7) >> 16);
             }
+            target &= targets;
 
             AddMoves(list, from, target);
         }
@@ -61,15 +58,16 @@ void GeneratePawnMoves(const Position& pos, MoveList& list, BitBoard targets)
         BitBoard pawns = pos.Pieces(us, PAWN);
 
         while (pawns) {
-            Square   from = pawns.PopLSB();
+            Square   from   = pawns.PopLSB();
+            BitBoard bbFrom = from;
             BitBoard target;
 
-            if constexpr (forward == NORTH) {
-                target |= (BitBoard(from) << (u8)attLeft) & ~FILE_8;
-                target |= (BitBoard(from) << (u8)attRight) & ~FILE_1;
+            if constexpr (us == WHITE) {
+                target |= (bbFrom << 7) & ~FILE_8;
+                target |= (bbFrom << 9) & ~FILE_1;
             } else {
-                target |= (BitBoard(from) >> (u8)attLeft) & ~FILE_8;
-                target |= (BitBoard(from) >> (u8)attRight) & ~FILE_1;
+                target |= (bbFrom >> 9) & ~FILE_8;
+                target |= (bbFrom >> 7) & ~FILE_1;
             }
 
             AddMoves(list, from, target);

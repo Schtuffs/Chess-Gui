@@ -2,6 +2,8 @@
 
 #include <string_view>
 
+#include "Types/ShortTypes.h"
+
 extern bool inDebugMode;
 
 /**
@@ -34,12 +36,12 @@ namespace Enums {
  * @enum Castling
  * @date 2026-07-03
  */
-enum class Castling {
-    Black_King  = 1, /**< Black castling kingside  */
-    Black_Queen = 2, /**< Black castling queenside */
-    White_King  = 4, /**< White castling kingside  */
-    White_Queen = 8, /**< White castling queenside */
-};
+namespace Castling {
+constexpr u8 Black_King  = 1; /**< Black castling kingside  */
+constexpr u8 Black_Queen = 2; /**< Black castling queenside */
+constexpr u8 White_King  = 4; /**< White castling kingside  */
+constexpr u8 White_Queen = 8; /**< White castling queenside */
+} // namespace Castling
 
 /**
  * @brief Screen state information.

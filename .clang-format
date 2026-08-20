@@ -9,7 +9,6 @@ AlignConsecutiveDeclarations: Consecutive
 AlignConsecutiveAssignments: Consecutive
 AlwaysBreakTemplateDeclarations: Yes
 
-# NamespaceIndentation: All
 InsertBraces: true
 BreakBeforeBraces: Custom
 BraceWrapping:

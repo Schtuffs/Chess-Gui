@@ -14,7 +14,7 @@ GameManager::GameManager(std::string_view fen)
     : m_position(fen), m_possibleMoves(0), m_selectedSquare(SQ_BAD), m_promotionSquare(SQ_BAD),
       m_isWhiteTurn(true), m_isWhiteAI(false), m_isBlackAI(false), m_isReady(false)
 {
-    // fen                     = m_position.Fen();
+    fen                     = m_position.Fen();
     u64              sq     = fen.find(' ');
     std::string_view player = fen.substr(sq + 1);
 
@@ -220,6 +220,7 @@ void GameManager::EngineUpdate(Pipes::ID id)
 
 void GameManager::MakeMove(Move move)
 {
+    // Must be valid move
     if (!move.IsValid()) {
         ErrorPrintln("GameManager::MakeMove: Invalid move: {}", move.Str());
         return;
@@ -246,7 +247,20 @@ void GameManager::MakeMove(Move move)
     }
 }
 
-bool GameManager::CheckMove(Move move) { return m_position.IsLegal(move); }
+bool GameManager::CheckMove(Move move)
+{
+    if (m_selectedSquare != SQ_BAD && move.From() != m_selectedSquare) {
+        WarningPrintln("GameManager::CheckMove: Invalid start square: {}", move.Str());
+        return false;
+    }
+
+    if (m_selectedSquare != SQ_BAD && !(m_possibleMoves & move.To())) {
+        WarningPrintln("GameManager::CheckMove: Invalid target square: {}", move.Str());
+        return false;
+    }
+
+    return m_position.IsLegal(move);
+}
 
 bool GameManager::CheckPieceSelectable(Square sq)
 {
@@ -260,11 +274,15 @@ void GameManager::OnValidMove(Move move)
     m_possibleMoves  = 0;
     m_isWhiteTurn    = !m_isWhiteTurn;
     m_allMoves.push_back(Convert::MoveToStr(move));
+    m_position.MakeMove(move);
 
     // Manage the promotion
     if (move.IsPromo()) {
         ManagePromotion(move);
     }
+
+    MoveGen::Generate(m_position, m_list);
+    m_list.Legalize(m_position);
 
     // Save data
     Settings::s(Setting::GAME_FEN, Fen().data());

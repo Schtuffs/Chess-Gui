@@ -23,6 +23,7 @@ public:
 
     constexpr u64 raw() const noexcept { return m_data; }
 
+    constexpr u8     Count() const noexcept { return (u8)std::popcount(m_data); }
     constexpr Square PopLSB() noexcept
     {
         Square sq = (Square)(std::countr_zero(m_data));
