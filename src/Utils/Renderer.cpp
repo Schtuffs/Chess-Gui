@@ -254,7 +254,6 @@ void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective) const
         // Alphabetical means its a piece
         if (isalpha(cur)) {
             u8 idx = Utils::CalculateIndex(Convert::CharToColour(cur), Convert::CharToType(cur));
-            std::println("Char: {}, idx: {}", cur, idx);
             RenderPiece(m_textures[idx], Square(rank * 8 + file));
             file += inc;
             continue;

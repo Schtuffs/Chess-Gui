@@ -42,6 +42,9 @@ public:
      */
     std::string AllMoves() const noexcept;
 
+    // Get the square of the currently selected piece
+    Square Held() const noexcept;
+
     // Checks if the current player has checkmated their opponent.
     bool InCheckmate() const noexcept;
 
@@ -84,6 +87,7 @@ public:
 private:
     std::vector<std::string> m_allMoves;
     Position                 m_position;
+    MoveList                 m_list;
     BitBoard                 m_possibleMoves;
     Square                   m_selectedSquare, m_promotionSquare;
     bool                     m_isWhiteTurn, m_isWhiteAI, m_isBlackAI, m_isReady;

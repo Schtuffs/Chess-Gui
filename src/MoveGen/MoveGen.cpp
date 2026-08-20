@@ -108,6 +108,12 @@ void MoveGen::Generate(const Position& pos, MoveList& list)
 template void MoveGen::Generate<CAPTURES>(const Position& pos, MoveList& list);
 template void MoveGen::Generate<QUIETS>(const Position& pos, MoveList& list);
 
+void MoveGen::Generate(const Position& pos, MoveList& list)
+{
+    MoveGen::Generate<CAPTURES>(pos, list);
+    MoveGen::Generate<QUIETS>(pos, list);
+}
+
 // ----- Move List -----
 
 void MoveList::Legalize(const Position& pos)
@@ -121,6 +127,17 @@ void MoveList::Legalize(const Position& pos)
         }
     }
     *this = std::move(legal);
+}
+
+BitBoard MoveList::ToBB(Square from) const noexcept
+{
+    BitBoard bb;
+    for (Move move : moves) {
+        if (move.From() == from) {
+            bb |= move.To();
+        }
+    }
+    return bb;
 }
 
 Move*       MoveList::begin() noexcept { return this->moves; }

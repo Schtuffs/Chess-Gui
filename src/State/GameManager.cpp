@@ -11,8 +11,8 @@ constexpr const char* DEPTH_COMMAND = "go depth 10";
 // ----- Creation / Destruction -----
 
 GameManager::GameManager(std::string_view fen)
-    : m_position(fen), m_possibleMoves(0), m_promotionSquare(SQ_BAD), m_isWhiteTurn(true),
-      m_isWhiteAI(false), m_isBlackAI(false), m_isReady(false)
+    : m_position(fen), m_possibleMoves(0), m_selectedSquare(SQ_BAD), m_promotionSquare(SQ_BAD),
+      m_isWhiteTurn(true), m_isWhiteAI(false), m_isBlackAI(false), m_isReady(false)
 {
     // fen                     = m_position.Fen();
     u64              sq     = fen.find(' ');
@@ -37,6 +37,10 @@ GameManager::GameManager(std::string_view fen)
     if (!m_isWhiteAI && !m_isBlackAI) {
         m_isReady = true;
     }
+
+    // Generate all legal moves
+    MoveGen::Generate(m_position, m_list);
+    m_list.Legalize(m_position);
 }
 
 GameManager::~GameManager() {}
@@ -121,6 +125,8 @@ std::string GameManager::AllMoves() const noexcept
     return moves;
 }
 
+Square GameManager::Held() const noexcept { return m_selectedSquare; }
+
 bool GameManager::InCheckmate() const noexcept { return false; }
 
 bool GameManager::InStalemate() const noexcept { return false; }
@@ -137,14 +143,20 @@ Square GameManager::Promotion() const noexcept { return m_promotionSquare; }
 
 bool GameManager::Pickup(Square sq)
 {
+    // Reset state always
     m_selectedSquare = SQ_BAD;
+    m_possibleMoves  = 0;
 
     // Pickup piece of current player
     if (!(m_position.Pieces(Player()) & sq)) {
         return false;
     }
 
+    // Select square and get the legal moves
     m_selectedSquare = sq;
+    m_possibleMoves |= sq;
+    m_possibleMoves |= m_list.ToBB(m_selectedSquare);
+
     return true;
 }
 
@@ -152,6 +164,7 @@ void GameManager::Update() { Update(Move(0)); }
 
 void GameManager::Update(Move move)
 {
+    // Cant update if game finished
     if (InCheckmate() || InStalemate()) {
         return;
     }
@@ -166,6 +179,7 @@ void GameManager::Update(Move move)
         return;
     }
 
+    // Must be valid move
     if (!move.IsValid()) {
         return;
     }
@@ -224,8 +238,11 @@ void GameManager::MakeMove(Move move)
     }
 
     // Reselection
-    if (move.From() != m_selectedSquare) {
-        Pickup(move.From());
+    if (move.To() != m_selectedSquare) {
+        Pickup(move.To());
+    } else {
+        m_selectedSquare = SQ_BAD;
+        m_possibleMoves  = 0;
     }
 }
 
@@ -240,6 +257,7 @@ void GameManager::OnValidMove(Move move)
 {
     // Set data
     m_selectedSquare = SQ_BAD;
+    m_possibleMoves  = 0;
     m_isWhiteTurn    = !m_isWhiteTurn;
     m_allMoves.push_back(Convert::MoveToStr(move));
 
@@ -308,8 +326,8 @@ void GameManager::ManagePromotion(Move move)
     //     }
 
     //     if (i == TOTAL_PROMOTIONS) {
-    //         WarningPrintln("GameManager::ManagePromotion: Invalid promotion type: {}", promotion);
-    //         return;
+    //         WarningPrintln("GameManager::ManagePromotion: Invalid promotion type: {}",
+    //         promotion); return;
     //     }
 
     //     if (!m_position.IsLegal(move)) {

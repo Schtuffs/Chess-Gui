@@ -11,9 +11,10 @@ struct MoveList {
     MoveList() : size(0) {}
 
     void Legalize(const Position& pos);
+    BitBoard ToBB(Square from) const noexcept;
 
-    Move* begin() noexcept;
-    Move* end() noexcept;
+    Move*       begin() noexcept;
+    Move*       end() noexcept;
     const Move* begin() const noexcept;
     const Move* end() const noexcept;
 };
@@ -22,5 +23,6 @@ enum GenType { CAPTURES, QUIETS };
 
 namespace MoveGen {
 template <GenType>
+void Generate(const Position& pos, MoveList& list);
 void Generate(const Position& pos, MoveList& list);
 }; // namespace MoveGen

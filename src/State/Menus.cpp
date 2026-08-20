@@ -441,9 +441,18 @@ void Menu::InGame(Enums::Screen& screen)
     }
 
     renderer.Update();
-    auto move = renderer.Render(gameManager->Fen(), gameManager->Moves(),
-                                       gameManager->Promotion(), isWhitePerspective);
-    gameManager->Update(move);
+    Square sq = renderer.Render(gameManager->Fen(), gameManager->Moves(), gameManager->Promotion(),
+                                isWhitePerspective);
+
+    if (Utils::IsValidSquare(sq)) {
+        DebugPrintln("Menu::InGame: Selected square: {}", (u8)sq);
+        if (gameManager->Held() == SQ_BAD) {
+            gameManager->Pickup(sq);
+        } else {
+            gameManager->Update(Move::Make(gameManager->Held(), sq));
+        }
+    }
+
     if (gameManager->InCheckmate() || gameManager->InStalemate()) {
         renderer.RenderMate(~(gameManager->Player()), gameManager->InCheckmate());
     }
