@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bit>
+#include <iostream>
 #include <print>
 #include <string>
 
@@ -49,9 +50,10 @@ public:
         return BitBoard(m_data | bb.m_data);
     }
 
-    constexpr void     operator=(const BitBoard& bb) { m_data = bb.m_data; }
-    constexpr bool     operator==(const BitBoard& bb) { return (m_data == bb.m_data); }
-    explicit constexpr operator bool() { return (m_data); }
+    constexpr void operator=(const BitBoard& bb) { m_data = bb.m_data; }
+    constexpr bool operator==(const BitBoard& bb) const { return (m_data == bb.m_data); }
+    friend constexpr std::ostream& operator<<(std::ostream& os, const BitBoard& bb);
+    explicit constexpr             operator bool() { return (m_data); }
 
     std::string Str() const noexcept;
 
@@ -99,4 +101,10 @@ inline std::string BitBoard::Str() const noexcept
 
     ret = VERT_SPACE + ret;
     return ret;
+}
+
+inline constexpr std::ostream& operator<<(std::ostream& os, const BitBoard& bb)
+{
+    os << bb.m_data;
+    return os;
 }

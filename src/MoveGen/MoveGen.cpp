@@ -89,6 +89,7 @@ void GenerateAll(const Position& pos, MoveList& list)
     }
 
     GenerateMoves<us, BISHOP>(pos, list, targets);
+    GenerateMoves<us, KING>(pos, list, targets);
     GenerateMoves<us, KNIGHT>(pos, list, targets);
     GenerateMoves<us, QUEEN>(pos, list, targets);
     GenerateMoves<us, ROOK>(pos, list, targets);

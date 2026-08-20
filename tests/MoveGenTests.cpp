@@ -9,257 +9,369 @@
 #include "Types/Position.h"
 #include "Utils/Convert.h"
 
-// static void BreakMoveGen()
-// {
-//     TEST("MoveGen::Generate: sq out of bounds", []() {
-//         BitBoard expected = MoveGen::INVALID;
-//         Board    b;
-//         MoveGen  gen;
-
-//         gen.Generate(b, WHITE);
-//         BitBoard actual = gen.GetMoves(64);
-
-//         Assert::Equal(actual, expected);
-//     });
-// }
-
 static void InitialMoves()
 {
-    // White initial
-    TEST("MoveGen::Generate: white initial", []() {
+
+    TEST("MoveGen::Generate: white initial - r1", []() {
+        BitBoard expected(0x00'00'00'00'00'00'00'01);
+
         Position pos(DEFAULT_FEN);
         MoveList list;
         MoveGen::Generate<QUIETS>(pos, list);
         MoveGen::Generate<CAPTURES>(pos, list);
-
         list.Legalize(pos);
 
-        Assert::Equal((int)list.size, 20);
-        for (const auto& move : list) {
-            std::println("Move: {}", move.Str());
-        }
+        BitBoard actual = list.ToBB(Square(0));
+        actual |= Square(0);
+
+        Assert::Equal(actual, expected);
     });
 
-    // TEST("MoveGen::Generate: white initial - r1", [&list]() {
-    //     BitBoard expected = 0x00'00'00'00'00'00'00'01;
+    TEST("MoveGen::Generate: white initial - n1", []() {
+        BitBoard expected(0x00'00'00'00'00'05'00'02);
 
-    //     BitBoard actual = gen.get()->GetMoves(0);
+        Position pos(DEFAULT_FEN);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-    //     Assert::Equal(actual, expected);
-    // });
+        BitBoard actual = list.ToBB(Square(1));
+        actual |= Square(1);
 
-    // TEST("MoveGen::Generate: white initial - n1", [&list]() {
-    //     BitBoard expected = 0x00'00'00'00'00'05'00'02;
+        Assert::Equal(actual, expected);
+    });
 
-    //     BitBoard actual = gen.get()->GetMoves(1);
+    TEST("MoveGen::Generate: white initial - b1", []() {
+        BitBoard expected(0x00'00'00'00'00'00'00'04);
 
-    //     Assert::Equal(actual, expected);
-    // });
+        Position pos(DEFAULT_FEN);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-    // TEST("MoveGen::Generate: white initial - b1", [&list]() {
-    //     BitBoard expected = 0x00'00'00'00'00'00'00'04;
+        BitBoard actual = list.ToBB(Square(2));
+        actual |= Square(2);
 
-    //     BitBoard actual = gen.get()->GetMoves(2);
+        Assert::Equal(actual, expected);
+    });
 
-    //     Assert::Equal(actual, expected);
-    // });
+    TEST("MoveGen::Generate: white initial - q", []() {
+        BitBoard expected(0x00'00'00'00'00'00'00'08);
 
-    // TEST("MoveGen::Generate: white initial - q", [&list]() {
-    //     BitBoard expected = 0x00'00'00'00'00'00'00'08;
+        Position pos(DEFAULT_FEN);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-    //     BitBoard actual = gen.get()->GetMoves(3);
+        BitBoard actual = list.ToBB(Square(3));
+        actual |= Square(3);
 
-    //     Assert::Equal(actual, expected);
-    // });
+        Assert::Equal(actual, expected);
+    });
 
-    // TEST("MoveGen::Generate: white initial - k", [&list]() {
-    //     BitBoard expected = 0x00'00'00'00'00'00'00'10;
+    TEST("MoveGen::Generate: white initial - k", []() {
+        BitBoard expected(0x00'00'00'00'00'00'00'10);
 
-    //     BitBoard actual = gen.get()->GetMoves(4);
+        Position pos(DEFAULT_FEN);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-    //     Assert::Equal(actual, expected);
-    // });
+        BitBoard actual = list.ToBB(Square(4));
+        actual |= Square(4);
 
-    // TEST("MoveGen::Generate: white initial - b2", [&list]() {
-    //     BitBoard expected = 0x00'00'00'00'00'00'00'20;
+        Assert::Equal(actual, expected);
+    });
 
-    //     BitBoard actual = gen.get()->GetMoves(5);
+    TEST("MoveGen::Generate: white initial - b2", []() {
+        BitBoard expected(0x00'00'00'00'00'00'00'20);
 
-    //     Assert::Equal(actual, expected);
-    // });
+        Position pos(DEFAULT_FEN);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-    // TEST("MoveGen::Generate: white initial - n2", [&list]() {
-    //     BitBoard expected = 0x00'00'00'00'00'a0'00'40;
+        BitBoard actual = list.ToBB(Square(5));
+        actual |= Square(5);
 
-    //     BitBoard actual = gen.get()->GetMoves(6);
+        Assert::Equal(actual, expected);
+    });
 
-    //     Assert::Equal(actual, expected);
-    // });
+    TEST("MoveGen::Generate: white initial - n2", []() {
+        BitBoard expected(0x00'00'00'00'00'a0'00'40);
 
-    // TEST("MoveGen::Generate: white initial - r2", [&list]() {
-    //     BitBoard expected = 0x00'00'00'00'00'00'00'80;
+        Position pos(DEFAULT_FEN);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-    //     BitBoard actual = gen.get()->GetMoves(7);
+        BitBoard actual = list.ToBB(Square(6));
+        actual |= Square(6);
 
-    //     Assert::Equal(actual, expected);
-    // });
+        Assert::Equal(actual, expected);
+    });
 
-    // TEST("MoveGen::Generate: white initial - p1", [&list]() {
-    //     BitBoard expected = 0x00'00'00'00'01'01'01'00;
+    TEST("MoveGen::Generate: white initial - r2", []() {
+        BitBoard expected(0x00'00'00'00'00'00'00'80);
 
-    //     BitBoard actual = gen.get()->GetMoves(8);
+        Position pos(DEFAULT_FEN);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-    //     Assert::Equal(actual, expected);
-    // });
+        BitBoard actual = list.ToBB(Square(7));
+        actual |= Square(7);
 
-    // TEST("MoveGen::Generate: white initial - p2", [&list]() {
-    //     BitBoard expected = 0x00'00'00'00'02'02'02'00;
+        Assert::Equal(actual, expected);
+    });
 
-    //     BitBoard actual = gen.get()->GetMoves(9);
+    TEST("MoveGen::Generate: white initial - p1", []() {
+        BitBoard expected(0x00'00'00'00'01'01'01'00);
 
-    //     Assert::Equal(actual, expected);
-    // });
+        Position pos(DEFAULT_FEN);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-    // TEST("MoveGen::Generate: white initial - p3", [&list]() {
-    //     BitBoard expected = 0x00'00'00'00'04'04'04'00;
+        BitBoard actual = list.ToBB(Square(8));
+        actual |= Square(8);
 
-    //     BitBoard actual = gen.get()->GetMoves(10);
+        Assert::Equal(actual, expected);
+    });
 
-    //     Assert::Equal(actual, expected);
-    // });
+    TEST("MoveGen::Generate: white initial - p2", []() {
+        BitBoard expected(0x00'00'00'00'02'02'02'00);
 
-    // TEST("MoveGen::Generate: white initial - p4", [&list]() {
-    //     BitBoard expected = 0x00'00'00'00'08'08'08'00;
+        Position pos(DEFAULT_FEN);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-    //     BitBoard actual = gen.get()->GetMoves(11);
+        BitBoard actual = list.ToBB(Square(9));
+        actual |= Square(9);
 
-    //     Assert::Equal(actual, expected);
-    // });
+        Assert::Equal(actual, expected);
+    });
 
-    // TEST("MoveGen::Generate: white initial - p5", [&list]() {
-    //     BitBoard expected = 0x00'00'00'00'10'10'10'00;
+    TEST("MoveGen::Generate: white initial - p3", []() {
+        BitBoard expected(0x00'00'00'00'04'04'04'00);
 
-    //     BitBoard actual = gen.get()->GetMoves(12);
+        Position pos(DEFAULT_FEN);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-    //     Assert::Equal(actual, expected);
-    // });
+        BitBoard actual = list.ToBB(Square(10));
+        actual |= Square(10);
 
-    // TEST("MoveGen::Generate: white initial - p6", [&list]() {
-    //     BitBoard expected = 0x00'00'00'00'20'20'20'00;
+        Assert::Equal(actual, expected);
+    });
 
-    //     BitBoard actual = gen.get()->GetMoves(13);
+    TEST("MoveGen::Generate: white initial - p4", []() {
+        BitBoard expected(0x00'00'00'00'08'08'08'00);
 
-    //     Assert::Equal(actual, expected);
-    // });
+        Position pos(DEFAULT_FEN);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-    // TEST("MoveGen::Generate: white initial - p7", [&list]() {
-    //     BitBoard expected = 0x00'00'00'00'40'40'40'00;
+        BitBoard actual = list.ToBB(Square(11));
+        actual |= Square(11);
 
-    //     BitBoard actual = gen.get()->GetMoves(14);
+        Assert::Equal(actual, expected);
+    });
 
-    //     Assert::Equal(actual, expected);
-    // });
+    TEST("MoveGen::Generate: white initial - p5", []() {
+        BitBoard expected(0x00'00'00'00'10'10'10'00);
 
-    // TEST("MoveGen::Generate: white initial - p8", [&list]() {
-    //     BitBoard expected = 0x00'00'00'00'80'80'80'00;
+        Position pos(DEFAULT_FEN);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-    //     BitBoard actual = gen.get()->GetMoves(15);
+        BitBoard actual = list.ToBB(Square(12));
+        actual |= Square(12);
 
-    //     Assert::Equal(actual, expected);
-    // });
+        Assert::Equal(actual, expected);
+    });
+
+    TEST("MoveGen::Generate: white initial - p6", []() {
+        BitBoard expected(0x00'00'00'00'20'20'20'00);
+
+        Position pos(DEFAULT_FEN);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
+
+        BitBoard actual = list.ToBB(Square(13));
+        actual |= Square(13);
+
+        Assert::Equal(actual, expected);
+    });
+
+    TEST("MoveGen::Generate: white initial - p7", []() {
+        BitBoard expected(0x00'00'00'00'40'40'40'00);
+
+        Position pos(DEFAULT_FEN);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
+
+        BitBoard actual = list.ToBB(Square(14));
+        actual |= Square(14);
+
+        Assert::Equal(actual, expected);
+    });
+
+    TEST("MoveGen::Generate: white initial - p8", []() {
+        BitBoard expected(0x00'00'00'00'80'80'80'00);
+
+        Position pos(DEFAULT_FEN);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
+
+        BitBoard actual = list.ToBB(Square(15));
+        actual |= Square(15);
+
+        Assert::Equal(actual, expected);
+    });
 }
 
 //
 
-// static void WhiteLondonTests()
-// {
-//     static constexpr const char* fen =
-//         "r1bq1rk1/ppp2ppp/2n1pn2/b2pN3/3P1B2/2PBP3/PP3PPP/RN1QK2R w KQ - 3 6";
+static void WhiteLondonTests()
+{
+    static constexpr const char* fen =
+        "r1bq1rk1/ppp2ppp/2n1pn2/b2pN3/3P1B2/2PBP3/PP3PPP/RN1QK2R w KQ - 3 6";
 
-//     TEST("MoveGen::Generate: london piece movements - white king", []() {
-//         Board    b(fen);
-//         BitBoard expected = 0x00'00'00'00'00'00'18'70;
+    TEST("MoveGen::Generate: london piece movements - white king", []() {
+        BitBoard expected = 0x00'00'00'00'00'00'18'70;
 
-//         MoveGen gen;
-//         gen.Generate(b, WHITE);
-//         BitBoard actual = gen.GetMoves(4);
+        Position pos(fen);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-//         Assert::Equal(actual, expected);
-//     });
+        BitBoard actual = list.ToBB(Square(4));
+        actual |= Square(4);
 
-//     TEST("MoveGen::Generate: london piece movements - white queen", []() {
-//         Board    b(fen);
-//         BitBoard expected = 0x00'00'00'80'41'22'1c'0c;
+        Assert::Equal(actual, expected);
+    });
 
-//         MoveGen gen;
-//         gen.Generate(b, WHITE);
-//         BitBoard actual = gen.GetMoves(3);
+    TEST("MoveGen::Generate: london piece movements - white queen", []() {
+        BitBoard expected = 0x00'00'00'80'41'22'1c'0c;
 
-//         Assert::Equal(actual, expected);
-//     });
+        Position pos(fen);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-//     TEST("MoveGen::Generate: london piece movements - white pinned pawn e3", []() {
-//         Board    b(fen);
-//         BitBoard expected = 0x00'00'00'00'00'04'00'00;
+        BitBoard actual = list.ToBB(Square(3));
+        actual |= Square(3);
 
-//         MoveGen gen;
-//         gen.Generate(b, WHITE);
-//         BitBoard actual = gen.GetMoves(18);
+        Assert::Equal(actual, expected);
+    });
 
-//         Assert::Equal(actual, expected);
-//     });
-// }
+    TEST("MoveGen::Generate: london piece movements - white pinned pawn e3", []() {
+        BitBoard expected = 0x00'00'00'00'00'04'00'00;
 
-// static void WhitePuzzleTests()
-// {
-//     constexpr const char* fen = "2kr2nr/B5p1/2p5/1pb1p3/4P1b1/1BN3P1/PP6/R4RK1 w - - 1 2";
+        Position pos(fen);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-//     TEST("MoveGen::Generate: puzzle king in check - move dark bishop", [&fen]() {
-//         BitBoard    expected = 0x00'01'00'04'00'00'00'00;
-//         const Board b(fen);
+        BitBoard actual = list.ToBB(Square(18));
+        actual |= Square(18);
 
-//         MoveGen gen;
-//         gen.Generate(b, WHITE);
-//         BitBoard actual = gen.GetMoves(48);
+        Assert::Equal(actual, expected);
+    });
+}
 
-//         Assert::Equal(actual, expected);
-//     });
+static void WhitePuzzleTests()
+{
+    static constexpr const char* fen = "2kr2nr/B5p1/2p5/1pb1p3/4P1b1/1BN3P1/PP6/R4RK1 w - - 1 2";
 
-//     TEST("MoveGen::Generate: puzzle king in check - move light bishop", [&fen]() {
-//         BitBoard    expected = 0x00'00'00'00'00'02'00'00;
-//         const Board b(fen);
+    TEST("MoveGen::Generate: puzzle king in check - move dark bishop", []() {
+        BitBoard expected = 0x00'01'00'04'00'00'00'00;
 
-//         MoveGen gen;
-//         gen.Generate(b, WHITE);
-//         BitBoard actual = gen.GetMoves(17);
+        Position pos(fen);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-//         Assert::Equal(actual, expected);
-//     });
+        BitBoard actual = list.ToBB(Square(48));
+        actual |= Square(48);
 
-//     TEST("MoveGen::Generate: puzzle king in check - move king", [&fen]() {
-//         BitBoard    expected = 0x00'00'00'00'00'00'40'40;
-//         const Board b(fen);
+        Assert::Equal(actual, expected);
+    });
 
-//         MoveGen gen;
-//         gen.Generate(b, WHITE);
-//         BitBoard actual = gen.GetMoves(6);
+    TEST("MoveGen::Generate: puzzle king in check - move light bishop", []() {
+        BitBoard expected = 0x00'00'00'00'00'02'00'00;
 
-//         Assert::Equal(actual, expected);
-//     });
+        Position pos(fen);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
 
-//     TEST("MoveGen::Generate: puzzle king in check - move rook", [&fen]() {
-//         BitBoard    expected = 0x00'00'00'00'00'00'20'20;
-//         const Board b(fen);
+        BitBoard actual = list.ToBB(Square(17));
+        actual |= Square(17);
 
-//         MoveGen gen;
-//         gen.Generate(b, WHITE);
-//         BitBoard actual = gen.GetMoves(5);
+        Assert::Equal(actual, expected);
+    });
 
-//         Assert::Equal(actual, expected);
-//     });
-// }
+    TEST("MoveGen::Generate: puzzle king in check - move king", []() {
+        BitBoard expected = 0x00'00'00'00'00'00'40'40;
 
-// //
+        Position pos(fen);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
+
+        BitBoard actual = list.ToBB(Square(6));
+        actual |= Square(6);
+
+        Assert::Equal(actual, expected);
+    });
+
+    TEST("MoveGen::Generate: puzzle king in check - move rook", []() {
+        BitBoard expected = 0x00'00'00'00'00'00'20'20;
+
+        Position pos(fen);
+        MoveList list;
+        MoveGen::Generate<QUIETS>(pos, list);
+        MoveGen::Generate<CAPTURES>(pos, list);
+        list.Legalize(pos);
+
+        BitBoard actual = list.ToBB(Square(5));
+        actual |= Square(5);
+
+        Assert::Equal(actual, expected);
+    });
+}
+
+//
 
 // static void BlackLondonTests()
 // {
@@ -609,11 +721,10 @@ static void InitialMoves()
 
 void MoveGenTests()
 {
-    //     BreakMoveGen();
     InitialMoves();
 
-    //     WhiteLondonTests();
-    //     WhitePuzzleTests();
+    WhiteLondonTests();
+    WhitePuzzleTests();
 
     //     BlackLondonTests();
     //     BlackPuzzleTests();
