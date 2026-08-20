@@ -42,6 +42,8 @@ constexpr T Max(T a, T b)
     return (b > a) ? b : a;
 }
 
+constexpr u8 CalculateIndex(Colour col, PieceType type) { return u8(type + (col * 8)); }
+
 /**
  * @brief Creates a clickable button that only gets clicked on both press and release hovering.
  * @param rect The area to render the button.

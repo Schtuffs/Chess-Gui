@@ -94,6 +94,7 @@ static bool ValidateMove(std::string_view fen)
 static bool ValidateCastling(std::string_view fen)
 {
     if (fen.length() > 4) {
+        WarningPrintln("Fen::ValidateCastling: Too much castling: {}", fen);
         return false;
     }
 
@@ -128,6 +129,7 @@ static bool ValidateEnPassant(std::string_view fen)
     }
 
     if (fen.length() != 2) {
+        WarningPrintln("Fen::ValidateEnPassant: Invalid en passant: {}", fen);
         return false;
     }
 
@@ -154,6 +156,7 @@ static bool NextCheck(std::istringstream& ss, bool (*validate)(std::string_view)
     std::string str;
     ss >> str;
     if (ss.fail() || !validate(str)) {
+        ErrorPrintln("Fen::NextCheck: Failed to get next token.");
         return false;
     }
     return true;

@@ -11,6 +11,11 @@ struct MoveList {
     MoveList() : size(0) {}
 
     void Legalize(const Position& pos);
+
+    Move* begin() noexcept;
+    Move* end() noexcept;
+    const Move* begin() const noexcept;
+    const Move* end() const noexcept;
 };
 
 enum GenType { CAPTURES, QUIETS };

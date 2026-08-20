@@ -14,8 +14,41 @@ float DefaultButtonThickness()
 
 Color DefaultButtonBorderColour() { return {0, 0, 0, 255}; }
 
+void Renderer::LoadTextures() noexcept
+{
+    for (u8 i = 0; i < (u8)COLOUR_TOTAL * (u8)TYPE_TOTAL; i++) {
+        Colour    col     = Colour(i / TYPE_TOTAL);
+        PieceType type    = PieceType(i % TYPE_TOTAL);
+        Texture2D texture = Utils::LoadTexture(col, type, m_textureSize);
+        if (IsTextureValid(texture)) {
+            InfoPrintln("Renderer::LoadTextures: Loaded texture: {} {}",
+                        Enums::ToString::Colour[col], Enums::ToString::Type[type]);
+            m_textures[Utils::CalculateIndex(col, type)] = texture;
+        } else {
+            WarningPrintln("Renderer::LoadTextures: Invalid texture: {} {}",
+                           Enums::ToString::Colour[col], Enums::ToString::Type[type]);
+        }
+    }
+}
+
+void Renderer::UnloadTextures() noexcept
+{
+    for (u8 i = 0; i < (u8)COLOUR_TOTAL * (u8)TYPE_TOTAL; i++) {
+        Colour    col  = Colour(i / TYPE_TOTAL);
+        PieceType type = PieceType(i % TYPE_TOTAL);
+        u8        idx  = Utils::CalculateIndex(col, type);
+        if (IsTextureValid(m_textures[idx])) {
+            Utils::UnloadTexture(m_textures[idx], col, type);
+            InfoPrintln("Renderer::UnloadTextures: Unloaded texture: {} {}",
+                        Enums::ToString::Colour[col], Enums::ToString::Type[type]);
+        }
+    }
+}
+
 Renderer::Renderer()
 {
+    Utils::SetLogLevel(Utils::LogLevel::INFO);
+
     // Make texture size square
     int width     = GetScreenWidth();
     int height    = GetScreenHeight();
@@ -27,40 +60,17 @@ Renderer::Renderer()
     m_startX  = sizeX / 2;
     m_startY  = sizeY / 2;
 
-    // Loop through all piece combinations and ensure texture validity
-    for (u64 col = 0; col < 2; col++) {
-        for (u64 type = 0; type < 6; type++) {
-            Texture2D texture = Utils::LoadTexture(Colour(col), PieceType(type), m_textureSize);
-            if (IsTextureValid(texture)) {
-                InfoPrintln("Renderer::Renderer: Loaded texture: {} {}",
-                            Enums::ToString::Colour[col], Enums::ToString::Type[type]);
-                int sq         = type * 2 + col;
-                m_textures[sq] = texture;
-            } else {
-                WarningPrintln("Renderer::Renderer: Invalid texture: {} {}",
-                               Enums::ToString::Colour[col], Enums::ToString::Type[type]);
-            }
-        }
-    }
+    // Get textures
+    LoadTextures();
 
+    // Setup from settings
     m_dark  = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_DARK));
     m_light = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LIGHT));
     m_promo = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_PROMO));
     m_legal = Convert::U32ToColor(Settings::i(Setting::BOARD_TILE_LEGAL));
 }
 
-Renderer::~Renderer()
-{
-    // Only free valid textures
-    for (uint64_t col = 0; col < 2; col++) {
-        for (uint64_t type = 0; type < 6; type++) {
-            int i = type * 2 + col;
-            if (IsTextureValid(m_textures[i])) {
-                Utils::UnloadTexture(m_textures[i], Colour(col), PieceType(type));
-            }
-        }
-    }
-}
+Renderer::~Renderer() { UnloadTextures(); }
 
 // ----- Read -----
 
@@ -167,28 +177,9 @@ void Renderer::FixSize()
     m_textureSize = grid.z;
 
     DebugPrintln("Renderer::FixSize: Unloading textures");
-    for (uint64_t col = 0; col < 2; col++) {
-        for (uint64_t type = 0; type < 6; type++) {
-            int i = type * 2 + col;
-            if (IsTextureValid(m_textures[i])) {
-                Utils::UnloadTexture(m_textures[i], Colour(col), PieceType(type));
-            }
-        }
-    }
-
+    UnloadTextures();
     DebugPrintln("Renderer::FixSize: Reloading textures");
-    for (u64 col = 0; col < 2; col++) {
-        for (u64 type = 0; type < 6; type++) {
-            Texture2D texture = Utils::LoadTexture(Colour(col), PieceType(type), m_textureSize);
-            if (IsTextureValid(texture)) {
-                int sq         = type * 2 + col;
-                m_textures[sq] = texture;
-            } else {
-                ErrorPrintln("Renderer::FixSize: Could not create texture: {} {}",
-                             Enums::ToString::Colour[col], Enums::ToString::Type[type]);
-            }
-        }
-    }
+    LoadTextures();
     DebugPrintln("Renderer::FixSize: Reloaded textures");
 }
 
@@ -262,9 +253,9 @@ void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective) const
 
         // Alphabetical means its a piece
         if (isalpha(cur)) {
-            int type   = CheckType(cur);
-            int colour = CheckColour(cur);
-            RenderPiece(m_textures[type * 2 + colour], Square(rank * 8 + file));
+            u8 idx = Utils::CalculateIndex(Convert::CharToColour(cur), Convert::CharToType(cur));
+            std::println("Char: {}, idx: {}", cur, idx);
+            RenderPiece(m_textures[idx], Square(rank * 8 + file));
             file += inc;
             continue;
         }
@@ -345,7 +336,8 @@ Rectangle Renderer::GetRect(Square sq) const noexcept
     Square rank = sq / 8;
 
     Vector3   grid = Utils::GridPositioning();
-    Rectangle rect = {(grid.x + grid.z * float(file)), (grid.y + grid.z * (7 - rank)), (grid.z), (grid.z)};
+    Rectangle rect = {(grid.x + grid.z * float(file)), (grid.y + grid.z * (7 - rank)), (grid.z),
+                      (grid.z)};
     return rect;
 }
 

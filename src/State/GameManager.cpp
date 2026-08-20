@@ -125,7 +125,7 @@ bool GameManager::InCheckmate() const noexcept { return false; }
 
 bool GameManager::InStalemate() const noexcept { return false; }
 
-std::string_view GameManager::Fen() { return ""; }
+std::string_view GameManager::Fen() { return m_position.Fen(); }
 
 BitBoard GameManager::Moves() const noexcept { return m_possibleMoves; }
 

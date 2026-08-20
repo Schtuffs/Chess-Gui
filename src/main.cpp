@@ -16,9 +16,11 @@ bool inDebugMode = false;
 
 bool IsScreenSwapped(Enums::Screen screen)
 {
-    static Enums::Screen prev  = Enums::Screen::Menu;
-    bool                 value = prev != screen;
-    prev                       = screen;
+    static Enums::Screen prev = Enums::Screen::Menu;
+
+    bool value = (prev != screen);
+
+    prev = screen;
     return value;
 }
 

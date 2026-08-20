@@ -15,10 +15,8 @@ typedef struct TextureValuePair {
     Texture2D texture{};
 } TextureValuePair;
 
-static TextureValuePair s_textureValuePairs[12];
+static TextureValuePair s_textureValuePairs[(u8)TYPE_TOTAL * (u8)COLOUR_TOTAL];
 static u8               s_clickedButton = 0;
-
-int CalculateIndex(Colour colour, PieceType type) { return ((int)type * 2) + (int)colour; }
 
 Vector2 Utils::CenterText(const char* text, Font font, float fontSize, float fontSpacing,
                           Vector2 centerPoint)
@@ -98,7 +96,7 @@ Texture2D Utils::LoadTexture(Colour colour, PieceType type, int size)
     }
 
     // Get pair data
-    int               sq   = CalculateIndex(colour, type);
+    u8                sq   = CalculateIndex(colour, type);
     TextureValuePair& pair = s_textureValuePairs[sq];
 
     // Determine if should load texture

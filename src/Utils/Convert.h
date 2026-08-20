@@ -24,7 +24,10 @@ namespace Convert {
  * @return The ABGR u32 representation of the colour.
  * @date 2026-07-03
  */
-inline constexpr u32 ColorToU32(Color col) { return (col.a << 24) | (col.b << 16) | (col.g << 8) | col.r; }
+inline constexpr u32 ColorToU32(Color col)
+{
+    return (col.a << 24) | (col.b << 16) | (col.g << 8) | col.r;
+}
 
 /**
  * @brief Converts a ABGR u32 to a `Color`.
@@ -41,6 +44,9 @@ inline constexpr Color U32ToColor(u32 val)
     col.r = (0xff & (val >> 0));
     return col;
 }
+
+// Converts a letter to a colour
+inline constexpr Colour CharToColour(char c) { return (isupper(c) ? WHITE : BLACK); }
 
 // Converts a letter to a piece type.
 inline constexpr PieceType CharToType(char c)
@@ -84,7 +90,10 @@ inline constexpr char TypeToChar(PieceType type)
     }
 }
 
-inline constexpr Square StrToSquare(std::string_view str) { return (Square)(((str[1] - '1') * 8) + (str[0] - 'a')); }
+inline constexpr Square StrToSquare(std::string_view str)
+{
+    return (Square)(((str[1] - '1') * 8) + (str[0] - 'a'));
+}
 
 inline constexpr Move StrToMove(std::string_view str)
 {

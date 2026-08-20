@@ -15,21 +15,13 @@ void AddMoves(MoveList& list, Square from, BitBoard targets)
 template <Colour us, PieceType type>
 void GenerateMoves(const Position& pos, MoveList& list, BitBoard targets)
 {
-    BitBoard bb = pos.Pieces(us, type);
+    BitBoard bb       = pos.Pieces(us, type);
+    BitBoard occupied = pos.Pieces();
 
     while (bb) {
         Square from = bb.PopLSB();
 
-        BitBoard b = 0;
-        if constexpr (type == BISHOP) {
-            b |= Magic::GetAttacks<BISHOP>(from, pos.Pieces());
-        }
-        if constexpr (type == QUEEN) {
-            b |= Magic::GetAttacks<QUEEN>(from, pos.Pieces());
-        }
-        if constexpr (type == ROOK) {
-            b |= Magic::GetAttacks<ROOK>(from, pos.Pieces());
-        }
+        BitBoard b = Magic::GetAttacks<type>(from, occupied);
         b &= targets;
 
         AddMoves(list, from, b);
@@ -41,21 +33,17 @@ void GeneratePawnMoves(const Position& pos, MoveList& list, BitBoard targets)
 {
     (void)targets;
 
-    // constexpr Colour    them     = ~us;
     constexpr Direction forward  = (us == WHITE ? NORTH : SOUTH);
     constexpr Direction attLeft  = (Direction)std::abs(forward + WEST);
     constexpr Direction attRight = (Direction)std::abs(forward + EAST);
     constexpr BitBoard  promo    = (us == WHITE ? RANK_7 : RANK_2);
 
-    // BitBoard pawnPromoting    = pos.Pieces(us, PAWN) & promo;
-    // BitBoard pawnNotPromoting = pos.Pieces(us, PAWN) & ~promo;
-
     if constexpr (type != CAPTURES) {
         BitBoard pawns = pos.Pieces(us, PAWN);
-        
+
         while (pawns) {
-            Square from = pawns.PopLSB();
-            BitBoard target = 0;
+            Square   from = pawns.PopLSB();
+            BitBoard target;
 
             if constexpr (forward == NORTH) {
                 target |= (BitBoard(from) << (u8)forward);
@@ -64,6 +52,7 @@ void GeneratePawnMoves(const Position& pos, MoveList& list, BitBoard targets)
                 target |= (BitBoard(from) >> (u8)forward);
                 target |= (BitBoard(from) >> (u8)(forward * 2));
             }
+
             AddMoves(list, from, target);
         }
     }
@@ -74,6 +63,7 @@ void GeneratePawnMoves(const Position& pos, MoveList& list, BitBoard targets)
         while (pawns) {
             Square   from = pawns.PopLSB();
             BitBoard target;
+
             if constexpr (forward == NORTH) {
                 target |= (BitBoard(from) << (u8)attLeft) & ~FILE_8;
                 target |= (BitBoard(from) << (u8)attRight) & ~FILE_1;
@@ -81,6 +71,7 @@ void GeneratePawnMoves(const Position& pos, MoveList& list, BitBoard targets)
                 target |= (BitBoard(from) >> (u8)attLeft) & ~FILE_8;
                 target |= (BitBoard(from) >> (u8)attRight) & ~FILE_1;
             }
+
             AddMoves(list, from, target);
         }
     }
@@ -117,6 +108,8 @@ void MoveGen::Generate(const Position& pos, MoveList& list)
 template void MoveGen::Generate<CAPTURES>(const Position& pos, MoveList& list);
 template void MoveGen::Generate<QUIETS>(const Position& pos, MoveList& list);
 
+// ----- Move List -----
+
 void MoveList::Legalize(const Position& pos)
 {
     MoveList legal;
@@ -129,3 +122,8 @@ void MoveList::Legalize(const Position& pos)
     }
     *this = std::move(legal);
 }
+
+Move*       MoveList::begin() noexcept { return this->moves; }
+Move*       MoveList::end() noexcept { return (this->moves + this->size); }
+const Move* MoveList::begin() const noexcept { return this->moves; }
+const Move* MoveList::end() const noexcept { return (this->moves + this->size); }

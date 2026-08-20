@@ -35,6 +35,9 @@ static void InitialMoves()
         list.Legalize(pos);
 
         Assert::Equal((int)list.size, 20);
+        for (const auto& move : list) {
+            std::println("Move: {}", move.Str());
+        }
     });
 
     // TEST("MoveGen::Generate: white initial - r1", [&list]() {

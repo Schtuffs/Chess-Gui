@@ -7,10 +7,10 @@
 
 // ----- Creation ----- Destruction -----
 
-Position::Position(std::string_view fen) noexcept
+Position::Position(std::string_view fen) noexcept : m_fen(fen)
 {
-    if (!Fen::IsValidFen(fen.data())) {
-        fen = DEFAULT_FEN;
+    if (!Fen::IsValidFen(m_fen.data())) {
+        m_fen = DEFAULT_FEN;
     }
     m_bbColour.fill(0);
     m_bbType.fill(0);
@@ -20,7 +20,7 @@ Position::Position(std::string_view fen) noexcept
     for (u64 rank = 8 - 1; rank < 8; rank--) {
         for (u64 file = 0; file < 8; file++) {
             Square sq = Square(rank * 8 + file);
-            char   c  = fen[idx++];
+            char   c  = m_fen[idx++];
 
             if (isdigit(c)) {
                 file += c - '0' - 1;
@@ -68,7 +68,7 @@ Position::Position(std::string_view fen) noexcept
     }
 
     // Get player
-    m_isWhiteTurn = (fen[idx + 1] == 'w');
+    m_isWhiteTurn = (m_fen[idx + 1] == 'w');
 
     // // Get castling
     // std::string_view castling = fen.substr(sq + 3);
@@ -110,6 +110,8 @@ Position::Position(std::string_view fen) noexcept
 
 // ----- Read -----
 
+std::string Position::Fen() const noexcept { return m_fen; }
+
 bool Position::IsLegal(Move move) const noexcept
 {
     Colour us   = Player();
@@ -120,17 +122,17 @@ bool Position::IsLegal(Move move) const noexcept
     if (!(m_bbColour[us] & from)) {
         return false;
     }
-    
+
     // Cannot be to us
     if ((m_bbColour[us] & to)) {
         return false;
     }
-    
+
     // Check pawn
     if (m_bbType[PAWN] & from) {
         Square fromFile = from % 8;
         Square toFile   = to % 8;
-        
+
         // Check attack gets enemy
         if (fromFile != toFile) {
             if (!(m_bbColour[~us] & to)) {
@@ -139,7 +141,7 @@ bool Position::IsLegal(Move move) const noexcept
         }
         return true;
     }
-    
+
     // Special castling
     if (move.IsCastle()) {
         Direction dir = (to > from ? EAST : WEST);

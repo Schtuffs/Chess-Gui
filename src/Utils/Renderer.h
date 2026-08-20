@@ -41,11 +41,14 @@ public:
     void   RenderSquare(Color colour, Square sq, bool border) const noexcept;
 
 private:
-    Texture2D m_textures[12];
+    Texture2D m_textures[TYPE_TOTAL * 2];
     Color     m_dark, m_light, m_promo, m_legal;
     int       m_textureSize, m_startX, m_startY;
 
     // Render workflow
+
+    void LoadTextures() noexcept;
+    void UnloadTextures() noexcept;
 
     void RenderBoard() const noexcept;
     void RenderHover() const noexcept;
