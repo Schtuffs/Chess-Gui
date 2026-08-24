@@ -9,7 +9,7 @@
 
 float DefaultButtonThickness()
 {
-    return (Utils::Max(Utils::Min(GetScreenWidth(), GetScreenHeight()) / 300.f, 2.f));
+    return (std::max(std::min(GetScreenWidth(), GetScreenHeight()) / 300.f, 2.f));
 }
 
 Color DefaultButtonBorderColour() { return {0, 0, 0, 255}; }
@@ -47,12 +47,10 @@ void Renderer::UnloadTextures() noexcept
 
 Renderer::Renderer()
 {
-    Utils::SetLogLevel(Utils::LogLevel::INFO);
-
     // Make texture size square
     int width     = GetScreenWidth();
     int height    = GetScreenHeight();
-    m_textureSize = Utils::Min(width, height) / 8;
+    m_textureSize = std::min(width, height) / 8;
 
     // Calculate start position
     u32 sizeX = width - m_textureSize * 8;
@@ -137,7 +135,7 @@ Square Renderer::Render(std::string_view fen, BitBoard moves, Square promoSquare
 void Renderer::RenderMate(Colour colour, bool isCheckmate) const noexcept
 {
     char  text[15];
-    int   fontSize = Utils::Max(GetScreenWidth() / 50, 20);
+    int   fontSize = std::max(GetScreenWidth() / 50, 20);
     float spacing  = 2.f;
     Font  font     = GetFontDefault();
 
@@ -272,7 +270,7 @@ void Renderer::RenderPieces(std::string_view fen, bool isWhitePerspective) const
             continue;
         }
 
-        ErrorPrintln("Renderer::RenderPieces: Invalid char detected: {}", cur);
+        ErrorPrintln("Renderer::RenderPieces: Invalid char detected: {}", (u8)cur);
     }
 }
 

@@ -92,7 +92,7 @@ int main(void)
         default: {
             char text[30]{};
             snprintf(text, sizeof(text), "Invalid screen selected: %d", (int)currentScreen);
-            int fontSize = Utils::Max(GetScreenWidth() / 100, 20);
+            int fontSize = std::max(GetScreenWidth() / 100, 20);
 
             Font    font = GetFontDefault();
             Vector2 pos  = Utils::CenterText(text, font, fontSize, 1.f,

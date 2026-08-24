@@ -6,6 +6,10 @@
 #include "Types/BitBoard.h"
 #include "Types/Types.h"
 
+typedef struct StateStore {
+    Piece captured;
+} StateStore;
+
 class Position {
 public:
     // ----- Creation / Destruction
@@ -15,6 +19,9 @@ public:
 
     // ----- Read -----
 
+    u8          Castling() const noexcept;
+    u8          Checkers() const noexcept;
+    Square      EnPassant() const noexcept;
     std::string Fen() const noexcept;
     bool        IsLegal(Move move) const noexcept;
     BitBoard    Pieces() const noexcept;

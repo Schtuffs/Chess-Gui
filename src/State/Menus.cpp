@@ -36,7 +36,7 @@ static void PushDefaultGuiStyle()
             GuiGetStyle(std::get<0>(defaultGuiStyle[i]), std::get<1>(defaultGuiStyle[i]));
     }
     GuiSetStyle(DEFAULT, TEXT_SIZE,
-                Utils::Max(Utils::Min(GetScreenWidth(), GetScreenHeight()) / 50, 10));
+                std::max(std::min(GetScreenWidth(), GetScreenHeight()) / 50, 10));
 }
 
 static void PopDefaultGuiStyle()

@@ -17,30 +17,6 @@
  * @date 2026-06-06
  */
 namespace Utils {
-/**
- * @brief Calculate the minimum of 2 values of type `T`.
- * @param a The first value.
- * @param b The second value.
- * @return The smaller of the 2. Returns value `a` on equivalent.
- * @date 2026-06-06
- */
-template <typename T>
-constexpr T Min(T a, T b)
-{
-    return (b < a) ? b : a;
-}
-/**
- * @brief Calculate the maximum of 2 values of type `T`.
- * @param a The first value.
- * @param b The second value.
- * @return The larger of the 2. Returns value `a` on equivalent.
- * @date 2026-06-06
- */
-template <typename T>
-constexpr T Max(T a, T b)
-{
-    return (b > a) ? b : a;
-}
 
 constexpr u8 CalculateIndex(Colour col, PieceType type) { return u8(type + (col * 8)); }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bit>
+#include <cmath>
 #include <iostream>
 #include <print>
 #include <string>
@@ -9,12 +10,7 @@
 
 class BitBoard {
 public:
-    constexpr BitBoard(i8 data) noexcept : m_data(data) {}
-    constexpr BitBoard(i16 data) noexcept : m_data(data) {}
-    constexpr BitBoard(u16 data) noexcept : m_data(data) {}
-    constexpr BitBoard(i32 data = 0) noexcept : m_data(data) {}
-    constexpr BitBoard(u32 data) noexcept : m_data(data) {}
-    constexpr BitBoard(i64 data) noexcept : m_data(data) {}
+    constexpr BitBoard() : m_data(0ull) {}
     constexpr BitBoard(u64 data) noexcept : m_data(data) {}
 
     constexpr BitBoard(Square sq) noexcept : m_data(1ull << sq) {}
@@ -22,7 +18,8 @@ public:
     constexpr BitBoard(const BitBoard&& bb) noexcept : m_data(bb.m_data) {}
     constexpr ~BitBoard() = default;
 
-    constexpr u64 raw() const noexcept { return m_data; }
+    constexpr Square Sq() const noexcept { return Square(std::log2(m_data)); }
+    constexpr u64    raw() const noexcept { return m_data; }
 
     constexpr u8     Count() const noexcept { return (u8)std::popcount(m_data); }
     constexpr Square PopLSB() noexcept
@@ -61,23 +58,23 @@ private:
     u64 m_data;
 };
 
-constexpr BitBoard RANK_1 = BitBoard(0xffull << (0 * 8));
-constexpr BitBoard RANK_2 = BitBoard(0xffull << (1 * 8));
-constexpr BitBoard RANK_3 = BitBoard(0xffull << (2 * 8));
-constexpr BitBoard RANK_4 = BitBoard(0xffull << (3 * 8));
-constexpr BitBoard RANK_5 = BitBoard(0xffull << (4 * 8));
-constexpr BitBoard RANK_6 = BitBoard(0xffull << (5 * 8));
-constexpr BitBoard RANK_7 = BitBoard(0xffull << (6 * 8));
-constexpr BitBoard RANK_8 = BitBoard(0xffull << (7 * 8));
+constexpr BitBoard RANK_1BB = BitBoard(0xffull << (0 * 8));
+constexpr BitBoard RANK_2BB = BitBoard(0xffull << (1 * 8));
+constexpr BitBoard RANK_3BB = BitBoard(0xffull << (2 * 8));
+constexpr BitBoard RANK_4BB = BitBoard(0xffull << (3 * 8));
+constexpr BitBoard RANK_5BB = BitBoard(0xffull << (4 * 8));
+constexpr BitBoard RANK_6BB = BitBoard(0xffull << (5 * 8));
+constexpr BitBoard RANK_7BB = BitBoard(0xffull << (6 * 8));
+constexpr BitBoard RANK_8BB = BitBoard(0xffull << (7 * 8));
 
-constexpr BitBoard FILE_1 = BitBoard(0x01'01'01'01'01'01'01'01ull << 0);
-constexpr BitBoard FILE_2 = BitBoard(0x01'01'01'01'01'01'01'01ull << 1);
-constexpr BitBoard FILE_3 = BitBoard(0x01'01'01'01'01'01'01'01ull << 2);
-constexpr BitBoard FILE_4 = BitBoard(0x01'01'01'01'01'01'01'01ull << 3);
-constexpr BitBoard FILE_5 = BitBoard(0x01'01'01'01'01'01'01'01ull << 4);
-constexpr BitBoard FILE_6 = BitBoard(0x01'01'01'01'01'01'01'01ull << 5);
-constexpr BitBoard FILE_7 = BitBoard(0x01'01'01'01'01'01'01'01ull << 6);
-constexpr BitBoard FILE_8 = BitBoard(0x01'01'01'01'01'01'01'01ull << 7);
+constexpr BitBoard FILE_1BB = BitBoard(0x01'01'01'01'01'01'01'01ull << 0);
+constexpr BitBoard FILE_2BB = BitBoard(0x01'01'01'01'01'01'01'01ull << 1);
+constexpr BitBoard FILE_3BB = BitBoard(0x01'01'01'01'01'01'01'01ull << 2);
+constexpr BitBoard FILE_4BB = BitBoard(0x01'01'01'01'01'01'01'01ull << 3);
+constexpr BitBoard FILE_5BB = BitBoard(0x01'01'01'01'01'01'01'01ull << 4);
+constexpr BitBoard FILE_6BB = BitBoard(0x01'01'01'01'01'01'01'01ull << 5);
+constexpr BitBoard FILE_7BB = BitBoard(0x01'01'01'01'01'01'01'01ull << 6);
+constexpr BitBoard FILE_8BB = BitBoard(0x01'01'01'01'01'01'01'01ull << 7);
 
 inline std::string BitBoard::Str() const noexcept
 {

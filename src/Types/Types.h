@@ -29,6 +29,7 @@ constexpr Square& operator++(Square& sq)        { return (sq = (Square)((int)(sq
 constexpr Square& operator--(Square& sq)        { return (sq = (Square)((int)(sq) - 1)); }
 constexpr Square  operator++(Square& sq, int)   { Square tmp = sq; ++sq; return tmp; }
 constexpr Square  operator--(Square& sq, int)   { Square tmp = sq; ++sq; return tmp; }
+constexpr Square  operator +(Square& sq, int i) { return (Square)((int)sq + i); }
 constexpr void    operator+=(Square& sq, int i) { sq = (Square)((int)sq + i); }
 constexpr Square  operator /(Square  sq, int i) { return (Square)((int)sq / i); }
 constexpr Square  operator %(Square  sq, int i) { return (Square)((int)sq % i); }
@@ -48,6 +49,16 @@ enum Direction : i8 {
     SOUTH_EAST = SOUTH + EAST,
     SOUTH_WEST = SOUTH + WEST,
 };
+
+constexpr Direction operator+(const Direction& lhs, const Direction& rhs)
+{
+    return Direction(i8(lhs) + i8(rhs));
+}
+
+constexpr Square operator+(const Square& sq, const Direction& i)
+{
+    return (Square)((i8)sq + (i8)i);
+}
 
 enum PieceType : u8 { TYPE_NONE = 0, KNIGHT, BISHOP, ROOK, QUEEN, PAWN, KING, TYPE_TOTAL = 8 };
 

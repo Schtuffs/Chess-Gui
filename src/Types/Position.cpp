@@ -1,5 +1,6 @@
 #include "Types/Position.h"
 
+#include <bit>
 #include <print>
 
 #include "MoveGen/MoveGen.h"
@@ -13,8 +14,8 @@ Position::Position(std::string_view fen) noexcept : m_fen(fen)
     if (!Fen::IsValidFen(m_fen.data())) {
         m_fen = DEFAULT_FEN;
     }
-    m_bbColour.fill(0);
-    m_bbType.fill(0);
+    m_bbColour.fill(0ull);
+    m_bbType.fill(0ull);
 
     // Get pieces
     u8 idx = 0;
@@ -72,7 +73,7 @@ Position::Position(std::string_view fen) noexcept : m_fen(fen)
     m_player = (m_fen[idx + 1] == 'w' ? WHITE : BLACK);
 
     // Get castling
-    std::string_view castling = fen.substr(idx + 3);
+    std::string_view castling = m_fen.substr(idx + 3);
 
     char c;
     idx = 0;
@@ -94,6 +95,7 @@ Position::Position(std::string_view fen) noexcept : m_fen(fen)
     }
 
     // Get en passant
+    m_enPassant                = SQ_BAD;
     std::string_view enPassant = castling.substr(idx);
     if (enPassant[0] != '-') {
         m_enPassant = Convert::StrToSquare(enPassant);
@@ -109,6 +111,16 @@ Position::Position(std::string_view fen) noexcept : m_fen(fen)
 }
 
 // ----- Read -----
+
+u8 Position::Castling() const noexcept { return m_castling; }
+
+u8 Position::Checkers() const noexcept
+{
+    // return std::popcount(m_checks);
+    return 0;
+}
+
+Square Position::EnPassant() const noexcept { return m_enPassant; }
 
 std::string Position::Fen() const noexcept { return m_fen; }
 
@@ -126,6 +138,10 @@ bool Position::IsLegal(Move move) const noexcept
     // Cannot be to us
     if ((m_bbColour[us] & to)) {
         return false;
+    }
+
+    // Check pawn
+    if (m_bbType[KING] & from) {
     }
 
     // Check pawn
@@ -176,6 +192,7 @@ bool Position::IsAttacked(Square sq) const noexcept
 
 void Position::MakeMove(Move move) noexcept
 {
+    return;
     ManageEnPassant(move);
 
     // Player making move BitBoard updates
@@ -223,10 +240,8 @@ void Position::ManageEnPassant(Move move) noexcept
     // If this was en passant
     if (move.To() == m_enPassant) {
         // Convert the offset to be always up/down by 8 but keep sign
-        i8 off = (move.To() % 8) - (move.From() % 8);
-        std::println("off: {}", off);
-        BitBoard bb = Square(move.From() + off);
-        std::println("off: {}{}", off, bb.Str());
+        i8       off = (move.To() % 8) - (move.From() % 8);
+        BitBoard bb  = Square(move.From() + off);
         m_bbType[PAWN] &= ~bb;
         m_bbColour[~m_player] &= ~bb;
     }
@@ -234,7 +249,7 @@ void Position::ManageEnPassant(Move move) noexcept
     // En passant available
     m_enPassant = SQ_BAD;
     i8 travel   = (move.To() - move.From());
-    if (travel == 16 || travel == -16) {
+    if (std::abs(travel) == 16) {
         m_enPassant = Square(move.From() + (travel / 2));
     }
 }
@@ -329,5 +344,4 @@ void Position::UpdateFen(Move move) noexcept
     // Whole moves
 
     m_fen = fen;
-    std::println("Fen: {}", m_fen);
 }
