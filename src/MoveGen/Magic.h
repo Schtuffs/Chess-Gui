@@ -6,5 +6,5 @@
 namespace Magic {
 BitBoard GetKingAttacks(Square sq, Square king, bool isRook);
 template <PieceType>
-BitBoard GetAttacks(Square sq, BitBoard occupied);
+BitBoard GetAttacks(Square sq, BitBoard = 0, Colour player = COLOUR_TOTAL);
 } // namespace Magic

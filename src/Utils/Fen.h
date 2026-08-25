@@ -10,6 +10,8 @@
  * @date 2026-07-01
  */
 namespace Fen {
+constexpr std::string_view DEFAULT = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 /**
  * @brief Checks if given fen is valid.
  * @param data The fen data to check.

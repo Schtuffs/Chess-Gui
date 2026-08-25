@@ -153,9 +153,61 @@ constexpr std::array<u64, 64> KNIGHT_MOVES = {
     0x00'44'28'00'00'00'00'00, 0x00'88'50'00'00'00'00'00, 0x00'10'a0'00'00'00'00'00, 0x00'20'40'00'00'00'00'00,
 };
 
-constexpr std::array<u64, 64> PAWN_MOVES = {
+constexpr std::array<std::array<BitBoard, 64>, 2> PAWN_MOVES = {{
+    // White
+    {{
+        0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00,
+        0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00,
 
-};
+        0x00'00'00'00'00'02'01'00, 0x00'00'00'00'00'05'02'00, 0x00'00'00'00'00'0a'04'00, 0x00'00'00'00'00'14'08'00,
+        0x00'00'00'00'00'28'10'00, 0x00'00'00'00'00'50'20'00, 0x00'00'00'00'00'a0'40'00, 0x00'00'00'00'00'40'80'00,
+
+        0x00'00'00'00'02'01'00'00, 0x00'00'00'00'05'02'00'00, 0x00'00'00'00'0a'04'00'00, 0x00'00'00'00'14'08'00'00,
+        0x00'00'00'00'28'10'00'00, 0x00'00'00'00'50'20'00'00, 0x00'00'00'00'a0'40'00'00, 0x00'00'00'00'40'80'00'00,
+
+        0x00'00'00'02'01'00'00'00, 0x00'00'00'05'02'00'00'00, 0x00'00'00'0a'04'00'00'00, 0x00'00'00'14'08'00'00'00,
+        0x00'00'00'28'10'00'00'00, 0x00'00'00'50'20'00'00'00, 0x00'00'00'a0'40'00'00'00, 0x00'00'00'40'80'00'00'00,
+
+        0x00'00'02'01'00'00'00'00, 0x00'00'05'02'00'00'00'00, 0x00'00'0a'04'00'00'00'00, 0x00'00'14'08'00'00'00'00,
+        0x00'00'28'10'00'00'00'00, 0x00'00'50'20'00'00'00'00, 0x00'00'a0'40'00'00'00'00, 0x00'00'40'80'00'00'00'00,
+
+        0x00'02'01'00'00'00'00'00, 0x00'05'02'00'00'00'00'00, 0x00'0a'04'00'00'00'00'00, 0x00'14'08'00'00'00'00'00,
+        0x00'28'10'00'00'00'00'00, 0x00'50'20'00'00'00'00'00, 0x00'a0'40'00'00'00'00'00, 0x00'40'80'00'00'00'00'00,
+
+        0x02'01'00'00'00'00'00'00, 0x05'02'00'00'00'00'00'00, 0x0a'04'00'00'00'00'00'00, 0x14'08'00'00'00'00'00'00,
+        0x28'10'00'00'00'00'00'00, 0x50'20'00'00'00'00'00'00, 0xa0'40'00'00'00'00'00'00, 0x40'80'00'00'00'00'00'00,
+
+        0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00,
+        0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00,
+    }},
+
+    // Black
+    {{
+        0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00,
+        0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00,
+
+        0x00'01'02'00'00'00'00'00, 0x00'02'05'00'00'00'00'00, 0x00'04'0a'00'00'00'00'00, 0x00'08'14'00'00'00'00'00,
+        0x00'10'28'00'00'00'00'00, 0x00'20'50'00'00'00'00'00, 0x00'40'a0'00'00'00'00'00, 0x00'80'40'00'00'00'00'00,
+
+        0x00'00'01'02'00'00'00'00, 0x00'00'02'05'00'00'00'00, 0x00'00'04'0a'00'00'00'00, 0x00'00'08'14'00'00'00'00,
+        0x00'00'10'28'00'00'00'00, 0x00'00'20'50'00'00'00'00, 0x00'00'40'a0'00'00'00'00, 0x00'00'80'40'00'00'00'00,
+
+        0x00'00'00'01'02'00'00'00, 0x00'00'00'02'05'00'00'00, 0x00'00'00'04'0a'00'00'00, 0x00'00'00'08'14'00'00'00,
+        0x00'00'00'10'28'00'00'00, 0x00'00'00'20'50'00'00'00, 0x00'00'00'40'a0'00'00'00, 0x00'00'00'80'40'00'00'00,
+
+        0x00'00'00'00'01'02'00'00, 0x00'00'00'00'02'05'00'00, 0x00'00'00'00'04'0a'00'00, 0x00'00'00'00'08'14'00'00,
+        0x00'00'00'00'10'28'00'00, 0x00'00'00'00'20'50'00'00, 0x00'00'00'00'40'a0'00'00, 0x00'00'00'00'80'40'00'00,
+
+        0x00'00'00'00'00'01'02'00, 0x00'00'00'00'00'02'05'00, 0x00'00'00'00'00'04'0a'00, 0x00'00'00'00'00'08'14'00,
+        0x00'00'00'00'00'10'28'00, 0x00'00'00'00'00'20'50'00, 0x00'00'00'00'00'40'a0'00, 0x00'00'00'00'00'80'40'00,
+
+        0x00'00'00'00'00'00'01'02, 0x00'00'00'00'00'00'02'05, 0x00'00'00'00'00'00'04'0a, 0x00'00'00'00'00'00'08'14,
+        0x00'00'00'00'00'00'10'28, 0x00'00'00'00'00'00'20'50, 0x00'00'00'00'00'00'40'a0, 0x00'00'00'00'00'00'80'40,
+
+        0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00,
+        0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00, 0x00'00'00'00'00'00'00'00,
+    }}
+}};
 
 constexpr std::array<u64, 64> MAGIC_BISHOP_NUMBERS = {
     0xE51EBB94FBE45BFFull, 0xC7B9F567ED8FFE7Full, 0x19A8282157800224ull, 0x04D41401923C73BEull,
@@ -529,7 +581,7 @@ static constexpr BitBoard GetRookKingAttacks(Square rook, Square king)
 // ----- Public Functions -----
 
 template <PieceType type>
-BitBoard Magic::GetAttacks(Square sq, BitBoard occupied)
+BitBoard Magic::GetAttacks(Square sq, BitBoard occupied, Colour player)
 {
     if constexpr (type == BISHOP) {
         return GetBishopAttacks(sq, occupied);
@@ -539,6 +591,9 @@ BitBoard Magic::GetAttacks(Square sq, BitBoard occupied)
     }
     if constexpr (type == KNIGHT) {
         return KNIGHT_MOVES[sq];
+    }
+    if constexpr (type == PAWN) {
+        return PAWN_MOVES[player][sq];
     }
     if constexpr (type == QUEEN) {
         return GetBishopAttacks(sq, occupied) | GetRookAttacks(sq, occupied);
@@ -554,8 +609,9 @@ BitBoard Magic::GetKingAttacks(Square sq, Square king, bool isRook)
     return (isRook ? GetRookKingAttacks(sq, king) : GetBishopKingAttacks(sq, king));
 }
 
-template BitBoard Magic::GetAttacks<BISHOP>(Square sq, BitBoard blockers);
-template BitBoard Magic::GetAttacks<KING>(Square sq, BitBoard blockers);
-template BitBoard Magic::GetAttacks<KNIGHT>(Square sq, BitBoard blockers);
-template BitBoard Magic::GetAttacks<QUEEN>(Square sq, BitBoard blockers);
-template BitBoard Magic::GetAttacks<ROOK>(Square sq, BitBoard blockers);
+template BitBoard Magic::GetAttacks<BISHOP>(Square sq, BitBoard occupied, Colour player);
+template BitBoard Magic::GetAttacks<KING>(Square sq, BitBoard occupied, Colour player);
+template BitBoard Magic::GetAttacks<KNIGHT>(Square sq, BitBoard occupied, Colour player);
+template BitBoard Magic::GetAttacks<PAWN>(Square sq, BitBoard occupied, Colour player);
+template BitBoard Magic::GetAttacks<QUEEN>(Square sq, BitBoard occupied, Colour player);
+template BitBoard Magic::GetAttacks<ROOK>(Square sq, BitBoard occupied, Colour player);

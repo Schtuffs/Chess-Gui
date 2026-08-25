@@ -8,6 +8,7 @@
 #include "MoveGen/MoveGen.h"
 #include "Types/Position.h"
 #include "Utils/Convert.h"
+#include "Utils/Fen.h"
 
 BitBoard MoveGenPipeline(std::string_view fen, Square sq)
 {
@@ -22,7 +23,7 @@ BitBoard MoveGenPipeline(std::string_view fen, Square sq)
 
 static void InitialMoves()
 {
-    static constexpr std::string_view fen = DEFAULT_FEN;
+    static constexpr std::string_view fen = Fen::DEFAULT;
 
     TEST("MoveGen::Generate: white initial - r1", []() {
         BitBoard expected(0x00'00'00'00'00'00'00'01);
@@ -357,7 +358,7 @@ static void MiscTests()
 
     TEST("MoveGen::Generate: invalid piece", []() {
         BitBoard         expected = 0x00'00'00'00'00'00'00'00;
-        std::string_view fen      = DEFAULT_FEN;
+        std::string_view fen      = Fen::DEFAULT;
 
         BitBoard actual = MoveGenPipeline(fen, Square(34));
         Assert::Equal(actual, expected);

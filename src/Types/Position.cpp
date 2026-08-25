@@ -3,16 +3,18 @@
 #include <bit>
 #include <print>
 
+#include "MoveGen/Magic.h"
 #include "MoveGen/MoveGen.h"
 #include "Utils/Convert.h"
 #include "Utils/Fen.h"
+#include "Utils/Utils.h"
 
 // ----- Creation ----- Destruction -----
 
 Position::Position(std::string_view fen) noexcept : m_fen(fen)
 {
     if (!Fen::IsValidFen(m_fen.data())) {
-        m_fen = DEFAULT_FEN;
+        m_fen = Fen::DEFAULT;
     }
     m_bbColour.fill(0ull);
     m_bbType.fill(0ull);
@@ -124,6 +126,48 @@ Square Position::EnPassant() const noexcept { return m_enPassant; }
 
 std::string Position::Fen() const noexcept { return m_fen; }
 
+bool Position::IsCastleLegal(Square from, Square to) const noexcept
+{
+    Colour    us  = Player();
+    Direction dir = (to > from ? EAST : WEST);
+    BitBoard  bb  = from;
+
+    if (!Utils::IsValidSquare(from)) {
+        return false;
+    }
+
+    if (!Utils::IsValidSquare(to)) {
+        return false;
+    }
+
+    // Kingside
+    if (to > from) {
+        bb = bb << 1;
+        bb |= bb << 1;
+    } else {
+        bb = bb >> 1;
+        bb |= bb >> 1;
+    }
+
+    // Can't have other pieces there
+    if (Pieces() & bb) {
+        return false;
+    }
+
+    // No attacks allowed
+    if (IsAttacked(from, Pieces(), ~us)) {
+        return false;
+    }
+    if (IsAttacked(from + dir, Pieces(), ~us)) {
+        return false;
+    }
+    if (IsAttacked(to, Pieces(), ~us)) {
+        return false;
+    }
+
+    return true;
+}
+
 bool Position::IsLegal(Move move) const noexcept
 {
     Colour us   = Player();
@@ -138,10 +182,6 @@ bool Position::IsLegal(Move move) const noexcept
     // Cannot be to us
     if ((m_bbColour[us] & to)) {
         return false;
-    }
-
-    // Check pawn
-    if (m_bbType[KING] & from) {
     }
 
     // Check pawn
@@ -162,10 +202,21 @@ bool Position::IsLegal(Move move) const noexcept
     if (move.IsCastle()) {
         Direction dir = (to > from ? EAST : WEST);
         for (Square sq = from; sq != to; sq += dir) {
-            if (IsAttacked(sq)) {
+            // Attacks on castle path
+            if (IsAttacked(sq, Pieces(), ~us)) {
+                return false;
+            }
+
+            // Piece on castle path
+            if (sq != from && Pieces() & sq) {
                 return false;
             }
         }
+    }
+
+    // King
+    if (m_bbType[KING] & from) {
+        return !IsAttacked(to, Pieces() ^ from, ~us);
     }
 
     return true;
@@ -182,10 +233,13 @@ Colour   Position::Player() const noexcept { return m_player; }
 
 // ----- Read ----- Hidden -----
 
-bool Position::IsAttacked(Square sq) const noexcept
+bool Position::IsAttacked(Square sq, BitBoard occupied, Colour c) const noexcept
 {
-    (void)sq;
-    return false;
+    return (Magic::GetAttacks<ROOK>(sq, occupied) & (Pieces(c, ROOK) | Pieces(c, QUEEN))) ||
+           (Magic::GetAttacks<BISHOP>(sq, occupied) & (Pieces(c, BISHOP) | Pieces(c, QUEEN))) ||
+           (Magic::GetAttacks<PAWN>(sq, occupied, ~c) & Pieces(c, PAWN)) ||
+           (Magic::GetAttacks<KNIGHT>(sq, occupied) & Pieces(c, KNIGHT)) ||
+           (Magic::GetAttacks<KING>(sq, occupied) & Pieces(c, KING));
 }
 
 // ----- Update -----

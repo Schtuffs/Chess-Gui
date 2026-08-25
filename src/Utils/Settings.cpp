@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "Utils/Convert.h"
+#include "Utils/Fen.h"
 #include "Utils/Utils.h"
 
 constexpr const char* SETTINGS_FILE  = "./settings.txt";
@@ -51,7 +52,7 @@ static void DefaultSettings()
             break;
         case Setting::GAME_FEN:
             s_settingData[i] =
-                std::pair<ActualType, ManyType>{ActualType::STRING, {.s = DEFAULT_FEN.data()}};
+                std::pair<ActualType, ManyType>{ActualType::STRING, {.s = Fen::DEFAULT.data()}};
             break;
         case Setting::GAME_MOVES:
             s_settingData[i] = std::pair<ActualType, ManyType>{ActualType::STRING, {.s = ""}};

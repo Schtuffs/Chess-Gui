@@ -161,29 +161,16 @@ void GenerateAll(const Position& pos, MoveList& list)
     AddMoves(list, ksq, bb);
 
     if constexpr (type == QUIETS) {
-        constexpr u8 kingside =
-            (us == WHITE ? Enums::Castling::White_King : Enums::Castling::Black_King);
-        constexpr u8 queenside =
-            (us == WHITE ? Enums::Castling::White_Queen : Enums::Castling::Black_Queen);
-
         // Kingside
-        if (pos.Castling() & kingside) {
-            BitBoard castle = BitBoard(ksq) << 1;
-            castle |= castle << 1;
-
-            if (!(pos.Pieces() & castle)) {
-                list.Add(Move::MakeCastle(ksq, Square(ksq + 2)));
-            }
+        Square target = Square(ksq + 2);
+        if (pos.IsCastleLegal(ksq, target)) {
+            list.Add(Move::MakeCastle(ksq, target));
         }
-
-        // Queen
-        if (pos.Castling() & queenside) {
-            BitBoard castle = BitBoard(ksq) >> 1;
-            castle |= castle >> 1;
-
-            if (!(pos.Pieces() & castle)) {
-                list.Add(Move::MakeCastle(ksq, Square(ksq - 2)));
-            }
+        
+        // Queenside
+        target = Square(ksq - 2);
+        if (pos.IsCastleLegal(ksq, target)) {
+            list.Add(Move::MakeCastle(ksq, target));
         }
     }
 }

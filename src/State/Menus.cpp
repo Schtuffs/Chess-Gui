@@ -117,7 +117,7 @@ void Menu::CreateGame(Enums::Screen& screen)
         settingsLoaded = true;
         delete[] fen;
         fen = new char[MAX_FEN_SIZE];
-        std::strncpy(fen, DEFAULT_FEN.data(), MAX_FEN_SIZE);
+        std::strncpy(fen, Fen::DEFAULT.data(), MAX_FEN_SIZE);
     }
 
     renderer.Update();
@@ -427,7 +427,7 @@ void Menu::InGame(Enums::Screen& screen)
         if (load == LOAD_SAVED_FEN) {
             gameManager = new GameManager(Settings::s(Setting::GAME_FEN));
         } else {
-            gameManager = new GameManager(DEFAULT_FEN);
+            gameManager = new GameManager(Fen::DEFAULT);
         }
         screen = Enums::Screen::Game;
         gameManager->IsReady();

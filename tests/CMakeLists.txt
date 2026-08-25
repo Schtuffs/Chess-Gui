@@ -20,6 +20,7 @@ add_executable(${PROJECT_NAME}
     tests.cpp
     GameManagerTests.cpp
     MoveGenTests.cpp
+    TimeTests.cpp
 )
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR

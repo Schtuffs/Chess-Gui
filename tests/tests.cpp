@@ -7,6 +7,7 @@
 
 void GameManagerTests(void);
 void MoveGenTests(void);
+void TimeTests(void);
 
 static void SetupSettings()
 {
@@ -26,6 +27,7 @@ int main(int argc, char** argv)
 
     GameManagerTests();
     MoveGenTests();
+    TimeTests();
 
     return TestSuite::RunTests();
 }

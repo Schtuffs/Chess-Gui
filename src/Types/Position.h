@@ -7,7 +7,8 @@
 #include "Types/Types.h"
 
 typedef struct StateStore {
-    Piece captured;
+    Piece       captured;
+    StateStore* previous;
 } StateStore;
 
 class Position {
@@ -23,6 +24,7 @@ public:
     u8          Checkers() const noexcept;
     Square      EnPassant() const noexcept;
     std::string Fen() const noexcept;
+    bool        IsCastleLegal(Square from, Square to) const noexcept;
     bool        IsLegal(Move move) const noexcept;
     BitBoard    Pieces() const noexcept;
     BitBoard    Pieces(Colour colour, PieceType type) const noexcept;
@@ -44,7 +46,7 @@ private:
     Square      m_enPassant;
     std::string m_fen;
 
-    bool IsAttacked(Square sq) const noexcept;
+    bool IsAttacked(Square sq, BitBoard occupied, Colour c) const noexcept;
     void ManageEnPassant(Move move) noexcept;
     void UpdateFen(Move move) noexcept;
 };
