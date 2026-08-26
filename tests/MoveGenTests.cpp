@@ -76,28 +76,24 @@ static void InitialMoves()
     TEST("MoveGen::Generate: white initial - p1", []() {
         BitBoard expected(0x00'00'00'00'01'01'01'00);
         BitBoard actual = MoveGenPipeline(fen, Square(8));
-        if (actual != expected) {std::println("Act: {}", actual.Str());}
         Assert::Equal(actual, expected);
     });
-    
+
     TEST("MoveGen::Generate: white initial - p2", []() {
         BitBoard expected(0x00'00'00'00'02'02'02'00);
         BitBoard actual = MoveGenPipeline(fen, Square(9));
-        if (actual != expected) {std::println("Act: {}", actual.Str());}
         Assert::Equal(actual, expected);
     });
-    
+
     TEST("MoveGen::Generate: white initial - p3", []() {
         BitBoard expected(0x00'00'00'00'04'04'04'00);
         BitBoard actual = MoveGenPipeline(fen, Square(10));
-        if (actual != expected) {std::println("Act: {}", actual.Str());}
         Assert::Equal(actual, expected);
     });
-    
+
     TEST("MoveGen::Generate: white initial - p4", []() {
         BitBoard expected(0x00'00'00'00'08'08'08'00);
         BitBoard actual = MoveGenPipeline(fen, Square(11));
-        if (actual != expected) {std::println("Act: {}", actual.Str());}
         Assert::Equal(actual, expected);
     });
 

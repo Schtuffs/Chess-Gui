@@ -1,14 +1,15 @@
 #pragma once
 
 #include <array>
+#include <memory>
 #include <string_view>
 
 #include "Types/BitBoard.h"
 #include "Types/Types.h"
 
 typedef struct StateStore {
-    Piece       captured;
-    StateStore* previous;
+    PieceType                   captured = TYPE_NONE;
+    std::shared_ptr<StateStore> previous = nullptr;
 } StateStore;
 
 class Position {
@@ -16,7 +17,8 @@ public:
     // ----- Creation / Destruction
 
     explicit Position(std::string_view fen) noexcept;
-    ~Position() = default;
+    explicit Position(const Position& pos) noexcept = default;
+    ~Position()                                     = default;
 
     // ----- Read -----
 
@@ -40,13 +42,23 @@ public:
 private:
     std::array<BitBoard, TYPE_TOTAL>   m_bbType;
     std::array<BitBoard, COLOUR_TOTAL> m_bbColour;
+    BitBoard                           m_checkers;
+    std::shared_ptr<StateStore>        m_state;
 
     Colour      m_player;
     u8          m_castling;
     Square      m_enPassant;
     std::string m_fen;
 
-    bool IsAttacked(Square sq, BitBoard occupied, Colour c) const noexcept;
-    void ManageEnPassant(Move move) noexcept;
-    void UpdateFen(Move move) noexcept;
+    // ----- Read -----
+
+    PieceType GetType(Square sq) const noexcept;
+    bool      IsAttacked(Square sq, BitBoard occupied, Colour attacker) const noexcept;
+
+    // ----- Update -----
+
+    void      CalculateCheckers() noexcept;
+    void      ManageEnPassant(Move move) noexcept;
+    PieceType MovePiece(Move move) noexcept;
+    void      UpdateFen(Move move) noexcept;
 };

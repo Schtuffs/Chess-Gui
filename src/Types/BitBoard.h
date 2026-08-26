@@ -1,7 +1,6 @@
 #pragma once
 
 #include <bit>
-#include <cmath>
 #include <iostream>
 #include <print>
 #include <string>
@@ -18,8 +17,7 @@ public:
     constexpr BitBoard(const BitBoard&& bb) noexcept : m_data(bb.m_data) {}
     constexpr ~BitBoard() = default;
 
-    constexpr Square Sq() const noexcept { return Square(std::log2(m_data)); }
-    constexpr u64    raw() const noexcept { return m_data; }
+    constexpr u64 raw() const noexcept { return m_data; }
 
     constexpr u8     Count() const noexcept { return (u8)std::popcount(m_data); }
     constexpr Square PopLSB() noexcept
@@ -36,7 +34,8 @@ public:
 
     constexpr void     operator|=(const BitBoard& bb) noexcept { m_data |= bb.m_data; }
     constexpr void     operator&=(const BitBoard& bb) noexcept { m_data &= bb.m_data; }
-    constexpr BitBoard operator&(const BitBoard& bb) const noexcept
+    constexpr BitBoard operator&(Square sq) const noexcept { return (m_data & (1ull << sq)); }
+    constexpr BitBoard operator&(BitBoard bb) const noexcept
     {
         return BitBoard(m_data & bb.m_data);
     }
@@ -50,13 +49,10 @@ public:
 
     constexpr BitBoard operator^(Square sq) noexcept { return (m_data ^ (1ull << (u8)sq)); }
 
-        constexpr void operator=(const BitBoard& bb)
-    {
-        m_data = bb.m_data;
-    }
+    constexpr void operator=(const BitBoard& bb) { m_data = bb.m_data; }
     constexpr bool operator==(const BitBoard& bb) const { return (m_data == bb.m_data); }
     friend constexpr std::ostream& operator<<(std::ostream& os, const BitBoard& bb);
-    explicit constexpr             operator bool() { return (m_data); }
+    constexpr                      operator bool() { return (m_data); }
 
     std::string Str() const noexcept;
 

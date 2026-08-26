@@ -119,8 +119,8 @@ void GeneratePawnMoves(const Position& pos, MoveList& list, BitBoard valid)
 
     // Captures
     if constexpr (type == CAPTURES) {
-        BitBoard b1 = Shift<upRight>(notPromoting) & enemies;
-        BitBoard b2 = Shift<upLeft>(notPromoting) & enemies;
+        BitBoard b1 = (Shift<upRight>(notPromoting) & enemies) & ~FILE_1BB;
+        BitBoard b2 = (Shift<upLeft>(notPromoting) & enemies) & ~FILE_7BB;
 
         AddPawnMoves<upRight>(list, b1);
         AddPawnMoves<upLeft>(list, b2);
@@ -156,7 +156,7 @@ void GenerateAll(const Position& pos, MoveList& list)
         GeneratePawnMoves<us, type>(pos, list, valid);
     }
 
-    Square   ksq = pos.Pieces(us, KING).Sq();
+    Square   ksq = pos.Pieces(us, KING).PopLSB();
     BitBoard bb  = Magic::GetAttacks<KING>(ksq, pos.Pieces()) & valid;
     AddMoves(list, ksq, bb);
 
@@ -166,7 +166,7 @@ void GenerateAll(const Position& pos, MoveList& list)
         if (pos.IsCastleLegal(ksq, target)) {
             list.Add(Move::MakeCastle(ksq, target));
         }
-        
+
         // Queenside
         target = Square(ksq - 2);
         if (pos.IsCastleLegal(ksq, target)) {
@@ -193,16 +193,22 @@ void MoveGen::Generate(const Position& pos, MoveList& list)
 
 // ----- Move List -----
 
-void MoveList::Legalize(Position& pos)
+void MoveList::Legalize(const Position& pos)
 {
+    Position test(pos);
+
     MoveList legal;
     for (u8 i = 0; i < this->size; i++) {
         Move move = this->moves[i];
-        // pos.MakeMove(move);
-        if (pos.IsLegal(move)) {
+        if (!test.IsLegal(move)) {
+            continue;
+        }
+
+        test.MakeMove(move);
+        if (test.Checkers() == 0) {
             legal.Add(move);
         }
-        // pos.UnmakeMove(move);
+        test.UnmakeMove(move);
     }
     *this = std::move(legal);
 }

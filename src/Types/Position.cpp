@@ -116,11 +116,7 @@ Position::Position(std::string_view fen) noexcept : m_fen(fen)
 
 u8 Position::Castling() const noexcept { return m_castling; }
 
-u8 Position::Checkers() const noexcept
-{
-    // return std::popcount(m_checks);
-    return 0;
-}
+u8 Position::Checkers() const noexcept { return m_checkers.Count(); }
 
 Square Position::EnPassant() const noexcept { return m_enPassant; }
 
@@ -233,55 +229,93 @@ Colour   Position::Player() const noexcept { return m_player; }
 
 // ----- Read ----- Hidden -----
 
-bool Position::IsAttacked(Square sq, BitBoard occupied, Colour c) const noexcept
+PieceType Position::GetType(Square sq) const noexcept
 {
-    return (Magic::GetAttacks<ROOK>(sq, occupied) & (Pieces(c, ROOK) | Pieces(c, QUEEN))) ||
-           (Magic::GetAttacks<BISHOP>(sq, occupied) & (Pieces(c, BISHOP) | Pieces(c, QUEEN))) ||
-           (Magic::GetAttacks<PAWN>(sq, occupied, ~c) & Pieces(c, PAWN)) ||
-           (Magic::GetAttacks<KNIGHT>(sq, occupied) & Pieces(c, KNIGHT)) ||
-           (Magic::GetAttacks<KING>(sq, occupied) & Pieces(c, KING));
+    // clang-format off
+    if      (Pieces(BISHOP) & sq) { return    BISHOP; }
+    else if (Pieces(KING)   & sq) { return      KING; }
+    else if (Pieces(KNIGHT) & sq) { return    KNIGHT; }
+    else if (Pieces(PAWN)   & sq) { return      PAWN; }
+    else if (Pieces(QUEEN)  & sq) { return     QUEEN; }
+    else if (Pieces(ROOK)   & sq) { return      ROOK; }
+    else                          { return TYPE_NONE; }
+    // clang-format on
+}
+
+bool Position::IsAttacked(Square sq, BitBoard occupied, Colour attacker) const noexcept
+{
+    return (Magic::GetAttacks<ROOK>(sq, occupied) &
+            (Pieces(attacker, ROOK) | Pieces(attacker, QUEEN))) ||
+           (Magic::GetAttacks<BISHOP>(sq, occupied) &
+            (Pieces(attacker, BISHOP) | Pieces(attacker, QUEEN))) ||
+           (Magic::GetAttacks<PAWN>(sq, occupied, ~attacker) & Pieces(attacker, PAWN)) ||
+           (Magic::GetAttacks<KNIGHT>(sq, occupied) & Pieces(attacker, KNIGHT)) ||
+           (Magic::GetAttacks<KING>(sq, occupied) & Pieces(attacker, KING));
 }
 
 // ----- Update -----
 
 void Position::MakeMove(Move move) noexcept
 {
-    return;
-    ManageEnPassant(move);
+    auto store      = std::make_shared<StateStore>();
+    store->previous = m_state;
+    m_state         = store;
 
-    // Player making move BitBoard updates
-    BitBoard rem = ~BitBoard(move.From());
-    m_bbColour[Player()] &= rem;
-    m_bbColour[Player()] |= move.To();
+    // Colour us   = Player();
+    Square from = move.From();
+    Square to   = move.To();
 
-    // Type based BitBoard updates
-    PieceType type;
-    // clang-format off
-    if (m_bbType[BISHOP] & move.From()) { m_bbType[BISHOP] &= rem; type = BISHOP; }
-    if (m_bbType[KING]   & move.From()) { m_bbType[KING]   &= rem; type = KING; }
-    if (m_bbType[KNIGHT] & move.From()) { m_bbType[KNIGHT] &= rem; type = KNIGHT; }
-    if (m_bbType[PAWN]   & move.From()) { m_bbType[PAWN]   &= rem; type = PAWN; }
-    if (m_bbType[QUEEN]  & move.From()) { m_bbType[QUEEN]  &= rem; type = QUEEN; }
-    if (m_bbType[ROOK]   & move.From()) { m_bbType[ROOK]   &= rem; type = ROOK; }
-    // clang-format on
-    m_bbType[type] |= move.To();
-
-    // Other player BitBoard update
-    m_bbColour[~Player()] &= ~BitBoard(move.To());
+    // Moving
+    m_state->captured = MovePiece(move);
+    if (move.IsCastle()) {
+        // Move the rook
+        if (to > from) {
+            m_bbType[ROOK] &= ~Square(to + 1);
+            m_bbType[ROOK] |= Square(to - 1);
+        } else {
+            m_bbType[ROOK] &= ~Square(to - 2);
+            m_bbType[ROOK] |= Square(to + 1);
+        }
+    }
 
     // Update gettable states
     m_player = ~m_player;
-
     UpdateFen(move);
 }
 
 void Position::UnmakeMove(Move move) noexcept
 {
-    // Nothing yet
-    (void)move;
+    m_player    = ~m_player;
+    Colour us   = Player();
+    Square from = move.To();
+    Square to   = move.From();
+
+    MovePiece(Move::Make(from, to));
+
+    PieceType capturedType = m_state->captured;
+    if (capturedType != TYPE_NONE) {
+        m_bbColour[~us] |= to;
+        m_bbType[capturedType] |= from;
+    }
+
+    m_state = m_state->previous;
+    UpdateFen(move);
 }
 
 // ----- Update ----- Hidden -----
+
+void Position::CalculateCheckers() noexcept
+{
+    Colour us  = Player();
+    Square ksq = Pieces(us, KING).PopLSB();
+
+    m_checkers |=
+        (Magic::GetAttacks<BISHOP>(ksq, Pieces(), us) & (Pieces(~us, BISHOP) | Pieces(~us, QUEEN)));
+    m_checkers |= (Magic::GetAttacks<KNIGHT>(ksq, Pieces(), us) & Pieces(~us, KNIGHT));
+    m_checkers |= (Magic::GetAttacks<PAWN>(ksq, Pieces(), us) & Pieces(~us, PAWN));
+    m_checkers |=
+        (Magic::GetAttacks<ROOK>(ksq, Pieces(), us) & (Pieces(~us, ROOK) | Pieces(~us, QUEEN)));
+}
 
 void Position::ManageEnPassant(Move move) noexcept
 {
@@ -294,7 +328,7 @@ void Position::ManageEnPassant(Move move) noexcept
     // If this was en passant
     if (move.To() == m_enPassant) {
         // Convert the offset to be always up/down by 8 but keep sign
-        i8       off = (move.To() % 8) - (move.From() % 8);
+        i32      off = (move.To() % 8) - (move.From() % 8);
         BitBoard bb  = Square(move.From() + off);
         m_bbType[PAWN] &= ~bb;
         m_bbColour[~m_player] &= ~bb;
@@ -306,6 +340,35 @@ void Position::ManageEnPassant(Move move) noexcept
     if (std::abs(travel) == 16) {
         m_enPassant = Square(move.From() + (travel / 2));
     }
+}
+
+PieceType Position::MovePiece(Move move) noexcept
+{
+    Colour us   = Player();
+    Square from = move.From();
+    Square to   = move.To();
+
+    // Type based BitBoard updates
+    BitBoard fRem = ~BitBoard(from);
+    BitBoard tRem = ~BitBoard(to);
+
+    // Get Piece types
+    PieceType movedType    = GetType(from);
+    PieceType capturedType = GetType(to);
+
+    // Remove from us
+    m_bbType[movedType] &= fRem;
+    m_bbColour[us] &= fRem;
+
+    // Remove from them
+    m_bbType[capturedType] &= tRem;
+    m_bbColour[~us] &= tRem;
+
+    // Add to us
+    m_bbType[movedType] |= to;
+    m_bbColour[us] |= to;
+
+    return capturedType;
 }
 
 void Position::UpdateFen(Move move) noexcept
@@ -383,12 +446,8 @@ void Position::UpdateFen(Move move) noexcept
     fen += ' ';
 
     // En passant
-    if (Pieces(PAWN) & move.To()) {
-        if (std::abs(move.From() - move.To()) == 16) {
-            fen += Convert::SquareToStr(Square(move.From() + (move.To() - move.From()) / 2));
-        } else {
-            fen += "- ";
-        }
+    if (move.IsEnPassant()) {
+        fen += Convert::SquareToStr(Square(move.From() + (move.To() - move.From()) / 2));
     } else {
         fen += "- ";
     }

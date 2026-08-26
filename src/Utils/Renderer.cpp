@@ -208,14 +208,14 @@ void Renderer::RenderHover() const noexcept
 void Renderer::RenderMoves(BitBoard bb, bool isWhitePerspective) const noexcept
 {
     // Check the moves
-    if (bb == 0) {
+    if (!bb) {
         return;
     }
 
     for (size_t i = 0; i < 64; i++) {
         Square sq = (Square)(isWhitePerspective ? i : 63 - i);
 
-        if ((bb >> sq) & 1) {
+        if ((bb >> sq).raw() & 1) {
             RenderSquare(m_legal, sq, true);
         }
     }
