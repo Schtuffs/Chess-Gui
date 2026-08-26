@@ -81,8 +81,8 @@ constexpr BitBoard FILE_8BB = BitBoard(0x01'01'01'01'01'01'01'01ull << 7);
 inline std::string BitBoard::Str() const noexcept
 {
     constexpr char    on = 'X', off = ' ';
-    const std::string VERT_SPACE = "\n +---+---+---+---+---+---+---+---+\n";
-    const std::string HORZ_SPACE = " | ";
+    const std::string VERT_SPACE = "\n ┼───┼───┼───┼───┼───┼───┼───┼───┼\n";
+    const std::string HORZ_SPACE = " │ ";
     std::string       ret = "\n", line = HORZ_SPACE;
 
     for (Square i = SQ_A1; i < 64; i++) {

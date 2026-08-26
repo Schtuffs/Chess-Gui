@@ -142,7 +142,7 @@ void GenerateAll(const Position& pos, MoveList& list)
 {
     BitBoard valid;
 
-    if (pos.Checkers() != 2) {
+    if (pos.Checkers() < 2) {
         if constexpr (type == CAPTURES) {
             valid = pos.Pieces(~us);
         } else if constexpr (type == QUIETS) {

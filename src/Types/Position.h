@@ -8,9 +8,10 @@
 #include "Types/Types.h"
 
 typedef struct StateStore {
-    PieceType                   captured = TYPE_NONE;
-    BitBoard                    checkers = 0;
-    std::shared_ptr<StateStore> previous = nullptr;
+    PieceType                   captured   = TYPE_NONE;
+    BitBoard                    checkers   = 0;
+    BitBoard                    attackRays = 0;
+    std::shared_ptr<StateStore> previous   = nullptr;
 } StateStore;
 
 class Position {
@@ -34,6 +35,7 @@ public:
     BitBoard    Pieces(Colour colour) const noexcept;
     BitBoard    Pieces(PieceType type) const noexcept;
     Colour      Player() const noexcept;
+    std::string Str() const noexcept;
 
     // ----- Update -----
 
@@ -43,7 +45,6 @@ public:
 private:
     std::array<BitBoard, TYPE_TOTAL>   m_bbType;
     std::array<BitBoard, COLOUR_TOTAL> m_bbColour;
-    std::array<BitBoard, 64>           m_attackRays;
     std::shared_ptr<StateStore>        m_state;
 
     Colour      m_player;
@@ -53,10 +54,10 @@ private:
 
     // ----- Read -----
 
-    std::array<BitBoard, 64> GetAttackRays() const noexcept;
-    BitBoard                 GetCheckers() const noexcept;
-    PieceType                GetType(Square sq) const noexcept;
-    bool IsAttacked(Square sq, BitBoard occupied, Colour attacker) const noexcept;
+    BitBoard  GetAttackRays() const noexcept;
+    BitBoard  GetCheckers() const noexcept;
+    PieceType GetType(Square sq) const noexcept;
+    bool      IsAttacked(Square sq, BitBoard occupied, Colour attacker) const noexcept;
 
     // ----- Update -----
 

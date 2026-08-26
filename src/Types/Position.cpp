@@ -110,11 +110,11 @@ Position::Position(std::string_view fen) noexcept : m_castling(0), m_fen(fen)
     //     m_playerColour == WHITE) {
     //     fen[fen.length() - 1] = '0';
     // }
-    m_state           = std::make_shared<StateStore>();
-    m_state->captured = TYPE_NONE;
-    m_state->checkers = GetCheckers();
-    m_attackRays      = GetAttackRays();
-    m_state->previous = nullptr;
+    m_state             = std::make_shared<StateStore>();
+    m_state->captured   = TYPE_NONE;
+    m_state->checkers   = GetCheckers();
+    m_state->attackRays = GetAttackRays();
+    m_state->previous   = nullptr;
 }
 
 // ----- Read -----
@@ -175,6 +175,11 @@ bool Position::IsLegal(Move move) const noexcept
     Square from = move.From();
     Square to   = move.To();
 
+    // Valid move
+    if (!move.IsValid()) {
+        return false;
+    }
+
     // Needs to be from us
     if (!(m_bbColour[us] & from)) {
         return false;
@@ -185,15 +190,20 @@ bool Position::IsLegal(Move move) const noexcept
         return false;
     }
 
+    // Special castling
+    if (move.IsCastle()) {
+        return IsCastleLegal(from, to);
+    }
+
+    // King
+    if (m_bbType[KING] & from) {
+        return !IsAttacked(to, Pieces() ^ from, ~us);
+    }
+
     // In Check
     if (m_state->checkers.Count()) {
-        for (BitBoard bb : m_attackRays) {
-            if (bb & to) {
-                return true;
-            }
-        }
-
-        return false;
+        // Block/capture
+        return m_state->attackRays & to;
     }
 
     // Check pawn
@@ -210,28 +220,6 @@ bool Position::IsLegal(Move move) const noexcept
         return true;
     }
 
-    // Special castling
-    if (move.IsCastle()) {
-        return IsCastleLegal(from, to);
-        // Direction dir = (to > from ? EAST : WEST);
-        // for (Square sq = from; sq != to; sq += dir) {
-        //     // Attacks on castle path
-        //     if (IsAttacked(sq, Pieces(), ~us)) {
-        //         return false;
-        //     }
-
-        //     // Piece on castle path
-        //     if (sq != from && Pieces() & sq) {
-        //         return false;
-        //     }
-        // }
-    }
-
-    // King
-    if (m_bbType[KING] & from) {
-        return !IsAttacked(to, Pieces() ^ from, ~us);
-    }
-
     return true;
 }
 
@@ -244,19 +232,56 @@ BitBoard Position::Pieces(Colour colour) const noexcept { return m_bbColour[colo
 BitBoard Position::Pieces(PieceType type) const noexcept { return m_bbType[type]; }
 Colour   Position::Player() const noexcept { return m_player; }
 
+std::string Position::Str() const noexcept
+{
+    const std::string VERT_SPACE = "\n  ┼───┼───┼───┼───┼───┼───┼───┼───┼\n";
+    const std::string HORZ_SPACE = " │ ";
+    std::string       ret = VERT_SPACE, line = HORZ_SPACE;
+
+    // Pieces
+    {
+        int rank  = 1;
+        u64 index = m_fen.find(' ');
+        for (u64 i = 0; i < index; i++) {
+            char c = m_fen[i];
+            if (isalpha(c)) {
+                line += c + HORZ_SPACE;
+            }
+
+            if (isdigit(c)) {
+                int count = c - '0';
+                while (count--) {
+                    line += ' ' + HORZ_SPACE;
+                }
+            }
+
+            if (c == '/') {
+                ret += std::to_string(rank++) + line + VERT_SPACE;
+                line = HORZ_SPACE;
+            }
+        }
+        ret += std::to_string(rank++) + line + VERT_SPACE;
+        ret += "    a   b   c   d   e   f   g   h\n";
+    }
+
+    return ret;
+}
+
 // ----- Read ----- Hidden -----
 
-std::array<BitBoard, 64> Position::GetAttackRays() const noexcept
+BitBoard Position::GetAttackRays() const noexcept
 {
-    Colour                   us = Player();
-    std::array<BitBoard, 64> rays;
-    BitBoard                 attackers = m_state->checkers;
-    Square                   ksq       = Pieces(us, KING).PopLSB();
+    Colour   us = Player();
+    BitBoard rays;
+    BitBoard attackers = m_state->checkers;
+    Square   ksq       = Pieces(us, KING).PopLSB();
 
     while (attackers) {
         Square sq     = attackers.PopLSB();
-        bool   isRook = (sq % 8 == ksq % 8 || sq / 8 == ksq / 8);
-        rays[u8(sq)]  = Magic::GetKingAttacks(sq, ksq, isRook);
+        bool   isRook = ((sq % 8 == ksq % 8) || (sq / 8 == ksq / 8));
+
+        rays = Magic::GetKingAttacks(sq, ksq, isRook);
+        rays |= sq;
     }
 
     return rays;
@@ -272,11 +297,13 @@ BitBoard Position::GetCheckers() const noexcept
         return 0;
     }
 
-    return (Magic::GetAttacks<ROOK>(ksq, occupied) & (Pieces(~us, ROOK) | Pieces(~us, QUEEN))) |
-           (Magic::GetAttacks<BISHOP>(ksq, occupied) & (Pieces(~us, BISHOP) | Pieces(~us, QUEEN))) |
-           (Magic::GetAttacks<PAWN>(ksq, occupied, us) & Pieces(~us, PAWN)) |
-           (Magic::GetAttacks<KNIGHT>(ksq, occupied) & Pieces(~us, KNIGHT)) |
-           (Magic::GetAttacks<KING>(ksq, occupied) & Pieces(~us, KING));
+    return (Magic::GetAttacks<ROOK>(ksq, occupied, ~us) &
+            (Pieces(~us, ROOK) | Pieces(~us, QUEEN))) |
+           (Magic::GetAttacks<BISHOP>(ksq, occupied, ~us) &
+            (Pieces(~us, BISHOP) | Pieces(~us, QUEEN))) |
+           (Magic::GetAttacks<PAWN>(ksq, occupied, ~us) & Pieces(~us, PAWN)) |
+           (Magic::GetAttacks<KNIGHT>(ksq, occupied, ~us) & Pieces(~us, KNIGHT)) |
+           (Magic::GetAttacks<KING>(ksq, occupied, ~us) & Pieces(~us, KING));
 }
 
 PieceType Position::GetType(Square sq) const noexcept
@@ -331,8 +358,9 @@ void Position::MakeMove(Move move) noexcept
     }
 
     // Update gettable states
-    m_player          = ~m_player;
-    m_state->checkers = GetCheckers();
+    m_state->checkers   = GetCheckers();
+    m_state->attackRays = GetAttackRays();
+    m_player            = ~m_player;
     UpdateFen(move);
 }
 
@@ -348,7 +376,7 @@ void Position::UnmakeMove(Move move) noexcept
     PieceType capturedType = m_state->captured;
     if (capturedType != TYPE_NONE) {
         // A piece needs to be uncaptured
-        m_bbColour[~us] |= to;
+        m_bbColour[~us] |= from;
         m_bbType[capturedType] |= from;
     }
 
@@ -439,7 +467,7 @@ void Position::UpdateFen(Move move) noexcept
             }
 
             if (offset) {
-                line += offset + '0';
+                line += (offset + '0');
                 offset = 0;
             }
 
@@ -469,7 +497,7 @@ void Position::UpdateFen(Move move) noexcept
         line.clear();
 
         if (offset) {
-            fen += offset + '0';
+            fen += (offset + '0');
         }
 
         if (rank != 1) {

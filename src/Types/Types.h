@@ -96,13 +96,13 @@ public:
     }
 
     // clang-format off
-    constexpr bool IsValid() const noexcept { return m_data;}
+    constexpr bool IsValid() const noexcept { return m_data; }
     constexpr Square    To() const noexcept { return (Square)((m_data >> SHIFT_TO)   & MASK_POSITION); }
     constexpr Square  From() const noexcept { return (Square)((m_data >> SHIFT_FROM) & MASK_POSITION); }
     
-    constexpr bool IsCastle()       const noexcept { return (m_data & MASK_FLAGS) == MASK_CASTLE; }
-    constexpr bool IsEnPassant()    const noexcept { return (m_data & MASK_FLAGS) == MASK_PASSANT; }
-    constexpr bool IsPromo()        const noexcept { return (m_data & MASK_PROMO); }
+    constexpr bool       IsCastle() const noexcept { return (m_data & MASK_FLAGS) == MASK_CASTLE; }
+    constexpr bool    IsEnPassant() const noexcept { return (m_data & MASK_FLAGS) == MASK_PASSANT; }
+    constexpr bool        IsPromo() const noexcept { return (m_data & MASK_PROMO); }
     constexpr PieceType Promotion() const noexcept { return (PieceType)(((m_data >> SHIFT_PROMO) & 0x3) + 1); }
     // clang-format on
 

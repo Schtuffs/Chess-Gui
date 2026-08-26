@@ -154,7 +154,7 @@ static void WhitePuzzleTests()
 
     TEST("MoveGen::Generate: puzzle king in check - move dark bishop", []() {
         BitBoard expected = 0x00'01'00'04'00'00'00'00;
-        BitBoard actual   = MoveGenPipeline(fen, Square(4));
+        BitBoard actual   = MoveGenPipeline(fen, Square(48));
         Assert::Equal(actual, expected);
     });
 
@@ -172,7 +172,7 @@ static void WhitePuzzleTests()
 
     TEST("MoveGen::Generate: puzzle king in check - move rook", []() {
         BitBoard expected = 0x00'00'00'00'00'00'20'20;
-        BitBoard actual   = MoveGenPipeline(fen, Square(0));
+        BitBoard actual   = MoveGenPipeline(fen, Square(5));
         Assert::Equal(actual, expected);
     });
 }
