@@ -18,7 +18,6 @@ Position::Position(std::string_view fen) noexcept : m_castling(0), m_fen(fen)
     }
     m_bbColour.fill(0ull);
     m_bbType.fill(0ull);
-    m_checkers = 0;
 
     // Get pieces
     u8 idx = 0;
@@ -113,6 +112,8 @@ Position::Position(std::string_view fen) noexcept : m_castling(0), m_fen(fen)
     // }
     m_state           = std::make_shared<StateStore>();
     m_state->captured = TYPE_NONE;
+    m_state->checkers = GetCheckers();
+    m_attackRays      = GetAttackRays();
     m_state->previous = nullptr;
 }
 
@@ -120,7 +121,7 @@ Position::Position(std::string_view fen) noexcept : m_castling(0), m_fen(fen)
 
 u8 Position::Castling() const noexcept { return m_castling; }
 
-u8 Position::Checkers() const noexcept { return m_checkers.Count(); }
+u8 Position::Checkers() const noexcept { return m_state->checkers.Count(); }
 
 Square Position::EnPassant() const noexcept { return m_enPassant; }
 
@@ -184,6 +185,17 @@ bool Position::IsLegal(Move move) const noexcept
         return false;
     }
 
+    // In Check
+    if (m_state->checkers.Count()) {
+        for (BitBoard bb : m_attackRays) {
+            if (bb & to) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // Check pawn
     if (m_bbType[PAWN] & from) {
         Square fromFile = from % 8;
@@ -233,6 +245,39 @@ BitBoard Position::Pieces(PieceType type) const noexcept { return m_bbType[type]
 Colour   Position::Player() const noexcept { return m_player; }
 
 // ----- Read ----- Hidden -----
+
+std::array<BitBoard, 64> Position::GetAttackRays() const noexcept
+{
+    Colour                   us = Player();
+    std::array<BitBoard, 64> rays;
+    BitBoard                 attackers = m_state->checkers;
+    Square                   ksq       = Pieces(us, KING).PopLSB();
+
+    while (attackers) {
+        Square sq     = attackers.PopLSB();
+        bool   isRook = (sq % 8 == ksq % 8 || sq / 8 == ksq / 8);
+        rays[u8(sq)]  = Magic::GetKingAttacks(sq, ksq, isRook);
+    }
+
+    return rays;
+}
+
+BitBoard Position::GetCheckers() const noexcept
+{
+    Colour   us       = Player();
+    Square   ksq      = Pieces(us, KING).PopLSB();
+    BitBoard occupied = Pieces();
+
+    if (ksq == SQ_TOTAL) {
+        return 0;
+    }
+
+    return (Magic::GetAttacks<ROOK>(ksq, occupied) & (Pieces(~us, ROOK) | Pieces(~us, QUEEN))) |
+           (Magic::GetAttacks<BISHOP>(ksq, occupied) & (Pieces(~us, BISHOP) | Pieces(~us, QUEEN))) |
+           (Magic::GetAttacks<PAWN>(ksq, occupied, us) & Pieces(~us, PAWN)) |
+           (Magic::GetAttacks<KNIGHT>(ksq, occupied) & Pieces(~us, KNIGHT)) |
+           (Magic::GetAttacks<KING>(ksq, occupied) & Pieces(~us, KING));
+}
 
 PieceType Position::GetType(Square sq) const noexcept
 {
@@ -286,7 +331,8 @@ void Position::MakeMove(Move move) noexcept
     }
 
     // Update gettable states
-    m_player = ~m_player;
+    m_player          = ~m_player;
+    m_state->checkers = GetCheckers();
     UpdateFen(move);
 }
 
@@ -301,6 +347,7 @@ void Position::UnmakeMove(Move move) noexcept
 
     PieceType capturedType = m_state->captured;
     if (capturedType != TYPE_NONE) {
+        // A piece needs to be uncaptured
         m_bbColour[~us] |= to;
         m_bbType[capturedType] |= from;
     }
@@ -323,19 +370,6 @@ void Position::UnmakeMove(Move move) noexcept
 }
 
 // ----- Update ----- Hidden -----
-
-void Position::CalculateCheckers() noexcept
-{
-    Colour us  = Player();
-    Square ksq = Pieces(us, KING).PopLSB();
-
-    m_checkers |=
-        (Magic::GetAttacks<BISHOP>(ksq, Pieces(), us) & (Pieces(~us, BISHOP) | Pieces(~us, QUEEN)));
-    m_checkers |= (Magic::GetAttacks<KNIGHT>(ksq, Pieces(), us) & Pieces(~us, KNIGHT));
-    m_checkers |= (Magic::GetAttacks<PAWN>(ksq, Pieces(), us) & Pieces(~us, PAWN));
-    m_checkers |=
-        (Magic::GetAttacks<ROOK>(ksq, Pieces(), us) & (Pieces(~us, ROOK) | Pieces(~us, QUEEN)));
-}
 
 void Position::ManageEnPassant(Move move) noexcept
 {
