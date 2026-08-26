@@ -386,7 +386,7 @@ static void MiscTests()
 
     TEST("MoveGen::Generate: castle through check", []() {
         BitBoard         expected = 0x00'00'00'00'00'00'18'18;
-        std::string_view fen      = "5r2/8/8/8/8/8/8/4K2R w K - 0 1";
+        std::string_view fen      = "k4r2/8/8/8/8/8/8/4K2R w K - 0 1";
 
         BitBoard actual = MoveGenPipeline(fen, Square(4));
         Assert::Equal(actual, expected);

@@ -11,13 +11,14 @@
 
 // ----- Creation ----- Destruction -----
 
-Position::Position(std::string_view fen) noexcept : m_fen(fen)
+Position::Position(std::string_view fen) noexcept : m_castling(0), m_fen(fen)
 {
     if (!Fen::IsValidFen(m_fen.data())) {
         m_fen = Fen::DEFAULT;
     }
     m_bbColour.fill(0ull);
     m_bbType.fill(0ull);
+    m_checkers = 0;
 
     // Get pieces
     u8 idx = 0;
@@ -110,6 +111,9 @@ Position::Position(std::string_view fen) noexcept : m_fen(fen)
     //     m_playerColour == WHITE) {
     //     fen[fen.length() - 1] = '0';
     // }
+    m_state           = std::make_shared<StateStore>();
+    m_state->captured = TYPE_NONE;
+    m_state->previous = nullptr;
 }
 
 // ----- Read -----
@@ -196,18 +200,19 @@ bool Position::IsLegal(Move move) const noexcept
 
     // Special castling
     if (move.IsCastle()) {
-        Direction dir = (to > from ? EAST : WEST);
-        for (Square sq = from; sq != to; sq += dir) {
-            // Attacks on castle path
-            if (IsAttacked(sq, Pieces(), ~us)) {
-                return false;
-            }
+        return IsCastleLegal(from, to);
+        // Direction dir = (to > from ? EAST : WEST);
+        // for (Square sq = from; sq != to; sq += dir) {
+        //     // Attacks on castle path
+        //     if (IsAttacked(sq, Pieces(), ~us)) {
+        //         return false;
+        //     }
 
-            // Piece on castle path
-            if (sq != from && Pieces() & sq) {
-                return false;
-            }
-        }
+        //     // Piece on castle path
+        //     if (sq != from && Pieces() & sq) {
+        //         return false;
+        //     }
+        // }
     }
 
     // King
@@ -270,11 +275,13 @@ void Position::MakeMove(Move move) noexcept
     if (move.IsCastle()) {
         // Move the rook
         if (to > from) {
-            m_bbType[ROOK] &= ~Square(to + 1);
-            m_bbType[ROOK] |= Square(to - 1);
+            // Kingside
+            m_bbType[ROOK] &= ~BitBoard(to + 1);
+            m_bbType[ROOK] |= BitBoard(to - 1);
         } else {
-            m_bbType[ROOK] &= ~Square(to - 2);
-            m_bbType[ROOK] |= Square(to + 1);
+            // Queenside
+            m_bbType[ROOK] &= ~BitBoard(to - 2);
+            m_bbType[ROOK] |= BitBoard(to + 1);
         }
     }
 
@@ -296,6 +303,19 @@ void Position::UnmakeMove(Move move) noexcept
     if (capturedType != TYPE_NONE) {
         m_bbColour[~us] |= to;
         m_bbType[capturedType] |= from;
+    }
+
+    if (move.IsCastle()) {
+        // Move the rook
+        if (to > from) {
+            // Kingside
+            m_bbType[ROOK] &= ~BitBoard(from - 1);
+            m_bbType[ROOK] |= BitBoard(from + 1);
+        } else {
+            // Queenside
+            m_bbType[ROOK] &= ~BitBoard(from + 1);
+            m_bbType[ROOK] |= BitBoard(from - 2);
+        }
     }
 
     m_state = m_state->previous;

@@ -10,10 +10,11 @@ typedef struct MoveList {
     u8   size;
     MoveList() : size(0) {}
 
-    void     Add(Move move) { moves[size++] = move; }
-    void     Legalize(const Position& pos);
+    void     Add(Move move) noexcept;
+    void     Legalize(const Position& pos) noexcept;
     BitBoard ToBB(Square from) const noexcept;
 
+    void        Clear() noexcept;
     Move*       begin() noexcept;
     Move*       end() noexcept;
     const Move* begin() const noexcept;

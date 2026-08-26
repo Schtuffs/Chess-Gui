@@ -161,15 +161,20 @@ void GenerateAll(const Position& pos, MoveList& list)
     AddMoves(list, ksq, bb);
 
     if constexpr (type == QUIETS) {
+        constexpr u8 kingSide =
+            (us == WHITE ? Enums::Castling::White_King : Enums::Castling::Black_King);
+        constexpr u8 queenSide =
+            (us == WHITE ? Enums::Castling::White_Queen : Enums::Castling::Black_Queen);
+
         // Kingside
-        Square target = Square(ksq + 2);
-        if (pos.IsCastleLegal(ksq, target)) {
+        if (pos.Castling() & kingSide) {
+            Square target = Square(ksq + 2);
             list.Add(Move::MakeCastle(ksq, target));
         }
 
         // Queenside
-        target = Square(ksq - 2);
-        if (pos.IsCastleLegal(ksq, target)) {
+        if (pos.Castling() & queenSide) {
+            Square target = Square(ksq - 2);
             list.Add(Move::MakeCastle(ksq, target));
         }
     }
@@ -193,7 +198,11 @@ void MoveGen::Generate(const Position& pos, MoveList& list)
 
 // ----- Move List -----
 
-void MoveList::Legalize(const Position& pos)
+void MoveList::Add(Move move) noexcept { moves[size++] = move; }
+
+void MoveList::Clear() noexcept { this->size = 0; }
+
+void MoveList::Legalize(const Position& pos) noexcept
 {
     Position test(pos);
 

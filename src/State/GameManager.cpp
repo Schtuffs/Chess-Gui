@@ -281,6 +281,7 @@ void GameManager::OnValidMove(Move move)
         ManagePromotion(move);
     }
 
+    m_list.Clear();
     MoveGen::Generate(m_position, m_list);
     m_list.Legalize(m_position);
 
