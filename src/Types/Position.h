@@ -11,6 +11,7 @@ typedef struct StateStore {
     PieceType                   captured   = TYPE_NONE;
     BitBoard                    checkers   = 0;
     BitBoard                    attackRays = 0;
+    Square                      enPassant  = SQ_BAD;
     std::shared_ptr<StateStore> previous   = nullptr;
 } StateStore;
 
@@ -49,7 +50,6 @@ private:
 
     Colour      m_player;
     u8          m_castling;
-    Square      m_enPassant;
     std::string m_fen;
 
     // ----- Read -----
@@ -57,7 +57,7 @@ private:
     BitBoard  GetAttackRays() const noexcept;
     BitBoard  GetCheckers() const noexcept;
     PieceType GetType(Square sq) const noexcept;
-    bool      IsAttacked(Square sq, BitBoard occupied, Colour attacker) const noexcept;
+    bool      IsAttacked(Square sq, BitBoard occupied, Colour us) const noexcept;
 
     // ----- Update -----
 

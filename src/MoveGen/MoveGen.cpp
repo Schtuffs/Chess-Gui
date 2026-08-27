@@ -1,5 +1,6 @@
 #include "../MoveGen/MoveGen.h"
 
+#include <cmath>
 #include <print>
 
 #include "MoveGen/Magic.h"
@@ -9,21 +10,21 @@ template <Direction dir>
 constexpr BitBoard Shift(BitBoard bb)
 {
     if constexpr (dir == NORTH) {
-        return (bb << u8(dir));
+        return (bb << u8(std::abs(dir)));
     } else if constexpr (dir == EAST) {
-        return (bb << u8(dir));
+        return (bb << u8(std::abs(dir)));
     } else if constexpr (dir == SOUTH) {
-        return (bb >> u8(dir));
+        return (bb >> u8(std::abs(dir)));
     } else if constexpr (dir == WEST) {
-        return (bb >> u8(dir));
+        return (bb >> u8(std::abs(dir)));
     } else if constexpr (dir == NORTH_EAST) {
-        return (bb << u8(dir));
+        return (bb << u8(std::abs(dir)));
     } else if constexpr (dir == NORTH_WEST) {
-        return (bb << u8(dir));
+        return (bb << u8(std::abs(dir)));
     } else if constexpr (dir == SOUTH_EAST) {
-        return (bb >> u8(dir));
+        return (bb >> u8(std::abs(dir)));
     } else if constexpr (dir == SOUTH_WEST) {
-        return (bb >> u8(dir));
+        return (bb >> u8(std::abs(dir)));
     }
 
     return BitBoard(0);
@@ -77,11 +78,11 @@ template <Colour us, GenType type>
 void GeneratePawnMoves(const Position& pos, MoveList& list, BitBoard valid)
 {
     (void)valid;
-    constexpr BitBoard  rank3   = (us == WHITE ? RANK_3BB : RANK_6BB);
-    constexpr BitBoard  rank7   = (us == WHITE ? RANK_7BB : RANK_2BB);
-    constexpr Direction up      = (us == WHITE ? NORTH : SOUTH);
-    constexpr Direction upRight = (us == WHITE ? NORTH_EAST : SOUTH_WEST);
-    constexpr Direction upLeft  = (us == WHITE ? NORTH_WEST : SOUTH_EAST);
+    constexpr BitBoard  rank3  = (us == WHITE ? RANK_3BB : RANK_6BB);
+    constexpr BitBoard  rank7  = (us == WHITE ? RANK_7BB : RANK_2BB);
+    constexpr Direction up     = (us == WHITE ? NORTH : SOUTH);
+    constexpr Direction upEast = (up + EAST);
+    constexpr Direction upWest = (up + WEST);
 
     const BitBoard empty   = ~pos.Pieces();
     const BitBoard enemies = pos.Pieces(~us);
@@ -100,16 +101,16 @@ void GeneratePawnMoves(const Position& pos, MoveList& list, BitBoard valid)
 
     // Promotions
     if (promoting) {
-        BitBoard b1 = Shift<upRight>(promoting) & enemies;
-        BitBoard b2 = Shift<upLeft>(promoting) & enemies;
+        BitBoard b1 = Shift<upEast>(promoting) & enemies;
+        BitBoard b2 = Shift<upWest>(promoting) & enemies;
         BitBoard b3 = Shift<up>(promoting) & empty;
 
         while (b1) {
-            AddPromotions<type, upRight, true>(list, b1.PopLSB());
+            AddPromotions<type, upEast, true>(list, b1.PopLSB());
         }
 
         while (b2) {
-            AddPromotions<type, upLeft, true>(list, b2.PopLSB());
+            AddPromotions<type, upWest, true>(list, b2.PopLSB());
         }
 
         while (b3) {
@@ -119,16 +120,16 @@ void GeneratePawnMoves(const Position& pos, MoveList& list, BitBoard valid)
 
     // Captures
     if constexpr (type == CAPTURES) {
-        BitBoard b1 = (Shift<upRight>(notPromoting) & enemies) & ~FILE_1BB;
-        BitBoard b2 = (Shift<upLeft>(notPromoting) & enemies) & ~FILE_7BB;
+        BitBoard b1 = (Shift<upEast>(notPromoting) & enemies) & ~FILE_1BB;
+        BitBoard b2 = (Shift<upWest>(notPromoting) & enemies) & ~FILE_8BB;
 
-        AddPawnMoves<upRight>(list, b1);
-        AddPawnMoves<upLeft>(list, b2);
+        AddPawnMoves<upEast>(list, b1);
+        AddPawnMoves<upWest>(list, b2);
 
         if (pos.EnPassant() != SQ_BAD) {
 
             b1 = notPromoting &
-                 (BitBoard(pos.EnPassant() + upRight) | BitBoard(pos.EnPassant() + upLeft));
+                 (BitBoard(pos.EnPassant() + upEast) | BitBoard(pos.EnPassant() + upWest));
 
             while (b1) {
                 list.Add(Move::MakeEnPassant(b1.PopLSB(), pos.EnPassant()));
@@ -141,14 +142,13 @@ template <Colour us, GenType type>
 void GenerateAll(const Position& pos, MoveList& list)
 {
     BitBoard valid;
+    if constexpr (type == CAPTURES) {
+        valid = pos.Pieces(~us);
+    } else if constexpr (type == QUIETS) {
+        valid = ~pos.Pieces();
+    }
 
     if (pos.Checkers() < 2) {
-        if constexpr (type == CAPTURES) {
-            valid = pos.Pieces(~us);
-        } else if constexpr (type == QUIETS) {
-            valid = ~pos.Pieces();
-        }
-
         GenerateMoves<us, BISHOP>(pos, list, valid);
         GenerateMoves<us, KNIGHT>(pos, list, valid);
         GenerateMoves<us, QUEEN>(pos, list, valid);

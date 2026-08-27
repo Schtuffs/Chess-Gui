@@ -249,6 +249,14 @@ static void CheckTests()
         Assert::Equal(actual, expected);
     });
 
+    TEST("MoveGen::Generate: pawn check - pawn2", []() {
+        BitBoard         expected = 0x00'20'40'00'00'00'00'00;
+        std::string_view fen      = "8/5p1k/6P1/8/8/8/8/K7 b KQ - 1 9";
+
+        BitBoard actual = MoveGenPipeline(fen, Square(53));
+        Assert::Equal(actual, expected);
+    });
+
     TEST("MoveGen::Generate: pawn check defended - king", []() {
         BitBoard         expected = 0xc0'c0'80'00'00'00'00'00;
         std::string_view fen      = "rnbq1r2/ppp1pp1k/3p2P1/8/2P2N2/4b3/PP3PPP/R1BQKB1R b KQ - 1 9";
@@ -344,7 +352,7 @@ static void DoubleCheckTests()
 static void MiscTests()
 {
     TEST("MoveGen::Generate: kings indian piece movements - move white on black turn", []() {
-        BitBoard         expected = (u64)(0x00'00'00'00'02'02'02'00);
+        BitBoard         expected = (u64)(0x00'00'00'00'00'00'02'00);
         std::string_view fen =
             "r1bq1rk1/ppp2ppB/2n1pn2/b2pN3/3P1B2/2P1P3/PP3PPP/RN1QK2R b KQ - 0 7";
 
@@ -355,8 +363,11 @@ static void MiscTests()
     TEST("MoveGen::Generate: invalid piece", []() {
         BitBoard         expected = 0x00'00'00'00'00'00'00'00;
         std::string_view fen      = Fen::DEFAULT;
-
-        BitBoard actual = MoveGenPipeline(fen, Square(34));
+        Position         pos(fen);
+        MoveList         list;
+        MoveGen::Generate(pos, list);
+        list.Legalize(pos);
+        BitBoard actual = list.ToBB(SQ_C5);
         Assert::Equal(actual, expected);
     });
 
