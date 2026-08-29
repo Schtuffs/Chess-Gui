@@ -2,16 +2,23 @@
 
 #include <array>
 #include <memory>
+#include <string>
 #include <string_view>
 
 #include "Types/BitBoard.h"
 #include "Types/Types.h"
 
 typedef struct StateStore {
+    // Copy
+    u16 ply        = 0;
+    u16 totalMoves = 0;
+
+    // Calculate
     PieceType                   captured   = TYPE_NONE;
     BitBoard                    checkers   = 0;
     BitBoard                    attackRays = 0;
     Square                      enPassant  = SQ_BAD;
+    std::string                 fen        = "";
     std::shared_ptr<StateStore> previous   = nullptr;
 } StateStore;
 
@@ -48,9 +55,8 @@ private:
     std::array<BitBoard, COLOUR_TOTAL> m_bbColour;
     std::shared_ptr<StateStore>        m_state;
 
-    Colour      m_player;
-    u8          m_castling;
-    std::string m_fen;
+    Colour m_player;
+    u8     m_castling;
 
     // ----- Read -----
 
@@ -61,7 +67,8 @@ private:
 
     // ----- Update -----
 
-    void      ManageEnPassant(Move move) noexcept;
-    PieceType MovePiece(Move move) noexcept;
-    void      UpdateFen(Move move) noexcept;
+    void        ManageEnPassant(Move move) noexcept;
+    PieceType   MovePiece(Move move) noexcept;
+    std::string UpdateFen() const noexcept;
+    void        UpdateMoves(Move move) noexcept;
 };

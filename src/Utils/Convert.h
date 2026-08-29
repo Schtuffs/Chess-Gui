@@ -98,13 +98,29 @@ inline constexpr Square StrToSquare(std::string_view str)
 inline std::string SquareToStr(Square sq)
 {
     std::string str;
-    str += (char((sq % 8) + 'a'));
-    str += (char((sq / 8) + '1'));
+    str += (char((sq % 8) + (i32)'a'));
+    str += (char((sq / 8) + (i32)'1'));
     return str;
 }
 
-inline constexpr Move StrToMove(std::string_view str)
+inline constexpr Move StrToMove(std::string_view str, Colour player)
 {
+    if (str == "O-O") {
+        if (player == WHITE) {
+            str = "e1g1";
+        }
+        else {
+            str = "e8g8";
+        }
+    }
+    else if (str == "O-O-O") {
+        if (player == WHITE) {
+            str = "e1c1";
+        }
+        else {
+            str = "e8c8";
+        }
+    }
     Square from  = Convert::StrToSquare(str);
     Square to    = Convert::StrToSquare(str.substr(2));
     char   promo = (str.length() == 5 ? str[4] : '\0');

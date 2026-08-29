@@ -3,6 +3,7 @@
 #include <thread>
 
 #include "Utils/Convert.h"
+#include "Utils/Fen.h"
 #include "Utils/Settings.h"
 #include "Utils/Utils.h"
 
@@ -14,22 +15,18 @@ GameManager::GameManager(std::string_view fen)
     : m_position(fen), m_possibleMoves(0), m_selectedSquare(SQ_BAD), m_promotionSquare(SQ_BAD),
       m_isWhiteTurn(true), m_isWhiteAI(false), m_isBlackAI(false), m_isReady(false)
 {
-    fen                     = m_position.Fen();
-    u64              sq     = fen.find(' ');
-    std::string_view player = fen.substr(sq + 1);
-
-    if (player[0] == 'b') {
-        m_isWhiteTurn = false;
-    }
+    m_isWhiteTurn = (m_position.Player() == WHITE);
 
     // Load moves from settings
-    std::string moves = Settings::s(Setting::GAME_MOVES);
-    u64         start = 0, end = 0;
-    while ((end = moves.find(" ", start)) != std::string::npos) {
-        m_allMoves.push_back(moves.substr(start, end - start));
-        start = end + 1;
+    if (m_position.Fen() != Fen::DEFAULT) {
+        std::string moves = Settings::s(Setting::GAME_MOVES);
+        u64         start = 0, end = 0;
+        while ((end = moves.find(" ", start)) != std::string::npos) {
+            m_allMoves.push_back(moves.substr(start, end - start));
+            start = end + 1;
+        }
+        m_allMoves.push_back(moves.substr(start));
     }
-    m_allMoves.push_back(moves.substr(start));
 
     // Setup engines
     m_isWhiteAI = Settings::b(Setting::ENGINE_WHITE_AI);
@@ -127,9 +124,9 @@ std::string GameManager::AllMoves() const noexcept
 
 Square GameManager::Held() const noexcept { return m_selectedSquare; }
 
-bool GameManager::InCheckmate() const noexcept { return false; }
+bool GameManager::InCheckmate() const noexcept { return (m_list.size == 0 && m_position.Checkers() != 0); }
 
-bool GameManager::InStalemate() const noexcept { return false; }
+bool GameManager::InStalemate() const noexcept { return (m_list.size == 0 && m_position.Checkers() == 0); }
 
 std::string_view GameManager::Fen() { return m_position.Fen(); }
 
@@ -214,7 +211,7 @@ void GameManager::EngineUpdate(Pipes::ID id)
 
     str = str.substr(0, space);
     if (str.length() >= 4) {
-        Update(Convert::StrToMove(str));
+        Update(Convert::StrToMove(str, Player()));
     }
 }
 
@@ -259,7 +256,20 @@ bool GameManager::CheckMove(Move move)
         return false;
     }
 
-    return m_position.IsLegal(move);
+    if (!m_position.IsLegal(move)) {
+        WarningPrintln("GameManager::CheckMove: Illegal move: {}", move.Str());
+        return false;
+    }
+
+    m_position.MakeMove(move);
+    if (m_position.Checkers() != 0) {
+        m_position.UnmakeMove(move);
+        WarningPrintln("GameManager::CheckMove: Move puts into check: {}", move.Str());
+        return false;
+    }
+    m_position.UnmakeMove(move);
+
+    return true;
 }
 
 bool GameManager::CheckPieceSelectable(Square sq)
@@ -275,6 +285,7 @@ void GameManager::OnValidMove(Move move)
     m_isWhiteTurn    = !m_isWhiteTurn;
     m_allMoves.push_back(Convert::MoveToStr(move));
     m_position.MakeMove(move);
+    DebugPrintln("GameManager::OnValidMove: New fen: {}", Fen());
 
     // Manage the promotion
     if (move.IsPromo()) {

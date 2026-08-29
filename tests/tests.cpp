@@ -16,6 +16,7 @@ static void SetupSettings()
     // Defaults for properly running tests
     Settings::b(Setting::ENGINE_BLACK_AI, false);
     Settings::b(Setting::ENGINE_WHITE_AI, false);
+    Settings::s(Setting::GAME_MOVES, "");
 }
 
 int main(int argc, char** argv)

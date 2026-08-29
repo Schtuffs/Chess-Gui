@@ -170,7 +170,7 @@ static bool IsValidTestName(std::string_view name)
         return false;
     }
 
-    uint64_t sq       = 0;
+    uint64_t sq          = 0;
     bool     canContinue = true;
     for (uint64_t i = 0; i < s_testNameRequirements.size(); i++) {
         bool        finalEndsWith = (i == s_testNameRequirements.size() - 1);

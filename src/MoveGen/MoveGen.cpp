@@ -127,12 +127,12 @@ void GeneratePawnMoves(const Position& pos, MoveList& list, BitBoard valid)
         AddPawnMoves<upWest>(list, b2);
 
         if (pos.EnPassant() != SQ_BAD) {
-
-            b1 = notPromoting &
-                 (BitBoard(pos.EnPassant() + upEast) | BitBoard(pos.EnPassant() + upWest));
+            b1 = notPromoting & (BitBoard(Square(pos.EnPassant() - upEast)) |
+                                 BitBoard(Square(pos.EnPassant() - upWest)));
 
             while (b1) {
-                list.Add(Move::MakeEnPassant(b1.PopLSB(), pos.EnPassant()));
+                Move move = Move::MakeEnPassant(b1.PopLSB(), pos.EnPassant());
+                list.Add(move);
             }
         }
     }

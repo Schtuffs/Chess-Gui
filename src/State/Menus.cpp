@@ -62,7 +62,7 @@ void Menu::Main(Enums::Screen& screen)
 
     PushDefaultGuiStyle();
 
-    if (Utils::ClickableButton(startPos, "Start new game", 1)) {
+    if (Utils::ClickableButton(startPos, "Start game", 1)) {
         screen = Enums::Screen::NewGame;
     }
     if (Utils::ClickableButton((startPos = MoveDown(startPos, 4)), "Settings", 2)) {

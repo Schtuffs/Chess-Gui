@@ -11,20 +11,23 @@
 
 // ----- Creation ----- Destruction -----
 
-Position::Position(std::string_view fen) noexcept : m_castling(0), m_fen(fen)
+Position::Position(std::string_view fen) noexcept
+    : m_state(std::make_shared<StateStore>()), m_castling(0)
 {
-    if (!Fen::IsValidFen(m_fen.data())) {
-        m_fen = Fen::DEFAULT;
+    m_state->fen = fen;
+    if (!Fen::IsValidFen(m_state->fen.data())) {
+        m_state->fen = Fen::DEFAULT;
     }
     m_bbColour.fill(0ull);
     m_bbType.fill(0ull);
 
     // Get pieces
     u8 idx = 0;
+    fen    = m_state->fen;
     for (u64 rank = 7; rank < 8; rank--) {
         for (u64 file = 0; file < 8; file++) {
             Square sq = Square(rank * 8 + file);
-            char   c  = m_fen[idx++];
+            char   c  = fen[idx++];
 
             if (isdigit(c)) {
                 file += c - '0' - 1;
@@ -72,10 +75,10 @@ Position::Position(std::string_view fen) noexcept : m_castling(0), m_fen(fen)
     }
 
     // Get player
-    m_player = (m_fen[idx + 1] == 'w' ? WHITE : BLACK);
+    m_player = (m_state->fen[idx + 1] == 'w' ? WHITE : BLACK);
 
     // Get castling
-    std::string_view castling = m_fen.substr(idx + 3);
+    std::string_view castling = m_state->fen.substr(idx + 3);
 
     char c;
     idx = 0;
@@ -96,7 +99,6 @@ Position::Position(std::string_view fen) noexcept : m_castling(0), m_fen(fen)
         }
     }
 
-    m_state             = std::make_shared<StateStore>();
     m_state->captured   = TYPE_NONE;
     m_state->checkers   = GetCheckers();
     m_state->attackRays = GetAttackRays();
@@ -109,13 +111,12 @@ Position::Position(std::string_view fen) noexcept : m_castling(0), m_fen(fen)
         m_state->enPassant = Convert::StrToSquare(enPassant);
     }
 
-    // // Get move counts
-    // std::string_view halfMoves = enPassant.substr(enPassant.find(' ') + 1);
-    // std::string_view fullMoves = halfMoves.substr(halfMoves.find(' ') + 1);
-    // if (fullMoves.length() == 1 && fullMoves[0] == '1' &&
-    //     m_playerColour == WHITE) {
-    //     fen[fen.length() - 1] = '0';
-    // }
+    // Get move counts
+    std::string_view halfMoves = enPassant.substr(enPassant.find(' ') + 1);
+    m_state->ply               = std::stoul(halfMoves.substr(0, halfMoves.find(' ')).data());
+
+    std::string_view fullMoves = halfMoves.substr(halfMoves.find(' ') + 1);
+    m_state->totalMoves        = std::stoul(fullMoves.substr(0, fullMoves.find(' ')).data());
 }
 
 // ----- Read -----
@@ -126,7 +127,7 @@ u8 Position::Checkers() const noexcept { return m_state->checkers.Count(); }
 
 Square Position::EnPassant() const noexcept { return m_state->enPassant; }
 
-std::string Position::Fen() const noexcept { return m_fen; }
+std::string Position::Fen() const noexcept { return m_state->fen; }
 
 bool Position::IsCastleLegal(Square from, Square to) const noexcept
 {
@@ -176,48 +177,67 @@ bool Position::IsLegal(Move move) const noexcept
     Square from = move.From();
     Square to   = move.To();
 
+    DebugPrintln("Position::IsLegal: Move: {}", move.Str());
     // Valid move
     if (!move.IsValid()) {
+        DebugPrintln("Position::IsLegal: Invalid move: {}", move.Str());
         return false;
     }
 
     // Needs to be from us
     if (!(m_bbColour[us] & from)) {
+        DebugPrintln("Position::IsLegal: Invalid from piece: {}", move.Str());
         return false;
     }
 
     // Cannot be to us
     if ((m_bbColour[us] & to)) {
+        DebugPrintln("Position::IsLegal: Invalid to piece: {}", move.Str());
         return false;
     }
 
     // Special castling
     if (move.IsCastle()) {
+        DebugPrintln("Position::IsLegal: Castle: {}", move.Str());
         return IsCastleLegal(from, to);
+    }
+
+    // En passant
+    if (move.IsEnPassant()) {
+        DebugPrintln("Position::IsLegal: En passant: {}", move.Str());
+        return (to == m_state->enPassant);
     }
 
     // King
     if (m_bbType[KING] & from) {
+        DebugPrintln("Position::IsLegal: King: {}", move.Str());
         return !(IsAttacked(to, Pieces(), us));
     }
 
     // In Check
     if (m_state->checkers.Count()) {
+        DebugPrintln("Position::IsLegal: Check: {}", move.Str());
         // Block/capture
         return (m_state->attackRays & to);
     }
 
     // Check pawn
     if (m_bbType[PAWN] & from) {
+        DebugPrintln("Position::IsLegal: Pawn: {}", move.Str());
+        if (to == m_state->enPassant) {
+            return true;
+        }
+
         Square fromFile = from % 8;
         Square toFile   = to % 8;
 
         // Check attack gets enemy
         if (fromFile != toFile) {
-            if (!(Pieces(~m_player) & to) && !(to == m_state->enPassant)) {
+            if (!(Pieces(~m_player) & to)) {
                 return false;
             }
         }
+
         return true;
     }
 
@@ -242,9 +262,9 @@ std::string Position::Str() const noexcept
     // Pieces
     {
         int rank  = 1;
-        u64 index = m_fen.find(' ');
+        u64 index = m_state->fen.find(' ');
         for (u64 i = 0; i < index; i++) {
-            char c = m_fen[i];
+            char c = m_state->fen[i];
             if (isalpha(c)) {
                 line += c + HORZ_SPACE;
             }
@@ -263,6 +283,18 @@ std::string Position::Str() const noexcept
         }
         ret += std::to_string(rank++) + line + VERT_SPACE;
         ret += "    a   b   c   d   e   f   g   h\n";
+    }
+
+    // Turn, Moves
+    {
+        ret += "\n  Player: ";
+        ret += (Player() == WHITE ? "White" : "Black");
+
+        ret += ", Ply: ";
+        ret += std::format("{:>2}", std::to_string(m_state->ply));
+
+        ret += ", Move: ";
+        ret += std::format("{:>3}", std::to_string(m_state->totalMoves));
     }
 
     return ret;
@@ -353,7 +385,12 @@ void Position::MakeMove(Move move) noexcept
     store->previous = m_state;
     m_state         = store;
 
-    // Colour us   = Player();
+    m_state->ply        = m_state->previous->ply;
+    m_state->totalMoves = m_state->previous->totalMoves;
+    m_state->fen        = m_state->previous->fen;
+    m_state->enPassant  = m_state->previous->enPassant;
+
+    Colour us   = Player();
     Square from = move.From();
     Square to   = move.To();
 
@@ -372,11 +409,21 @@ void Position::MakeMove(Move move) noexcept
         }
     }
 
+    // En passant management
+    if (move.IsEnPassant() || (Pieces(us, PAWN) & to) || (to == m_state->enPassant)) {
+        ManageEnPassant(move);
+    } else {
+        m_state->enPassant = SQ_BAD;
+    }
+
     // Update gettable states
     m_state->checkers   = GetCheckers();
+    std::println("Checkers: {}", m_state->checkers.Str());
     m_state->attackRays = GetAttackRays();
     m_player            = ~m_player;
-    UpdateFen(move);
+
+    UpdateMoves(move);
+    m_state->fen = UpdateFen();
 }
 
 void Position::UnmakeMove(Move move) noexcept
@@ -391,8 +438,15 @@ void Position::UnmakeMove(Move move) noexcept
     PieceType capturedType = m_state->captured;
     if (capturedType != TYPE_NONE) {
         // A piece needs to be uncaptured
-        m_bbColour[~us] |= from;
-        m_bbType[capturedType] |= from;
+        if (move.IsEnPassant()) {
+            u8       off = (us == WHITE ? -8 : 8);
+            BitBoard bb(Square(from + Square(off)));
+            m_bbColour[~us] |= bb;
+            m_bbType[capturedType] |= bb;
+        } else {
+            m_bbColour[~us] |= from;
+            m_bbType[capturedType] |= from;
+        }
     }
 
     if (move.IsCastle()) {
@@ -409,33 +463,19 @@ void Position::UnmakeMove(Move move) noexcept
     }
 
     m_state = m_state->previous;
-    UpdateFen(move);
 }
 
 // ----- Update ----- Hidden -----
 
 void Position::ManageEnPassant(Move move) noexcept
 {
-    // Check if this is a pawn
-    if (!(Pieces(PAWN) & move.From())) {
-        m_state->enPassant = SQ_BAD;
-        return;
-    }
-
-    // If this was en passant
-    if (move.To() == m_state->enPassant) {
-        // Convert the offset to be always up/down by 8 but keep sign
-        i32      off = (move.To() % 8) - (move.From() % 8);
-        BitBoard bb  = Square(move.From() + off);
-        m_bbType[PAWN] &= ~bb;
-        m_bbColour[~m_player] &= ~bb;
-    }
-
-    // En passant available
+    // Capture en passant
     m_state->enPassant = SQ_BAD;
-    i8 travel          = (move.To() - move.From());
-    if (std::abs(travel) == 16) {
-        m_state->enPassant = Square(move.From() + (travel / 2));
+
+    // Set en passant if needed
+    i8 off = move.To() - move.From();
+    if (std::abs(off) == 16) {
+        m_state->enPassant = Square(move.From() + (off / 2));
     }
 }
 
@@ -452,6 +492,11 @@ PieceType Position::MovePiece(Move move) noexcept
     // Get Piece types
     PieceType movedType    = GetType(from);
     PieceType capturedType = GetType(to);
+    if (move.IsEnPassant() || to == m_state->enPassant) {
+        // Remove pawn
+        capturedType = PAWN;
+        tRem         = ~BitBoard(Square(to - 8));
+    }
 
     // Remove from us
     m_bbType[movedType] &= fRem;
@@ -468,7 +513,7 @@ PieceType Position::MovePiece(Move move) noexcept
     return capturedType;
 }
 
-void Position::UpdateFen(Move move) noexcept
+std::string Position::UpdateFen() const noexcept
 {
     // Pieces
     std::string line, fen;
@@ -543,15 +588,32 @@ void Position::UpdateFen(Move move) noexcept
     fen += ' ';
 
     // En passant
-    if (move.IsEnPassant()) {
-        fen += Convert::SquareToStr(Square(move.From() + (move.To() - move.From()) / 2));
+    if (m_state->enPassant != SQ_BAD) {
+        fen += Convert::SquareToStr(m_state->enPassant);
+        fen += " ";
     } else {
         fen += "- ";
     }
 
     // Half moves
+    fen += std::to_string(m_state->ply);
+    fen += " ";
 
     // Whole moves
+    fen += std::to_string(m_state->totalMoves);
 
-    m_fen = fen;
+    return fen;
+}
+
+void Position::UpdateMoves(Move move) noexcept
+{
+    if (m_state->captured != TYPE_NONE || (Pieces(PAWN) & move.To())) {
+        m_state->ply = 0;
+    } else {
+        m_state->ply++;
+    }
+
+    if (Player() == BLACK && m_state->fen != Fen::DEFAULT) {
+        m_state->totalMoves++;
+    }
 }
