@@ -214,7 +214,7 @@ void MoveList::Legalize(const Position& pos) noexcept
         }
 
         test.MakeMove(move);
-        if (test.Checkers() == 0) {
+        if (test.Checkers(~test.Player()) == 0) {
             legal.Add(move);
         }
         test.UnmakeMove(move);

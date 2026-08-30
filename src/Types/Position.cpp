@@ -14,7 +14,10 @@
 Position::Position(std::string_view fen) noexcept
     : m_state(std::make_shared<StateStore>()), m_castling(0)
 {
-    m_state->fen = fen;
+    m_state->previous = nullptr;
+    m_state->fen      = fen;
+    m_state->captured = TYPE_NONE;
+
     if (!Fen::IsValidFen(m_state->fen.data())) {
         m_state->fen = Fen::DEFAULT;
     }
@@ -76,6 +79,7 @@ Position::Position(std::string_view fen) noexcept
 
     // Get player
     m_player = (m_state->fen[idx + 1] == 'w' ? WHITE : BLACK);
+    CalculateAttacks();
 
     // Get castling
     std::string_view castling = m_state->fen.substr(idx + 3);
@@ -99,11 +103,6 @@ Position::Position(std::string_view fen) noexcept
         }
     }
 
-    m_state->captured   = TYPE_NONE;
-    m_state->checkers   = GetCheckers();
-    m_state->attackRays = GetAttackRays();
-    m_state->previous   = nullptr;
-
     // Get en passant
     m_state->enPassant         = SQ_BAD;
     std::string_view enPassant = castling.substr(idx);
@@ -123,7 +122,11 @@ Position::Position(std::string_view fen) noexcept
 
 u8 Position::Castling() const noexcept { return m_castling; }
 
-u8 Position::Checkers() const noexcept { return m_state->checkers.Count(); }
+u8 Position::Checkers() const noexcept { return Checkers(Player()); }
+u8 Position::Checkers(Colour player) const noexcept
+{
+    return m_state->checkers[(u8)player].Count();
+}
 
 Square Position::EnPassant() const noexcept { return m_state->enPassant; }
 
@@ -186,13 +189,13 @@ bool Position::IsLegal(Move move) const noexcept
     }
 
     // Needs to be from us
-    if (!(m_bbColour[us] & from)) {
+    if (!(Pieces(us) & from)) {
         InfoPrintln("Position::IsLegal: Invalid from piece: {}", move.Str());
         return false;
     }
 
     // Cannot be to us
-    if ((m_bbColour[us] & to)) {
+    if ((Pieces(us) & to)) {
         InfoPrintln("Position::IsLegal: Invalid to piece: {}", move.Str());
         return false;
     }
@@ -210,20 +213,20 @@ bool Position::IsLegal(Move move) const noexcept
     }
 
     // King
-    if (m_bbType[KING] & from) {
+    if (Pieces(KING) & from) {
         InfoPrintln("Position::IsLegal: King: {}", move.Str());
         return !(IsAttacked(to, Pieces(), us));
     }
 
     // In Check
-    if (m_state->checkers.Count()) {
+    if (Checkers(~Player())) {
         InfoPrintln("Position::IsLegal: Check: {}", move.Str());
         // Block/capture
-        return (m_state->attackRays & to);
+        return (m_state->attackRays[us] & to);
     }
 
     // Check pawn
-    if (m_bbType[PAWN] & from) {
+    if (Pieces(PAWN) & from) {
         InfoPrintln("Position::IsLegal: Pawn: {}", move.Str());
         if (to == m_state->enPassant) {
             return true;
@@ -305,9 +308,9 @@ std::string Position::Str() const noexcept
 
 BitBoard Position::GetAttackRays() const noexcept
 {
-    Colour   us        = Player();
-    BitBoard rays      = 0ull;
-    BitBoard attackers = m_state->checkers;
+    Colour   us = Player();
+    BitBoard rays;
+    BitBoard attackers = m_state->checkers[us];
     Square   ksq       = Pieces(us, KING).PopLSB();
 
     while (attackers) {
@@ -423,10 +426,10 @@ void Position::MakeMove(Move move) noexcept
         m_state->enPassant = SQ_BAD;
     }
 
-    // Update gettable states
-    m_player            = ~m_player;
-    m_state->attackRays = GetAttackRays();
-    m_state->checkers   = GetCheckers();
+    // Update gettable states - attacks twice for both players
+    CalculateAttacks();
+    m_player = ~m_player;
+    CalculateAttacks();
 
     UpdateMoves(move);
     m_state->fen = UpdateFen();
@@ -476,6 +479,13 @@ void Position::UnmakeMove(Move move) noexcept
 }
 
 // ----- Update ----- Hidden -----
+
+void Position::CalculateAttacks() noexcept
+{
+    Colour us               = Player();
+    m_state->attackRays[us] = GetAttackRays();
+    m_state->checkers[us]   = GetCheckers();
+}
 
 void Position::ManageEnPassant(Move move) noexcept
 {

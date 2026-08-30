@@ -14,12 +14,12 @@ typedef struct StateStore {
     u16 totalMoves = 0;
 
     // Calculate
-    PieceType                   captured   = TYPE_NONE;
-    BitBoard                    checkers   = 0ull;
-    BitBoard                    attackRays = 0ull;
-    Square                      enPassant  = SQ_BAD;
-    std::string                 fen        = "";
-    std::shared_ptr<StateStore> previous   = nullptr;
+    PieceType                   captured                 = TYPE_NONE;
+    BitBoard                    checkers[COLOUR_TOTAL]   = {0ull, 0ull};
+    BitBoard                    attackRays[COLOUR_TOTAL] = {0ull, 0ull};
+    Square                      enPassant                = SQ_BAD;
+    std::string                 fen                      = "";
+    std::shared_ptr<StateStore> previous                 = nullptr;
 } StateStore;
 
 class Position {
@@ -34,6 +34,7 @@ public:
 
     u8          Castling() const noexcept;
     u8          Checkers() const noexcept;
+    u8          Checkers(Colour player) const noexcept;
     Square      EnPassant() const noexcept;
     std::string Fen() const noexcept;
     bool        IsCastleLegal(Square from, Square to) const noexcept;
@@ -67,6 +68,7 @@ private:
 
     // ----- Update -----
 
+    void        CalculateAttacks() noexcept;
     void        ManageEnPassant(Move move) noexcept;
     PieceType   MovePiece(Move move) noexcept;
     std::string UpdateFen() const noexcept;
