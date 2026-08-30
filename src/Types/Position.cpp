@@ -209,7 +209,7 @@ bool Position::IsLegal(Move move) const noexcept
     // En passant
     if (move.IsEnPassant()) {
         InfoPrintln("Position::IsLegal: En passant: {}", move.Str());
-        return (to == m_state->enPassant);
+        return (std::abs(from - to) == 16);
     }
 
     // King
@@ -394,29 +394,10 @@ void Position::MakeMove(Move move) noexcept
     m_state->fen        = m_state->previous->fen;
     m_state->enPassant  = m_state->previous->enPassant;
 
-    Colour us   = Player();
-    Square from = move.From();
-    Square to   = move.To();
-
     // Moving
     m_state->captured = MovePiece(move);
     if (move.IsCastle()) {
-        // Move the rook
-        if (to > from) {
-            // Kingside
-            m_bbType[ROOK] &= ~BitBoard(Square(to + 1));
-            m_bbType[ROOK] |= BitBoard(Square(to - 1));
-
-            m_bbColour[us] &= ~BitBoard(Square(to + 1));
-            m_bbColour[us] |= BitBoard(Square(to - 1));
-        } else {
-            // Queenside
-            m_bbType[ROOK] &= ~BitBoard(Square(to - 2));
-            m_bbType[ROOK] |= BitBoard(Square(to + 1));
-
-            m_bbColour[us] &= ~BitBoard(Square(to - 2));
-            m_bbColour[us] |= BitBoard(Square(to + 1));
-        }
+        ManageCastle(move);
     }
 
     // En passant management
@@ -424,6 +405,11 @@ void Position::MakeMove(Move move) noexcept
         ManageEnPassant(move);
     } else {
         m_state->enPassant = SQ_BAD;
+    }
+
+    // Promotion
+    if (move.IsPromo()) {
+        ManagePromotion(move);
     }
 
     // Update gettable states - attacks twice for both players
@@ -443,12 +429,19 @@ void Position::UnmakeMove(Move move) noexcept
     Square from = move.To();
     Square to   = move.From();
 
+    // Unpromote
+    if (move.IsPromo()) {
+        PieceType pt = move.Promotion();
+        m_bbType[PAWN] |= to;
+        m_bbType[pt] &= ~BitBoard(to);
+    }
+
     MovePiece(Move::Make(from, to));
 
     PieceType capturedType = m_state->captured;
     if (capturedType != TYPE_NONE) {
         // A piece needs to be uncaptured
-        if (move.IsEnPassant()) {
+        if (from == m_state->previous->enPassant) {
             u8       off = (us == WHITE ? -8 : 8);
             BitBoard bb(Square(from + Square(off)));
             m_bbColour[~us] |= bb;
@@ -481,23 +474,53 @@ void Position::UnmakeMove(Move move) noexcept
 
 // ----- Update ----- Hidden -----
 
-void Position::CalculateAttacks() noexcept
+void Position::ManageCastle(Move move) noexcept
 {
-    Colour us               = Player();
-    m_state->attackRays[us] = GetAttackRays();
-    m_state->checkers[us]   = GetCheckers();
+    Colour us   = Player();
+    Square from = move.From();
+    Square to   = move.To();
+
+    // Move the rook
+    if (to > from) {
+        // Kingside
+        m_bbType[ROOK] &= ~BitBoard(Square(to + 1));
+        m_bbType[ROOK] |= BitBoard(Square(to - 1));
+
+        m_bbColour[us] &= ~BitBoard(Square(to + 1));
+        m_bbColour[us] |= BitBoard(Square(to - 1));
+    } else {
+        // Queenside
+        m_bbType[ROOK] &= ~BitBoard(Square(to - 2));
+        m_bbType[ROOK] |= BitBoard(Square(to + 1));
+
+        m_bbColour[us] &= ~BitBoard(Square(to - 2));
+        m_bbColour[us] |= BitBoard(Square(to + 1));
+    }
 }
 
 void Position::ManageEnPassant(Move move) noexcept
 {
-    // Capture en passant
-    m_state->enPassant = SQ_BAD;
+    i8 off             = move.To() - move.From();
+    m_state->enPassant = Square(move.From() + (off / 2));
+}
 
-    // Set en passant if needed
-    i8 off = move.To() - move.From();
-    if (std::abs(off) == 16) {
-        m_state->enPassant = Square(move.From() + (off / 2));
-    }
+void Position::ManagePromotion(Move move) noexcept
+{
+    // Colour us   = Player();
+    // Square from = move.From();
+    Square to = move.To();
+
+    m_bbType[PAWN] &= ~BitBoard(to);
+
+    PieceType pt = move.Promotion();
+    m_bbType[pt] |= to;
+}
+
+void Position::CalculateAttacks() noexcept
+{
+    Colour us               = Player();
+    m_state->checkers[us]   = GetCheckers();
+    m_state->attackRays[us] = GetAttackRays();
 }
 
 PieceType Position::MovePiece(Move move) noexcept
@@ -513,10 +536,11 @@ PieceType Position::MovePiece(Move move) noexcept
     // Get Piece types
     PieceType movedType    = GetType(from);
     PieceType capturedType = GetType(to);
-    if (move.IsEnPassant() || to == m_state->enPassant) {
+    if (to == m_state->enPassant && (Pieces(PAWN) & from)) {
         // Remove pawn
         capturedType = PAWN;
-        tRem         = ~BitBoard(Square(to - 8));
+        Square sq    = Square(us == WHITE ? -8 : 8);
+        tRem         = ~BitBoard(Square(to + sq));
     }
 
     // Remove from us

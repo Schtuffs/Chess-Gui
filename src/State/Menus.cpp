@@ -415,6 +415,21 @@ void Menu::Settings(Enums::Screen& screen)
     }
 }
 
+PieceType DeterminePromo(Square sq, Square promo, bool isWhitePerspective)
+{
+    (void)isWhitePerspective;
+    constexpr PieceType TYPES[] = {QUEEN, ROOK, BISHOP, KNIGHT};
+
+    if (sq % 8 != promo % 8) {
+        return TYPE_NONE;
+    }
+
+    i8 off   = i8(promo / 8) - i8(sq / 8);
+    u8 piece = std::abs(off);
+
+    return TYPES[piece];
+}
+
 void Menu::InGame(Enums::Screen& screen)
 {
     static bool         isWhitePerspective = true;
@@ -429,8 +444,10 @@ void Menu::InGame(Enums::Screen& screen)
         } else {
             gameManager = new GameManager(Fen::DEFAULT);
         }
+
         screen = Enums::Screen::Game;
         gameManager->IsReady();
+        isWhitePerspective = true;
     }
 
     if (IsKeyPressed(KEY_F)) {
@@ -446,7 +463,13 @@ void Menu::InGame(Enums::Screen& screen)
 
     if (Utils::IsValidSquare(sq)) {
         DebugPrintln("Menu::InGame: Selected square: {}", (u8)sq);
-        if (gameManager->Held() == SQ_BAD) {
+        if (gameManager->Promotion() != SQ_BAD) {
+            // Render the stuff
+            PieceType type = DeterminePromo(sq, gameManager->Promotion(), isWhitePerspective);
+            if (type != TYPE_NONE) {
+                gameManager->Promote(type);
+            }
+        } else if (gameManager->Held() == SQ_BAD) {
             gameManager->Pickup(sq);
         } else {
             gameManager->Update(Move::Make(gameManager->Held(), sq));

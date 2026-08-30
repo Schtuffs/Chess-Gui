@@ -68,8 +68,11 @@ private:
 
     // ----- Update -----
 
+    void ManageCastle(Move move) noexcept;
+    void ManageEnPassant(Move move) noexcept;
+    void ManagePromotion(Move move) noexcept;
+
     void        CalculateAttacks() noexcept;
-    void        ManageEnPassant(Move move) noexcept;
     PieceType   MovePiece(Move move) noexcept;
     void        UpdateCastling() noexcept;
     std::string UpdateFen() const noexcept;

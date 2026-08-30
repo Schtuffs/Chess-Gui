@@ -114,7 +114,7 @@ public:
 private:
     static constexpr u8 SHIFT_FROM  = 6;
     static constexpr u8 SHIFT_TO    = 0;
-    static constexpr u8 SHIFT_PROMO = 12;
+    static constexpr u8 SHIFT_PROMO = 13;
 
     static constexpr u16 MASK_POSITION = 0b00000000'00111111;
     static constexpr u16 MASK_PROMO    = 0b00010000'00000000;

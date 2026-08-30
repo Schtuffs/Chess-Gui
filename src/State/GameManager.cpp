@@ -163,6 +163,22 @@ bool GameManager::Pickup(Square sq)
     return true;
 }
 
+bool GameManager::Promote(PieceType type) noexcept
+{
+    if (!m_promotionMove.IsValid()) {
+        WarningPrintln("GameManager::Promote: Invalid promotion move: {}", m_promotionMove.Str());
+        return false;
+    }
+
+    if (type != QUEEN && type != ROOK && type != BISHOP && type != KNIGHT) {
+        WarningPrintln("GameManager::Promote: Invalid promo type: {}", (u8)type);
+        return false;
+    }
+
+    OnValidMove(Move::MakePromo(m_promotionMove.From(), m_promotionMove.To(), type));
+    return true;
+}
+
 void GameManager::Update() { Update(Move(0)); }
 
 void GameManager::Update(Move move)
@@ -231,7 +247,6 @@ void GameManager::MakeMove(Move move)
 
     // Manage the promotion taking place
     if (Utils::IsValidSquare(m_promotionSquare)) {
-        ManagePromotion(move);
         return;
     }
 
@@ -242,8 +257,18 @@ void GameManager::MakeMove(Move move)
         }
     }
 
+    if (m_position.Pieces(Player(), PAWN) & move.From()) {
+        if (std::abs(move.To() - move.From()) == 16) {
+            move = Move::MakeEnPassant(move.From(), move.To());
+        }
+    }
+
     // Try to play the move
     if (CheckMove(move)) {
+        if (CheckPromotion(move)) {
+            return;
+        }
+
         OnValidMove(move);
         return;
     }
@@ -277,6 +302,23 @@ bool GameManager::CheckMove(Move move)
     return true;
 }
 
+bool GameManager::CheckPromotion(Move move)
+{
+    if (!(m_position.Pieces(PAWN) & move.From())) {
+        return false;
+    }
+
+    BitBoard rank8 = (Player() == WHITE ? RANK_8BB : RANK_1BB);
+    if (!(rank8 & move.To())) {
+        return false;
+    }
+
+    m_possibleMoves   = 0ull;
+    m_promotionSquare = move.To();
+    m_promotionMove   = move;
+    return true;
+}
+
 bool GameManager::CheckPieceSelectable(Square sq)
 {
     return (m_position.Pieces(Player()) & sq).raw();
@@ -285,17 +327,13 @@ bool GameManager::CheckPieceSelectable(Square sq)
 void GameManager::OnValidMove(Move move)
 {
     // Set data
-    m_selectedSquare = SQ_BAD;
-    m_possibleMoves  = 0ull;
-    m_isWhiteTurn    = !m_isWhiteTurn;
+    m_selectedSquare  = SQ_BAD;
+    m_promotionSquare = SQ_BAD;
+    m_possibleMoves   = 0ull;
+    m_isWhiteTurn     = !m_isWhiteTurn;
     m_allMoves.push_back(Convert::MoveToStr(move));
     m_position.MakeMove(move);
     DebugPrintln("GameManager::OnValidMove: New fen: {}", Fen());
-
-    // Manage the promotion
-    if (move.IsPromo()) {
-        ManagePromotion(move);
-    }
 
     m_list.Clear();
     MoveGen::Generate(m_position, m_list);
@@ -327,69 +365,4 @@ void GameManager::OnValidMove(Move move)
             }
         }
     }
-}
-
-void GameManager::ManagePromotion(Move move)
-{
-    // Must be promo
-    if (!move.IsPromo()) {
-        return;
-    }
-
-    // m_promotionSquare                      = SQ_BAD;
-    // constexpr u8          TOTAL_PROMOTIONS = 4;
-    // constexpr const char* PROMOTIONS_CHAR  = "qrbn";
-
-    // if (move.length() == 0) {
-    //     return;
-    // }
-
-    // if (!Utils::IsValidSquare(m_promotionSquare)) {
-    //     return;
-    // }
-
-    // if (move.length() % 2 == 1) {
-    //     // The promotion char
-    //     char promotion = move[move.length() - 1];
-
-    //     // Determine the type
-    //     size_t i;
-    //     for (i = 0; i < TOTAL_PROMOTIONS; i++) {
-    //         if (promotion == PROMOTIONS_CHAR[i]) {
-    //             break;
-    //         }
-    //     }
-
-    //     if (i == TOTAL_PROMOTIONS) {
-    //         WarningPrintln("GameManager::ManagePromotion: Invalid promotion type: {}",
-    //         promotion); return;
-    //     }
-
-    //     if (!m_position.IsLegal(move)) {
-    //         WarningPrintln("GameManager::ManagePromotion: Board could not promote: {}", move);
-    //         return;
-    //     }
-
-    //     m_promotionSquare = 64;
-    //     OnValidMove(move);
-
-    //     return;
-    // }
-
-    // Square clicked = Convert::MoveToIndex(move);
-    // i8     sign    = (m_promotionSquare / 8 == 0 ? 1 : -1);
-
-    // for (u8 i = 0; i < TOTAL_PROMOTIONS; i++) {
-    //     Square sq = m_promotionSquare + (sign * (i8)(i * 8));
-    //     if (clicked == sq) {
-    //         std::string promo = m_currentMove + PROMOTIONS_CHAR[i];
-    //         if (m_board.MakeMove(promo)) {
-    //             m_promotionSquare = 64;
-    //             OnValidMove(promo);
-    //         } else {
-    //             WarningPrintln("GameManager::ManagePromotion: Could not promote pawn.");
-    //         }
-    //         return;
-    //     }
-    // }
 }

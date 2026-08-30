@@ -293,11 +293,11 @@ void Renderer::RenderPromotion(Square promotionSquare, bool isWhitePerspective) 
     constexpr PieceType TYPES[] = {QUEEN, ROOK, BISHOP, KNIGHT};
     for (u8 promo = 0; promo < 4; promo++) {
         Square i    = (Square)(sq + (offset * promo));
-        u8     tex  = (u8)TYPES[promo] * 2 + (u8)colour;
+        u8     idx  = Utils::CalculateIndex(colour, TYPES[promo]);
         int    file = i % 8;
         int    rank = 7 - (i / 8);
         RenderSquare(m_promo, Square((7 - rank) * 8 + file), true);
-        RenderPiece(m_textures[tex], Square(rank * 8 + file));
+        RenderPiece(m_textures[idx], Square(rank * 8 + file));
     }
 }
 

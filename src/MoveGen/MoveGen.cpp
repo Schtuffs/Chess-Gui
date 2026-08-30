@@ -131,7 +131,7 @@ void GeneratePawnMoves(const Position& pos, MoveList& list, BitBoard valid)
                                  BitBoard(Square(pos.EnPassant() - upWest)));
 
             while (b1) {
-                Move move = Move::MakeEnPassant(b1.PopLSB(), pos.EnPassant());
+                Move move = Move::Make(b1.PopLSB(), pos.EnPassant());
                 list.Add(move);
             }
         }

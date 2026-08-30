@@ -71,6 +71,9 @@ public:
     // Check if `Board` is in state of attempting to promote a `Piece`.
     Square Promotion() const noexcept;
 
+    // Promotes the current piece.
+    bool Promote(PieceType type) noexcept;
+
     // ----- Update -----
 
     // Pickup a piece on given square.
@@ -88,6 +91,7 @@ private:
     std::vector<std::string> m_allMoves;
     Position                 m_position;
     MoveList                 m_list;
+    Move                     m_promotionMove;
     BitBoard                 m_possibleMoves;
     Square                   m_selectedSquare, m_promotionSquare;
     bool                     m_isWhiteTurn, m_isWhiteAI, m_isBlackAI, m_isReady;
@@ -97,9 +101,7 @@ private:
     void EngineUpdate(Pipes::ID id);
 
     bool CheckMove(Move move);
+    bool CheckPromotion(Move move);
     bool CheckPieceSelectable(Square sq);
     void OnValidMove(Move move);
-
-    void CheckForPromotion(Move move);
-    void ManagePromotion(Move move);
 };
