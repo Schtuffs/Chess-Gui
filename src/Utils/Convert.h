@@ -107,18 +107,18 @@ inline constexpr Move StrToMove(std::string_view str, Colour player)
 {
     if (str == "O-O") {
         if (player == WHITE) {
-            str = "e1g1";
+            return Move::MakeCastle(SQ_E1, SQ_G1);
         }
         else {
-            str = "e8g8";
+            return Move::MakeCastle(SQ_E8, SQ_G8);
         }
     }
     else if (str == "O-O-O") {
         if (player == WHITE) {
-            str = "e1c1";
+            return Move::MakeCastle(SQ_E1, SQ_C1);
         }
         else {
-            str = "e8c8";
+            return Move::MakeCastle(SQ_E8, SQ_C8);
         }
     }
     Square from  = Convert::StrToSquare(str);

@@ -177,53 +177,54 @@ bool Position::IsLegal(Move move) const noexcept
     Square from = move.From();
     Square to   = move.To();
 
-    DebugPrintln("Position::IsLegal: Move: {}", move.Str());
+    InfoPrintln("Position::IsLegal: Move: {}", move.Str());
+
     // Valid move
     if (!move.IsValid()) {
-        DebugPrintln("Position::IsLegal: Invalid move: {}", move.Str());
+        InfoPrintln("Position::IsLegal: Invalid move: {}", move.Str());
         return false;
     }
 
     // Needs to be from us
     if (!(m_bbColour[us] & from)) {
-        DebugPrintln("Position::IsLegal: Invalid from piece: {}", move.Str());
+        InfoPrintln("Position::IsLegal: Invalid from piece: {}", move.Str());
         return false;
     }
 
     // Cannot be to us
     if ((m_bbColour[us] & to)) {
-        DebugPrintln("Position::IsLegal: Invalid to piece: {}", move.Str());
+        InfoPrintln("Position::IsLegal: Invalid to piece: {}", move.Str());
         return false;
     }
 
     // Special castling
     if (move.IsCastle()) {
-        DebugPrintln("Position::IsLegal: Castle: {}", move.Str());
+        InfoPrintln("Position::IsLegal: Castle: {}", move.Str());
         return IsCastleLegal(from, to);
     }
 
     // En passant
     if (move.IsEnPassant()) {
-        DebugPrintln("Position::IsLegal: En passant: {}", move.Str());
+        InfoPrintln("Position::IsLegal: En passant: {}", move.Str());
         return (to == m_state->enPassant);
     }
 
     // King
     if (m_bbType[KING] & from) {
-        DebugPrintln("Position::IsLegal: King: {}", move.Str());
+        InfoPrintln("Position::IsLegal: King: {}", move.Str());
         return !(IsAttacked(to, Pieces(), us));
     }
 
     // In Check
     if (m_state->checkers.Count()) {
-        DebugPrintln("Position::IsLegal: Check: {}", move.Str());
+        InfoPrintln("Position::IsLegal: Check: {}", move.Str());
         // Block/capture
         return (m_state->attackRays & to);
     }
 
     // Check pawn
     if (m_bbType[PAWN] & from) {
-        DebugPrintln("Position::IsLegal: Pawn: {}", move.Str());
+        InfoPrintln("Position::IsLegal: Pawn: {}", move.Str());
         if (to == m_state->enPassant) {
             return true;
         }
@@ -305,7 +306,7 @@ std::string Position::Str() const noexcept
 BitBoard Position::GetAttackRays() const noexcept
 {
     Colour   us        = Player();
-    BitBoard rays      = 0;
+    BitBoard rays      = 0ull;
     BitBoard attackers = m_state->checkers;
     Square   ksq       = Pieces(us, KING).PopLSB();
 
@@ -331,16 +332,16 @@ BitBoard Position::GetCheckers() const noexcept
     BitBoard occu = Pieces();
 
     if (ksq == SQ_TOTAL) {
-        return 0;
+        return 0ull;
     }
 
     BitBoard bb;
 
-    bb |= (Magic::GetAttacks<ROOK>(ksq, occu, ~us) & (Pieces(~us, ROOK) | Pieces(~us, QUEEN)));
-    bb |= (Magic::GetAttacks<BISHOP>(ksq, occu, ~us) & (Pieces(~us, BISHOP) | Pieces(~us, QUEEN)));
-    bb |= (Magic::GetAttacks<PAWN>(ksq, occu, us) & Pieces(~us, PAWN));
-    bb |= (Magic::GetAttacks<KNIGHT>(ksq, occu, us) & Pieces(~us, KNIGHT));
-    bb |= (Magic::GetAttacks<KING>(ksq, occu, ~us) & Pieces(~us, KING));
+    bb |= (Magic::GetAttacks<ROOK>(ksq, occu, ~us)) & (Pieces(~us, ROOK) | Pieces(~us, QUEEN));
+    bb |= (Magic::GetAttacks<BISHOP>(ksq, occu, ~us)) & (Pieces(~us, BISHOP) | Pieces(~us, QUEEN));
+    bb |= (Magic::GetAttacks<PAWN>(ksq, occu, us)) & Pieces(~us, PAWN);
+    bb |= (Magic::GetAttacks<KNIGHT>(ksq, occu, us)) & Pieces(~us, KNIGHT);
+    bb |= (Magic::GetAttacks<KING>(ksq, occu, ~us)) & Pieces(~us, KING);
 
     return bb;
 }
@@ -400,27 +401,32 @@ void Position::MakeMove(Move move) noexcept
         // Move the rook
         if (to > from) {
             // Kingside
-            m_bbType[ROOK] &= ~BitBoard(to + 1);
-            m_bbType[ROOK] |= BitBoard(to - 1);
+            m_bbType[ROOK] &= ~BitBoard(Square(to + 1));
+            m_bbType[ROOK] |= BitBoard(Square(to - 1));
+
+            m_bbColour[us] &= ~BitBoard(Square(to + 1));
+            m_bbColour[us] |= BitBoard(Square(to - 1));
         } else {
             // Queenside
-            m_bbType[ROOK] &= ~BitBoard(to - 2);
-            m_bbType[ROOK] |= BitBoard(to + 1);
+            m_bbType[ROOK] &= ~BitBoard(Square(to - 2));
+            m_bbType[ROOK] |= BitBoard(Square(to + 1));
+
+            m_bbColour[us] &= ~BitBoard(Square(to - 2));
+            m_bbColour[us] |= BitBoard(Square(to + 1));
         }
     }
 
     // En passant management
-    if (move.IsEnPassant() || (Pieces(us, PAWN) & to) || (to == m_state->enPassant)) {
+    if (move.IsEnPassant()) {
         ManageEnPassant(move);
     } else {
         m_state->enPassant = SQ_BAD;
     }
 
     // Update gettable states
-    m_state->checkers   = GetCheckers();
-    std::println("Checkers: {}", m_state->checkers.Str());
-    m_state->attackRays = GetAttackRays();
     m_player            = ~m_player;
+    m_state->attackRays = GetAttackRays();
+    m_state->checkers   = GetCheckers();
 
     UpdateMoves(move);
     m_state->fen = UpdateFen();
@@ -453,12 +459,16 @@ void Position::UnmakeMove(Move move) noexcept
         // Move the rook
         if (to > from) {
             // Kingside
-            m_bbType[ROOK] &= ~BitBoard(from - 1);
-            m_bbType[ROOK] |= BitBoard(from + 1);
+            m_bbType[ROOK] &= ~BitBoard(Square(from - 1));
+            m_bbType[ROOK] |= BitBoard(Square(from + 1));
+            m_bbColour[us] &= ~BitBoard(Square(from - 1));
+            m_bbColour[us] |= BitBoard(Square(from + 1));
         } else {
             // Queenside
-            m_bbType[ROOK] &= ~BitBoard(from + 1);
-            m_bbType[ROOK] |= BitBoard(from - 2);
+            m_bbType[ROOK] &= ~BitBoard(Square(from + 1));
+            m_bbType[ROOK] |= BitBoard(Square(from - 2));
+            m_bbColour[us] &= ~BitBoard(Square(from + 1));
+            m_bbColour[us] |= BitBoard(Square(from - 2));
         }
     }
 

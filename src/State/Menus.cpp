@@ -57,7 +57,7 @@ static Rectangle MoveDown(Rectangle rect, u8 squares)
 void Menu::Main(Enums::Screen& screen)
 {
     renderer.Update();
-    renderer.Render("", 0, SQ_BAD, true);
+    renderer.Render("", 0ull, SQ_BAD, true);
     Rectangle startPos = Utils::ButtonPos(1, 1, 6, 1);
 
     PushDefaultGuiStyle();
@@ -78,7 +78,7 @@ void Menu::Main(Enums::Screen& screen)
 void Menu::NewGame(Enums::Screen& screen)
 {
     renderer.Update();
-    renderer.Render("", 0, SQ_BAD, true);
+    renderer.Render("", 0ull, SQ_BAD, true);
 
     PushDefaultGuiStyle();
 
@@ -121,7 +121,7 @@ void Menu::CreateGame(Enums::Screen& screen)
     }
 
     renderer.Update();
-    renderer.Render(fen, 0, SQ_BAD, true);
+    renderer.Render(fen, 0ull, SQ_BAD, true);
 
     if (GuiTextBox(Utils::ButtonPos(8, 1, 3, 1), fen, MAX_FEN_SIZE, isTypingFen)) {
         isTypingFen = !isTypingFen;
@@ -162,7 +162,7 @@ static SettingScreens SettingsMain()
     PushDefaultGuiStyle();
 
     renderer.Update();
-    renderer.Render("", 0, SQ_BAD, true);
+    renderer.Render("", 0ull, SQ_BAD, true);
 
     SettingScreens screen = SETTING_MAIN;
 
@@ -196,7 +196,7 @@ static SettingScreens SettingsReset()
     PushDefaultGuiStyle();
 
     renderer.Update();
-    renderer.Render("", 0, SQ_BAD, true);
+    renderer.Render("", 0ull, SQ_BAD, true);
 
     SettingScreens screen = SETTING_RESET;
 
@@ -243,7 +243,7 @@ static SettingScreens SettingsBoard()
         legalHSV = ColorToHSV(legal);
     }
     renderer.Update();
-    renderer.Render("", 0, SQ_BAD, true);
+    renderer.Render("", 0ull, SQ_BAD, true);
 
     float barSize =
         GuiGetStyle(COLORPICKER, HUEBAR_WIDTH) + GuiGetStyle(COLORPICKER, HUEBAR_PADDING);
@@ -343,7 +343,7 @@ static SettingScreens SettingsEngine()
     }
 
     renderer.Update();
-    renderer.Render("", 0, SQ_BAD, true);
+    renderer.Render("", 0ull, SQ_BAD, true);
 
     SettingScreens screen = SETTING_ENGINE;
 

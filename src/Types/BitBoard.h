@@ -10,6 +10,7 @@
 class BitBoard {
 public:
     constexpr BitBoard() : m_data(0ull) {}
+    constexpr BitBoard(i32 data) = delete;
     constexpr BitBoard(u64 data) noexcept : m_data(data) {}
 
     constexpr BitBoard(Square sq) noexcept : m_data(1ull << sq) {}
@@ -32,26 +33,28 @@ public:
     constexpr BitBoard operator<<(int num) { return m_data << num; }
     constexpr BitBoard operator>>(int num) { return m_data >> num; }
 
-    constexpr void     operator|=(const BitBoard& bb) noexcept { m_data |= bb.m_data; }
-    constexpr void     operator&=(const BitBoard& bb) noexcept { m_data &= bb.m_data; }
+    constexpr void     operator|=(BitBoard bb) noexcept { m_data |= bb.m_data; }
+    constexpr void     operator|=(Square sq) noexcept { m_data |= BitBoard(sq).raw(); }
+    constexpr BitBoard operator|(Square sq) const noexcept { return (m_data | (1ull << sq)); }
+    constexpr BitBoard operator|(BitBoard bb) const noexcept
+    {
+        return BitBoard(m_data | bb.m_data);
+    }
+
+    constexpr void     operator&=(BitBoard bb) noexcept { m_data &= bb.m_data; }
     constexpr BitBoard operator&(Square sq) const noexcept { return (m_data & (1ull << sq)); }
     constexpr BitBoard operator&(BitBoard bb) const noexcept
     {
         return BitBoard(m_data & bb.m_data);
     }
 
-    constexpr void     operator|=(Square sq) noexcept { m_data |= (1ull << (u8)sq); }
-    constexpr void     operator&=(Square sq) noexcept { m_data &= (1ull << (u8)sq); }
-    constexpr BitBoard operator|(const BitBoard& bb) const noexcept
-    {
-        return BitBoard(m_data | bb.m_data);
-    }
+    constexpr void operator&=(Square sq) noexcept { m_data &= BitBoard(sq); }
 
-    constexpr BitBoard operator^(Square sq) noexcept { return (m_data ^ (1ull << (u8)sq)); }
+    constexpr BitBoard operator^(Square sq) noexcept { return (m_data ^ BitBoard(sq)); }
 
-    constexpr void operator=(const BitBoard& bb) { m_data = bb.m_data; }
-    constexpr bool operator==(const BitBoard& bb) const { return (m_data == bb.m_data); }
-    friend constexpr std::ostream& operator<<(std::ostream& os, const BitBoard& bb);
+    constexpr void                 operator=(BitBoard bb) { m_data = bb.m_data; }
+    constexpr bool                 operator==(BitBoard bb) const { return (m_data == bb.m_data); }
+    friend constexpr std::ostream& operator<<(std::ostream& os, BitBoard bb);
     constexpr                      operator bool() { return (m_data); }
 
     std::string Str() const noexcept;
@@ -102,7 +105,7 @@ inline std::string BitBoard::Str() const noexcept
     return ret;
 }
 
-inline constexpr std::ostream& operator<<(std::ostream& os, const BitBoard& bb)
+inline constexpr std::ostream& operator<<(std::ostream& os, BitBoard bb)
 {
     os << bb.m_data;
     return os;

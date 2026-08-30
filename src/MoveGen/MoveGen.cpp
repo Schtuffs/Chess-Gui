@@ -27,7 +27,7 @@ constexpr BitBoard Shift(BitBoard bb)
         return (bb >> u8(std::abs(dir)));
     }
 
-    return BitBoard(0);
+    return BitBoard();
 }
 
 void AddMoves(MoveList& list, Square from, BitBoard targets)

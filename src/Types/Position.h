@@ -15,8 +15,8 @@ typedef struct StateStore {
 
     // Calculate
     PieceType                   captured   = TYPE_NONE;
-    BitBoard                    checkers   = 0;
-    BitBoard                    attackRays = 0;
+    BitBoard                    checkers   = 0ull;
+    BitBoard                    attackRays = 0ull;
     Square                      enPassant  = SQ_BAD;
     std::string                 fen        = "";
     std::shared_ptr<StateStore> previous   = nullptr;

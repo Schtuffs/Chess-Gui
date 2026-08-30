@@ -12,7 +12,7 @@ constexpr const char* DEPTH_COMMAND = "go depth 10";
 // ----- Creation / Destruction -----
 
 GameManager::GameManager(std::string_view fen)
-    : m_position(fen), m_possibleMoves(0), m_selectedSquare(SQ_BAD), m_promotionSquare(SQ_BAD),
+    : m_position(fen), m_possibleMoves(0ull), m_selectedSquare(SQ_BAD), m_promotionSquare(SQ_BAD),
       m_isWhiteTurn(true), m_isWhiteAI(false), m_isBlackAI(false), m_isReady(false)
 {
     m_isWhiteTurn = (m_position.Player() == WHITE);
@@ -124,9 +124,15 @@ std::string GameManager::AllMoves() const noexcept
 
 Square GameManager::Held() const noexcept { return m_selectedSquare; }
 
-bool GameManager::InCheckmate() const noexcept { return (m_list.size == 0 && m_position.Checkers() != 0); }
+bool GameManager::InCheckmate() const noexcept
+{
+    return (m_list.size == 0 && m_position.Checkers() != 0);
+}
 
-bool GameManager::InStalemate() const noexcept { return (m_list.size == 0 && m_position.Checkers() == 0); }
+bool GameManager::InStalemate() const noexcept
+{
+    return (m_list.size == 0 && m_position.Checkers() == 0);
+}
 
 std::string_view GameManager::Fen() { return m_position.Fen(); }
 
@@ -142,7 +148,7 @@ bool GameManager::Pickup(Square sq)
 {
     // Reset state always
     m_selectedSquare = SQ_BAD;
-    m_possibleMoves  = 0;
+    m_possibleMoves  = 0ull;
 
     // Pickup piece of current player
     if (!(m_position.Pieces(Player()) & sq)) {
@@ -229,6 +235,13 @@ void GameManager::MakeMove(Move move)
         return;
     }
 
+    // Translate special moves
+    if (m_position.Pieces(Player(), KING) & move.From()) {
+        if (std::abs(move.To() - move.From()) == 2) {
+            move = Move::MakeCastle(move.From(), move.To());
+        }
+    }
+
     // Try to play the move
     if (CheckMove(move)) {
         OnValidMove(move);
@@ -240,7 +253,7 @@ void GameManager::MakeMove(Move move)
         Pickup(move.To());
     } else {
         m_selectedSquare = SQ_BAD;
-        m_possibleMoves  = 0;
+        m_possibleMoves  = 0ull;
     }
 }
 
@@ -261,14 +274,6 @@ bool GameManager::CheckMove(Move move)
         return false;
     }
 
-    m_position.MakeMove(move);
-    if (m_position.Checkers() != 0) {
-        m_position.UnmakeMove(move);
-        WarningPrintln("GameManager::CheckMove: Move puts into check: {}", move.Str());
-        return false;
-    }
-    m_position.UnmakeMove(move);
-
     return true;
 }
 
@@ -281,7 +286,7 @@ void GameManager::OnValidMove(Move move)
 {
     // Set data
     m_selectedSquare = SQ_BAD;
-    m_possibleMoves  = 0;
+    m_possibleMoves  = 0ull;
     m_isWhiteTurn    = !m_isWhiteTurn;
     m_allMoves.push_back(Convert::MoveToStr(move));
     m_position.MakeMove(move);
