@@ -71,6 +71,7 @@ private:
     void        CalculateAttacks() noexcept;
     void        ManageEnPassant(Move move) noexcept;
     PieceType   MovePiece(Move move) noexcept;
+    void        UpdateCastling() noexcept;
     std::string UpdateFen() const noexcept;
     void        UpdateMoves(Move move) noexcept;
 };

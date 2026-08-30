@@ -432,6 +432,7 @@ void Position::MakeMove(Move move) noexcept
     CalculateAttacks();
 
     UpdateMoves(move);
+    UpdateCastling();
     m_state->fen = UpdateFen();
 }
 
@@ -531,6 +532,33 @@ PieceType Position::MovePiece(Move move) noexcept
     m_bbColour[us] |= to;
 
     return capturedType;
+}
+
+void Position::UpdateCastling() noexcept
+{
+    if (!(Pieces(KING) & SQ_E1)) {
+        m_castling &= ~(Enums::Castling::White_King | Enums::Castling::White_Queen);
+    }
+
+    if (!(Pieces(KING) & SQ_E8)) {
+        m_castling &= ~(Enums::Castling::Black_King | Enums::Castling::Black_Queen);
+    }
+
+    if (!(Pieces(ROOK) & SQ_H1)) {
+        m_castling &= ~(Enums::Castling::White_King);
+    }
+
+    if (!(Pieces(ROOK) & SQ_A1)) {
+        m_castling &= ~(Enums::Castling::White_Queen);
+    }
+
+    if (!(Pieces(ROOK) & SQ_H8)) {
+        m_castling &= ~(Enums::Castling::Black_King);
+    }
+
+    if (!(Pieces(ROOK) & SQ_A8)) {
+        m_castling &= ~(Enums::Castling::Black_Queen);
+    }
 }
 
 std::string Position::UpdateFen() const noexcept
