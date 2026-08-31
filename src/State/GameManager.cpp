@@ -206,7 +206,10 @@ void GameManager::Update(Move move)
     // Check for piece selection being required
     if (m_selectedSquare != SQ_BAD && move.From() != m_selectedSquare) {
         Pickup(move.From());
-        return;
+    }
+    // Pickup and move in 1
+    else if (m_selectedSquare == SQ_BAD) {
+        Pickup(move.From());
     }
 
     MakeMove(move);
@@ -257,6 +260,7 @@ void GameManager::MakeMove(Move move)
         }
     }
 
+    // Special pawn
     if (m_position.Pieces(Player(), PAWN) & move.From()) {
         if (std::abs(move.To() - move.From()) == 16) {
             move = Move::MakeEnPassant(move.From(), move.To());
@@ -296,6 +300,11 @@ bool GameManager::CheckMove(Move move)
 
     if (!m_position.IsLegal(move)) {
         WarningPrintln("GameManager::CheckMove: Illegal move: {}", move.Str());
+        return false;
+    }
+
+    if (!(m_possibleMoves & move.To())) {
+        WarningPrintln("GameManager::CheckMove: Illegal move to: {}", move.Str());
         return false;
     }
 

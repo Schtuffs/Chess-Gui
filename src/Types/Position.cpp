@@ -209,7 +209,8 @@ bool Position::IsLegal(Move move) const noexcept
     // En passant
     if (move.IsEnPassant()) {
         InfoPrintln("Position::IsLegal: En passant: {}", move.Str());
-        return (std::abs(from - to) == 16);
+        Square mid = Square(from + ((to - from) / 2));
+        return ((std::abs(from - to) == 16) && !(Pieces() & mid) && !(Pieces() & to));
     }
 
     // King
@@ -238,6 +239,11 @@ bool Position::IsLegal(Move move) const noexcept
         // Check attack gets enemy
         if (fromFile != toFile) {
             if (!(Pieces(~m_player) & to)) {
+                return false;
+            }
+        } else {
+            // Move cannot be on another piece
+            if ((Pieces() & to)) {
                 return false;
             }
         }
