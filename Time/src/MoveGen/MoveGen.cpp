@@ -139,11 +139,13 @@ void GeneratePawnMoves(const Position& pos, MoveList& list, BitBoard valid)
 template <Colour us, GenType type>
 void GenerateAll(const Position& pos, MoveList& list)
 {
+    (void)pos;
+    (void)list;
     BitBoard valid;
     if constexpr (type == CAPTURES) {
-        valid = pos.Pieces(~us);
+        valid = BitBoard(pos.Pieces(~us));
     } else if constexpr (type == QUIETS) {
-        valid = ~pos.Pieces();
+        valid = BitBoard(~pos.Pieces());
     }
 
     if (pos.Checkers() < 2) {
