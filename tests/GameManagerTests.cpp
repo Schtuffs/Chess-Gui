@@ -11,10 +11,10 @@
 static void Promotion()
 {
     TEST("GameManager::Update: full - white promotion - queen", []() {
-        std::string_view expected = "rnbqkbnQ/ppppp2p/8/8/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 5";
+        std::string_view expected = "rnbqkbnQ/ppppp2p/8/8/8/8/PPPP1PPP/RNBQKBNR b KQq - 0 5";
         GameManager      game(Fen::DEFAULT);
         std::vector<std::string> moves{"e2e4", "f7f5", "e4f5", "g7g5", "f5g6",
-                                       "g8f6", "g6g7", "f6g8", "g7h8", "h8h8"};
+                                       "g8f6", "g6g7", "f6g8", "g7h8q"};
 
         for (const auto& move : moves) {
             game.Update(Convert::StrToMove(move, game.Player()));

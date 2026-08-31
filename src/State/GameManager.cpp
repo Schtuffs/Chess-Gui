@@ -269,7 +269,7 @@ void GameManager::MakeMove(Move move)
 
     // Try to play the move
     if (CheckMove(move)) {
-        if (CheckPromotion(move)) {
+        if (!CheckPromotion(move)) {
             return;
         }
 
@@ -313,6 +313,10 @@ bool GameManager::CheckMove(Move move)
 
 bool GameManager::CheckPromotion(Move move)
 {
+    if (!move.IsPromo()) {
+        return true;
+    }
+
     if (!(m_position.Pieces(PAWN) & move.From())) {
         return false;
     }
