@@ -415,9 +415,8 @@ void Menu::Settings(Enums::Screen& screen)
     }
 }
 
-PieceType DeterminePromo(Square sq, Square promo, bool isWhitePerspective)
+PieceType DeterminePromo(Square sq, Square promo)
 {
-    (void)isWhitePerspective;
     constexpr PieceType TYPES[] = {QUEEN, ROOK, BISHOP, KNIGHT};
 
     if (sq % 8 != promo % 8) {
@@ -465,7 +464,7 @@ void Menu::InGame(Enums::Screen& screen)
         DebugPrintln("Menu::InGame: Selected square: {}", (u8)sq);
         if (gameManager->Promotion() != SQ_BAD) {
             // Render the stuff
-            PieceType type = DeterminePromo(sq, gameManager->Promotion(), isWhitePerspective);
+            PieceType type = DeterminePromo(sq, gameManager->Promotion());
             if (type != TYPE_NONE) {
                 gameManager->Promote(type);
             }

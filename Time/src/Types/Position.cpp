@@ -391,14 +391,14 @@ bool Position::IsAttacked(Square sq, BitBoard occu, Colour us) const noexcept
 
 void Position::MakeMove(Move move) noexcept
 {
-    // auto store      = std::make_shared<StateStore>();
-    // store->previous = m_state;
-    // m_state         = store;
+    auto store      = std::make_shared<StateStore>();
+    store->previous = m_state;
+    m_state         = store;
 
-    // m_state->ply        = m_state->previous->ply;
-    // m_state->totalMoves = m_state->previous->totalMoves;
-    // m_state->fen        = m_state->previous->fen;
-    // m_state->enPassant  = m_state->previous->enPassant;
+    m_state->ply        = m_state->previous->ply;
+    m_state->totalMoves = m_state->previous->totalMoves;
+    m_state->fen        = m_state->previous->fen;
+    m_state->enPassant  = m_state->previous->enPassant;
 
     // Moving
     m_state->captured = MovePiece(move);
@@ -475,7 +475,7 @@ void Position::UnmakeMove(Move move) noexcept
         }
     }
 
-    // m_state = m_state->previous;
+    m_state = m_state->previous;
 }
 
 // ----- Update ----- Hidden -----

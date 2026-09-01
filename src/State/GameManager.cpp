@@ -146,6 +146,11 @@ Square GameManager::Promotion() const noexcept { return m_promotionSquare; }
 
 bool GameManager::Pickup(Square sq)
 {
+    // Cant update if game finished
+    if (InCheckmate() || InStalemate()) {
+        return false;
+    }
+
     // Reset state always
     m_selectedSquare = SQ_BAD;
     m_possibleMoves  = 0ull;
@@ -313,6 +318,17 @@ bool GameManager::CheckMove(Move move)
 
 bool GameManager::CheckPromotion(Move move)
 {
+    if (m_position.Pieces(PAWN) & move.From() && !move.IsPromo()) {
+        BitBoard rank8 = (Player() == WHITE ? RANK_8BB : RANK_1BB);
+        if (rank8 & move.To()) {
+            m_possibleMoves   = 0ull;
+            m_promotionSquare = move.To();
+            m_promotionMove   = move;
+            return false;
+        }
+        return true;
+    }
+
     if (!move.IsPromo()) {
         return true;
     }

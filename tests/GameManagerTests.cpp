@@ -38,19 +38,20 @@ static void Promotion()
         Assert::Equal(actual, expected);
     });
 
-    // TEST("GameManager::Update: partial - white promotion - queen", []() {
-    //     std::string_view expected = "rnbqkbnQ/ppppp2p/8/8/8/8/PPPP1PPP/RNBQKBNR b KQq - 0 5";
-    //     GameManager      game(Fen::DEFAULT);
-    //     std::vector<std::string> moves{"e2e4", "f7f5", "e4f5", "g7g5", "f5g6",
-    //                                    "g8f6", "g6g7", "f6g8", "g7h8", "h8"};
+    TEST("GameManager::Update: partial - white promotion - queen", []() {
+        std::string_view expected = "rnbqkbnQ/ppppp2p/8/8/8/8/PPPP1PPP/RNBQKBNR b KQq - 0 5";
+        GameManager      game(Fen::DEFAULT);
+        std::vector<std::string> moves{"e2e4", "f7f5", "e4f5", "g7g5", "f5g6",
+                                       "g8f6", "g6g7", "f6g8", "g7h8"};
 
-    //     for (const auto& move : moves) {
-    //         game.Update(Convert::StrToMove(move, game.Player()));
-    //     }
-    //     std::string_view actual = game.Fen();
+        for (const auto& move : moves) {
+            game.Update(Convert::StrToMove(move, game.Player()));
+        }
+        game.Promote(QUEEN);
+        std::string_view actual = game.Fen();
 
-    //     Assert::Equal(actual, expected);
-    // });
+        Assert::Equal(actual, expected);
+    });
 
     // TEST("GameManager::Update: partial - black promotion - bishop", []() {
     //     std::string_view expected = "rnbqkbnr/pppp1ppp/8/8/8/8/PP2PPPP/RbBQKBNR w KQkq - 0 5";
