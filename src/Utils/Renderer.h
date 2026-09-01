@@ -5,7 +5,11 @@
 #include <vector>
 
 #include "raylib.h"
+#undef WHITE
+#undef BLACK
 
+#include "Types/BitBoard.h"
+#include "Types/Types.h"
 #include "Utils/Constants.h"
 
 /**
@@ -30,34 +34,37 @@ public:
 
     // ----- Read -----
 
-    void        Update();
-    std::string Render(std::string_view fen, BitBoard moves, Index promoSquare,
-                       bool isWhitePerspective) const noexcept;
-    void        RenderMate(Enums::Colour winner, bool isCheckmate) const noexcept;
-    void        RenderSquare(Color colour, Index index, bool border) const noexcept;
+    void   Update();
+    Square Render(std::string_view fen, BitBoard moves, Square promoSquare,
+                  bool isWhitePerspective) const noexcept;
+    void   RenderMate(Colour winner, bool isCheckmate) const noexcept;
+    void   RenderSquare(Color colour, Square sq, bool border) const noexcept;
 
 private:
-    Texture2D m_textures[12];
+    Texture2D m_textures[TYPE_TOTAL * 2];
     Color     m_dark, m_light, m_promo, m_legal;
     int       m_textureSize, m_startX, m_startY;
 
     // Render workflow
 
+    void LoadTextures() noexcept;
+    void UnloadTextures() noexcept;
+
     void RenderBoard() const noexcept;
     void RenderHover() const noexcept;
     void RenderMoves(BitBoard moves, bool isWhitePerspective) const noexcept;
     void RenderPieces(std::string_view fen, bool isWhitePerspective) const noexcept;
-    void RenderPromotion(Index index, bool isWhitePerspective) const noexcept;
+    void RenderPromotion(Square sq, bool isWhitePerspective) const noexcept;
 
     // Helper functions
 
-    Index     DetectClick(bool isWhitePerspective) const noexcept;
+    Square    DetectClick(bool isWhitePerspective) const noexcept;
     void      FixSize();
-    Rectangle GetRect(Index index) const noexcept;
-    Color     GetHoverColour(Index index) const noexcept;
-    bool      IsClicked(Index index) const noexcept;
-    bool      IsHovered(Index index) const noexcept;
-    void      RenderPiece(Texture2D texture, Index index) const noexcept;
+    Rectangle GetRect(Square sq) const noexcept;
+    Color     GetHoverColour(Square sq) const noexcept;
+    bool      IsClicked(Square sq) const noexcept;
+    bool      IsHovered(Square sq) const noexcept;
+    void      RenderPiece(Texture2D texture, Square sq) const noexcept;
 
     /**
      * @brief Determines a pieces `Color`.

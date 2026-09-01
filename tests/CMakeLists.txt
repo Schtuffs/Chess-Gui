@@ -18,9 +18,9 @@ add_executable(${PROJECT_NAME}
     ${ALL_SOURCE_FILES}
     ../third_party/raygui.c
     tests.cpp
-    BoardTests.cpp
     GameManagerTests.cpp
     MoveGenTests.cpp
+    TimeTests.cpp
 )
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR

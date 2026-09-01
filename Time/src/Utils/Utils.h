@@ -3,10 +3,6 @@
 #include <cstdio>
 #include <print>
 
-#include "raylib.h"
-#undef WHITE
-#undef BLACK
-
 #include "Types/Types.h"
 
 #define UTILS_LOG_CONSOLE
@@ -17,67 +13,6 @@
  * @date 2026-06-06
  */
 namespace Utils {
-
-constexpr u8 CalculateIndex(Colour col, PieceType type) { return u8(type + (col * 8)); }
-
-/**
- * @brief Creates a clickable button that only gets clicked on both press and release hovering.
- * @param rect The area to render the button.
- * @param text The text to center.
- * @param id The ID of the button to determine clicking status.
- * @return `true` when button was hovered on both click and release.
- * @date 2026-06-15
- */
-bool ClickableButton(Rectangle rect, const char* text, u8 id);
-
-/**
- * @brief Centers given text.
- * @param text The text to center.
- * @param font The text `Font`.
- * @param fontSize The size of the `Font`.
- * @param centerPoint The desired center point for the text.
- * @return The position to draw the text at for it to be centered.
- * @date 2026-06-15
- */
-Vector2 CenterText(const char* text, Font font, float fontSize, float fontSpacing,
-                   Vector2 centerPoint);
-
-/**
- * @brief Get the position of the first square in the rendered grid.
- * @return The position of the first square with {x, y, size}.
- * @date 2026-06-15
- */
-Vector3 GridPositioning();
-
-/**
- * @brief Calculates `Rectangle` data for given indexes.
- * @param x The x value between 0..(8 - 1)
- * @param y The y value between 0..(8 - 1)
- * @param width How many grid tiles the `Rectangle` should cover horizontally.
- * @param height How many grid tiles the `Rectangle` should cover vertically.
- * @return The position of the `Rectangle`.
- * @date 2026-06-15
- */
-Rectangle ButtonPos(u8 x, u8 y, u8 width, u8 height);
-
-/**
- * @brief Loads a `Texture2D` to the GPU.
- * @param `Colour` The `Piece` colour.
- * @param `PieceType` The `Piece` type.
- * @param size The size of the `Texture2D`.
- * @return The loaded `Texture2D`. Check with `IsTextureValid(Texture2D)`.
- * @date 2026-06-06
- */
-Texture2D LoadTexture(Colour colour, PieceType type, int size);
-
-/**
- * @brief Unloads a `Texture2D` from the GPU.
- * @param `Texture2D` The texture to unload.
- * @param `Colour` The `Piece` colour.
- * @param `PieceType` The `Piece` type.
- * @date 2026-06-06
- */
-void UnloadTexture(Texture2D& texture, Colour colour, PieceType type);
 
 /**
  * @brief Checks if an `Square` is valid.

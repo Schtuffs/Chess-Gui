@@ -6,7 +6,8 @@
 
 #include "MoveGen/MoveGen.h"
 #include "Pipes/Pipes.h"
-#include "State/Board.h"
+#include "Types/Position.h"
+#include "Types/Types.h"
 
 /**
  * @brief Manages game based workflows.
@@ -41,6 +42,9 @@ public:
      */
     std::string AllMoves() const noexcept;
 
+    // Get the square of the currently selected piece
+    Square Held() const noexcept;
+
     // Checks if the current player has checkmated their opponent.
     bool InCheckmate() const noexcept;
 
@@ -62,37 +66,42 @@ public:
     BitBoard Moves() const noexcept;
 
     // Get the current player colour.
-    Enums::Colour Player() const noexcept;
+    Colour Player() const noexcept;
 
     // Check if `Board` is in state of attempting to promote a `Piece`.
-    Index Promotion() const noexcept;
+    Square Promotion() const noexcept;
+
+    // Promotes the current piece.
+    bool Promote(PieceType type) noexcept;
 
     // ----- Update -----
+
+    // Pickup a piece on given square.
+    bool Pickup(Square sq);
 
     /**
      * @brief Update the current game state.
      * @param move A potential move that a player is trying to make.
      * @date 2026-07-05
      */
-    void Update(std::string_view move);
+    void Update(Move move);
+    void Update();
 
 private:
-    std::vector<std::string> m_moves;
-    Board                    m_board;
-    MoveGen                  m_moveGen;
-    std::string              m_currentMove;
+    std::vector<std::string> m_allMoves;
+    Position                 m_position;
+    MoveList                 m_list;
+    Move                     m_promotionMove;
     BitBoard                 m_possibleMoves;
-    Index                    m_promotionSquare;
+    Square                   m_selectedSquare, m_promotionSquare;
     bool                     m_isWhiteTurn, m_isWhiteAI, m_isBlackAI, m_isReady;
     Pipes::ID                m_whiteID, m_blackID;
 
-    void Update(std::string_view move, bool tryReselect);
+    void MakeMove(Move move);
     void EngineUpdate(Pipes::ID id);
 
-    bool CheckMove(std::string_view move);
-    bool CheckPieceSelectable(Index index);
-    void OnValidMove(std::string_view move);
-
-    void CheckForPromotion(std::string_view move);
-    void ManagePromotion(std::string_view move);
+    bool CheckMove(Move move);
+    bool CheckPromotion(Move move);
+    bool CheckPieceSelectable(Square sq);
+    void OnValidMove(Move move);
 };

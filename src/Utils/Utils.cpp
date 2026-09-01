@@ -5,18 +5,21 @@
 #include <mutex>
 
 #include "raygui.h"
+#undef WHITE
+#undef BLACK
+
+#include "Utils/Constants.h"
 
 typedef struct TextureValuePair {
     u8        count = 0;
     Texture2D texture{};
 } TextureValuePair;
 
-static TextureValuePair s_textureValuePairs[12];
+static TextureValuePair s_textureValuePairs[(u8)TYPE_TOTAL * (u8)COLOUR_TOTAL];
 static u8               s_clickedButton = 0;
 
-int CalculateIndex(Enums::Colour colour, Enums::Type type) { return ((int)type * 2) + (int)colour; }
-
-Vector2 Utils::CenterText(const char* text, Font font, float fontSize, float fontSpacing, Vector2 centerPoint)
+Vector2 Utils::CenterText(const char* text, Font font, float fontSize, float fontSpacing,
+                          Vector2 centerPoint)
 {
     Vector2 textSize = MeasureTextEx(font, text, fontSize, fontSpacing);
     centerPoint.x    = centerPoint.x - (textSize.x / 2);
@@ -54,7 +57,7 @@ Vector3 Utils::GridPositioning()
     // Make square
     int   width  = GetScreenWidth();
     int   height = GetScreenHeight();
-    float size   = Utils::Min(width, height) / 8;
+    float size   = std::min(width, height) / 8;
 
     // Calculate start position
     int   sizeX  = width - size * 8;
@@ -79,7 +82,7 @@ Rectangle Utils::ButtonPos(u8 x, u8 y, u8 width, u8 height)
     return pos;
 }
 
-Texture2D Utils::LoadTexture(Enums::Colour colour, Enums::Type type, int size)
+Texture2D Utils::LoadTexture(Colour colour, PieceType type, int size)
 {
     // Prevent unnecessary warnings at program startup
     if (size == 0) {
@@ -93,8 +96,8 @@ Texture2D Utils::LoadTexture(Enums::Colour colour, Enums::Type type, int size)
     }
 
     // Get pair data
-    int               index = CalculateIndex(colour, type);
-    TextureValuePair& pair  = s_textureValuePairs[index];
+    u8                sq   = CalculateIndex(colour, type);
+    TextureValuePair& pair = s_textureValuePairs[sq];
 
     // Determine if should load texture
     if (pair.count == 0) {
@@ -128,11 +131,11 @@ Texture2D Utils::LoadTexture(Enums::Colour colour, Enums::Type type, int size)
     return pair.texture;
 }
 
-void Utils::UnloadTexture(Texture2D& texture, Enums::Colour colour, Enums::Type type)
+void Utils::UnloadTexture(Texture2D& texture, Colour colour, PieceType type)
 {
     if (IsTextureValid(texture)) {
-        int               index = CalculateIndex(colour, type);
-        TextureValuePair& pair  = s_textureValuePairs[index];
+        int               sq   = CalculateIndex(colour, type);
+        TextureValuePair& pair = s_textureValuePairs[sq];
         pair.count--;
 
         if (pair.count == 0) {
@@ -140,21 +143,6 @@ void Utils::UnloadTexture(Texture2D& texture, Enums::Colour colour, Enums::Type 
             texture.id = 0;
         }
     }
-}
-
-bool Utils::IsValidIndex(Index index) { return (index < 64); }
-
-Enums::Colour Utils::SwapColour(Enums::Colour colour)
-{
-    if (colour == Enums::Colour::White) {
-        return Enums::Colour::Black;
-    }
-
-    if (colour == Enums::Colour::Black) {
-        return Enums::Colour::White;
-    }
-
-    return colour;
 }
 
 static std::mutex                   mtxPrint, mtxDebug, mtxError, mtxInfo, mtxWarning;

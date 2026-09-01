@@ -1,59 +1,24 @@
 cmake_minimum_required(VERSION 3.22)
-project(ChessGui C CXX)
+project(TimeTests C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(LIB         ${CMAKE_CURRENT_LIST_DIR}/lib)
 set(SRC         ${CMAKE_CURRENT_LIST_DIR}/src)
 set(MOVEGEN     ${SRC}/MoveGen)
-set(PIPES       ${SRC}/Pipes)
-set(STATE       ${SRC}/State)
 set(TYPES       ${SRC}/Types)
 set(UTILS       ${SRC}/Utils)
-set(THIRD_PARTY ${CMAKE_CURRENT_LIST_DIR}/third_party)
-
-include(FetchContent)
-
-FetchContent_Declare(
-    raylib
-    GIT_REPOSITORY https://github.com/raysan5/raylib
-    GIT_TAG        6.0
-)
-
-FetchContent_MakeAvailable(raylib)
-
-if(WIN32)
-    set(RESOURCE_FILES ${CMAKE_CURRENT_LIST_DIR}/ChessGui.rc)
-endif()
 
 add_executable(${PROJECT_NAME}
     ${SRC}/main.cpp
     ${MOVEGEN}/Magic.cpp
     ${MOVEGEN}/MoveGen.cpp
-    ${PIPES}/Pipes.cpp
-    ${PIPES}/WinPipes.cpp
-    ${STATE}/GameManager.cpp
-    ${STATE}/Menus.cpp
     ${TYPES}/Position.cpp
     ${UTILS}/Fen.cpp
-    ${UTILS}/Renderer.cpp
-    ${UTILS}/Settings.cpp
     ${UTILS}/Utils.cpp
-    ${THIRD_PARTY}/raygui.c
-    ${RESOURCE_FILES}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${SRC})
-target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${THIRD_PARTY})
-
-if(WIN32)
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        WIN32_EXECUTABLE $<CONFIG:Release>
-    )
-endif()
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<CONFIG:Release>:UTILS_LOG_NONE>)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR
     ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"
@@ -66,7 +31,4 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR
         target_link_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:-fsanitize=address> $<$<CONFIG:Debug>:-static-libasan>)
     endif()
 endif()
-target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
-
-add_subdirectory(tests)
 

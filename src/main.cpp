@@ -3,6 +3,8 @@
 #include <vector>
 
 #include "raylib.h"
+#undef WHITE
+#undef BLACK
 
 #include "Pipes/Pipes.h"
 #include "State/Menus.h"
@@ -14,9 +16,11 @@ bool inDebugMode = false;
 
 bool IsScreenSwapped(Enums::Screen screen)
 {
-    static Enums::Screen prev  = Enums::Screen::Menu;
-    bool                 value = prev != screen;
-    prev                       = screen;
+    static Enums::Screen prev = Enums::Screen::Menu;
+
+    bool value = (prev != screen);
+
+    prev = screen;
     return value;
 }
 
@@ -58,7 +62,7 @@ int main(void)
 
         // Drawing
         BeginDrawing();
-        ClearBackground(BLACK);
+        ClearBackground({0, 0, 0, 255});
 
         switch (currentScreen) {
         case Enums::Screen::Quit: {
@@ -88,13 +92,13 @@ int main(void)
         default: {
             char text[30]{};
             snprintf(text, sizeof(text), "Invalid screen selected: %d", (int)currentScreen);
-            int fontSize = Utils::Max(GetScreenWidth() / 100, 20);
+            int fontSize = std::max(GetScreenWidth() / 100, 20);
 
             Font    font = GetFontDefault();
             Vector2 pos  = Utils::CenterText(text, font, fontSize, 1.f,
                                              {GetScreenWidth() / 2.f, GetScreenHeight() / 2.f});
 
-            DrawTextEx(font, text, pos, fontSize, 1.f, WHITE);
+            DrawTextEx(font, text, pos, fontSize, 1.f, {255, 255, 255, 255});
             break;
         }
         }

@@ -6,16 +6,6 @@
 
 extern bool inDebugMode;
 
-/**
- * @brief Helpful for holding 2 variables of the same type in 1.
- * @tparam T The desired datatype.
- * @date 2026-06-11
- */
-template <typename T>
-struct Vec2 {
-    T x, y;
-};
-
 // Resources path.
 constexpr std::string_view PATH_RESOURCES = "../resources";
 

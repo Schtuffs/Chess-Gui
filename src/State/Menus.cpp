@@ -7,6 +7,8 @@
 #include <utility>
 
 #include "raygui.h"
+#undef WHITE
+#undef BLACK
 
 #include "State/GameManager.h"
 #include "Utils/Convert.h"
@@ -34,7 +36,7 @@ static void PushDefaultGuiStyle()
             GuiGetStyle(std::get<0>(defaultGuiStyle[i]), std::get<1>(defaultGuiStyle[i]));
     }
     GuiSetStyle(DEFAULT, TEXT_SIZE,
-                Utils::Max(Utils::Min(GetScreenWidth(), GetScreenHeight()) / 50, 10));
+                std::max(std::min(GetScreenWidth(), GetScreenHeight()) / 50, 10));
 }
 
 static void PopDefaultGuiStyle()
@@ -55,12 +57,12 @@ static Rectangle MoveDown(Rectangle rect, u8 squares)
 void Menu::Main(Enums::Screen& screen)
 {
     renderer.Update();
-    renderer.Render("", 0, 64, true);
+    renderer.Render("", 0ull, SQ_BAD, true);
     Rectangle startPos = Utils::ButtonPos(1, 1, 6, 1);
 
     PushDefaultGuiStyle();
 
-    if (Utils::ClickableButton(startPos, "Start new game", 1)) {
+    if (Utils::ClickableButton(startPos, "Start game", 1)) {
         screen = Enums::Screen::NewGame;
     }
     if (Utils::ClickableButton((startPos = MoveDown(startPos, 4)), "Settings", 2)) {
@@ -76,7 +78,7 @@ void Menu::Main(Enums::Screen& screen)
 void Menu::NewGame(Enums::Screen& screen)
 {
     renderer.Update();
-    renderer.Render("", 0, 64, true);
+    renderer.Render("", 0ull, SQ_BAD, true);
 
     PushDefaultGuiStyle();
 
@@ -115,15 +117,11 @@ void Menu::CreateGame(Enums::Screen& screen)
         settingsLoaded = true;
         delete[] fen;
         fen = new char[MAX_FEN_SIZE];
-        std::strncpy(fen, DEFAULT_FEN.data(), MAX_FEN_SIZE);
+        std::strncpy(fen, Fen::DEFAULT.data(), MAX_FEN_SIZE);
     }
 
     renderer.Update();
-    // if (!Fen::IsValidFen(fen)) {
-    //     renderer.Render("", MoveGen::INVALID, 65, true);
-    // } else {
-        renderer.Render(fen, MoveGen::INVALID, 65, true);
-    // }
+    renderer.Render(fen, 0ull, SQ_BAD, true);
 
     if (GuiTextBox(Utils::ButtonPos(8, 1, 3, 1), fen, MAX_FEN_SIZE, isTypingFen)) {
         isTypingFen = !isTypingFen;
@@ -164,7 +162,7 @@ static SettingScreens SettingsMain()
     PushDefaultGuiStyle();
 
     renderer.Update();
-    renderer.Render("", MoveGen::INVALID, 64, true);
+    renderer.Render("", 0ull, SQ_BAD, true);
 
     SettingScreens screen = SETTING_MAIN;
 
@@ -198,7 +196,7 @@ static SettingScreens SettingsReset()
     PushDefaultGuiStyle();
 
     renderer.Update();
-    renderer.Render("", MoveGen::INVALID, 64, true);
+    renderer.Render("", 0ull, SQ_BAD, true);
 
     SettingScreens screen = SETTING_RESET;
 
@@ -245,7 +243,7 @@ static SettingScreens SettingsBoard()
         legalHSV = ColorToHSV(legal);
     }
     renderer.Update();
-    renderer.Render("", MoveGen::INVALID, 64, true);
+    renderer.Render("", 0ull, SQ_BAD, true);
 
     float barSize =
         GuiGetStyle(COLORPICKER, HUEBAR_WIDTH) + GuiGetStyle(COLORPICKER, HUEBAR_PADDING);
@@ -272,13 +270,13 @@ static SettingScreens SettingsBoard()
     for (int i = 0; i < 18; i++) {
         i8 off = ((i / 6) * 8) + ((i % 6));
         if (i == 14 || i == 15) {
-            renderer.RenderSquare(HSVToColor(promoHSV), 17 + off, true);
+            renderer.RenderSquare(HSVToColor(promoHSV), Square(17 + off), true);
         } else if (i == 2 || i == 3) {
-            renderer.RenderSquare(HSVToColor(legalHSV), 17 + off, true);
+            renderer.RenderSquare(HSVToColor(legalHSV), Square(17 + off), true);
         } else if ((i + (i / 6)) % 2) {
-            renderer.RenderSquare(HSVToColor(darkHSV), 17 + off, false);
+            renderer.RenderSquare(HSVToColor(darkHSV), Square(17 + off), false);
         } else {
-            renderer.RenderSquare(HSVToColor(lightHSV), 17 + off, false);
+            renderer.RenderSquare(HSVToColor(lightHSV), Square(17 + off), false);
         }
     }
 
@@ -345,7 +343,7 @@ static SettingScreens SettingsEngine()
     }
 
     renderer.Update();
-    renderer.Render("", 0, 64, true);
+    renderer.Render("", 0ull, SQ_BAD, true);
 
     SettingScreens screen = SETTING_ENGINE;
 
@@ -417,6 +415,20 @@ void Menu::Settings(Enums::Screen& screen)
     }
 }
 
+PieceType DeterminePromo(Square sq, Square promo)
+{
+    constexpr PieceType TYPES[] = {QUEEN, ROOK, BISHOP, KNIGHT};
+
+    if (sq % 8 != promo % 8) {
+        return TYPE_NONE;
+    }
+
+    i8 off   = i8(promo / 8) - i8(sq / 8);
+    u8 piece = std::abs(off);
+
+    return TYPES[piece];
+}
+
 void Menu::InGame(Enums::Screen& screen)
 {
     static bool         isWhitePerspective = true;
@@ -429,10 +441,12 @@ void Menu::InGame(Enums::Screen& screen)
         if (load == LOAD_SAVED_FEN) {
             gameManager = new GameManager(Settings::s(Setting::GAME_FEN));
         } else {
-            gameManager = new GameManager(DEFAULT_FEN);
+            gameManager = new GameManager(Fen::DEFAULT);
         }
+
         screen = Enums::Screen::Game;
         gameManager->IsReady();
+        isWhitePerspective = true;
     }
 
     if (IsKeyPressed(KEY_F)) {
@@ -443,10 +457,25 @@ void Menu::InGame(Enums::Screen& screen)
     }
 
     renderer.Update();
-    std::string move = renderer.Render(gameManager->Fen(), gameManager->Moves(),
-                                       gameManager->Promotion(), isWhitePerspective);
-    gameManager->Update(move);
+    Square sq = renderer.Render(gameManager->Fen(), gameManager->Moves(), gameManager->Promotion(),
+                                isWhitePerspective);
+
+    if (Utils::IsValidSquare(sq)) {
+        DebugPrintln("Menu::InGame: Selected square: {}", (u8)sq);
+        if (gameManager->Promotion() != SQ_BAD) {
+            // Render the stuff
+            PieceType type = DeterminePromo(sq, gameManager->Promotion());
+            if (type != TYPE_NONE) {
+                gameManager->Promote(type);
+            }
+        } else if (gameManager->Held() == SQ_BAD) {
+            gameManager->Pickup(sq);
+        } else {
+            gameManager->Update(Move::Make(gameManager->Held(), sq));
+        }
+    }
+
     if (gameManager->InCheckmate() || gameManager->InStalemate()) {
-        renderer.RenderMate(Utils::SwapColour(gameManager->Player()), gameManager->InCheckmate());
+        renderer.RenderMate(~(gameManager->Player()), gameManager->InCheckmate());
     }
 }

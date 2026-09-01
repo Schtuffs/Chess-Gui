@@ -5,7 +5,7 @@
 void Assert::True(bool value)
 {
     if (value == false) {
-        TEST_FAIL("Assert::True:  <false> is not <true>");
+        TEST_FAIL("Assert::True: <false> is not <true>");
     }
     TEST_SUCCESS();
 }
@@ -22,7 +22,7 @@ void Assert::Equal(const void* actual, const void* expected, int length)
 {
     if (memcmp(actual, expected, length) != 0) {
         std::stringstream str;
-        str << "Assert::Equal:  <" << actual << "> is not equal to <" << expected << ">";
+        str << "Assert::Equal: <" << actual << "> is not equal to <" << expected << ">";
         TEST_FAIL(str.str());
     }
     TEST_SUCCESS();

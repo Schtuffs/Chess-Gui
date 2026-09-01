@@ -73,8 +73,8 @@ static void                     AdjustName(const std::string& arg)
     s_nameAddAll = false;
 
     // Its either an empty string or a valid name
-    uint64_t index = arg.find_first_of("*");
-    if (index == std::string::npos) {
+    uint64_t sq = arg.find_first_of("*");
+    if (sq == std::string::npos) {
         if (arg == "") {
             s_nameAddAll = true;
             s_testNameRequirements.push_back("*");
@@ -90,14 +90,14 @@ static void                     AdjustName(const std::string& arg)
 
     uint64_t prev   = 0;
     uint64_t safety = 50;
-    while ((index = arg.find("*", prev)) != std::string::npos && safety != 0) {
-        if (index != prev) {
-            s_testNameRequirements.push_back(arg.substr(prev, index - prev));
-            if (arg[prev + (index - prev)] == '*') {
+    while ((sq = arg.find("*", prev)) != std::string::npos && safety != 0) {
+        if (sq != prev) {
+            s_testNameRequirements.push_back(arg.substr(prev, sq - prev));
+            if (arg[prev + (sq - prev)] == '*') {
                 s_testNameRequirements.push_back("*");
             }
         }
-        prev = index + 1;
+        prev = sq + 1;
         safety--;
     }
 
@@ -105,9 +105,9 @@ static void                     AdjustName(const std::string& arg)
         std::println(stderr, "ERROR: Safety triggered on test name parse: {}", arg);
     }
 
-    index = arg.find_last_of("*");
-    if (index != arg.size() - 1) {
-        s_testNameRequirements.push_back(arg.substr(index + 1));
+    sq = arg.find_last_of("*");
+    if (sq != arg.size() - 1) {
+        s_testNameRequirements.push_back(arg.substr(sq + 1));
     }
 }
 
@@ -170,7 +170,7 @@ static bool IsValidTestName(std::string_view name)
         return false;
     }
 
-    uint64_t index       = 0;
+    uint64_t sq          = 0;
     bool     canContinue = true;
     for (uint64_t i = 0; i < s_testNameRequirements.size(); i++) {
         bool        finalEndsWith = (i == s_testNameRequirements.size() - 1);
@@ -188,12 +188,12 @@ static bool IsValidTestName(std::string_view name)
             return false;
         }
 
-        index = name.find(requirement, index);
-        if (index == std::string_view::npos) {
+        sq = name.find(requirement, sq);
+        if (sq == std::string_view::npos) {
             return false;
         }
 
-        index += requirement.length();
+        sq += requirement.length();
         canContinue = false;
     }
 

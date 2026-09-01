@@ -3,6 +3,7 @@
 #include <cfloat>
 #include <string>
 
+#include "Types/ShortTypes.h"
 #include "Utils/Constants.h"
 
 /**
