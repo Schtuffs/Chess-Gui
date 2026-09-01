@@ -13,7 +13,7 @@ constexpr const char* DEPTH_COMMAND = "go depth 10";
 
 GameManager::GameManager(std::string_view fen)
     : m_position(fen), m_possibleMoves(0ull), m_selectedSquare(SQ_BAD), m_promotionSquare(SQ_BAD),
-      m_isWhiteTurn(true), m_isWhiteAI(false), m_isBlackAI(false), m_isReady(false)
+      m_isWhiteAI(false), m_isBlackAI(false), m_isReady(false)
 {
     m_isWhiteTurn = (m_position.Player() == WHITE);
 
@@ -70,12 +70,12 @@ void GameManager::IsReady()
         std::thread wEngine(EngineStart, std::ref(m_whiteID),
                             Settings::s(Setting::ENGINE_WHITE_PATH));
         wEngine.join();
-        std::string position = "position startpos";
-        if (!m_allMoves.empty()) {
-            position += " moves ";
-            position += AllMoves();
-        }
         if (m_isWhiteTurn) {
+            std::string position = "position startpos";
+            if (!m_allMoves.empty()) {
+                position += " moves ";
+                position += AllMoves();
+            }
             if (!Pipes::Write(m_whiteID, position)) {
                 ErrorPrintln("GameManager::IsReady: Failed to write position to pipe.");
             }
@@ -88,12 +88,12 @@ void GameManager::IsReady()
         std::thread bEngine(EngineStart, std::ref(m_blackID),
                             Settings::s(Setting::ENGINE_BLACK_PATH));
         bEngine.join();
-        std::string position = "position startpos";
-        if (!m_allMoves.empty()) {
-            position += " moves ";
-            position += AllMoves();
-        }
         if (!m_isWhiteTurn) {
+            std::string position = "position startpos";
+            if (!m_allMoves.empty()) {
+                position += " moves ";
+                position += AllMoves();
+            }
             if (!Pipes::Write(m_blackID, position)) {
                 ErrorPrintln("GameManager::IsReady: Failed to write position to pipe.");
             }
@@ -227,21 +227,24 @@ void GameManager::EngineUpdate(Pipes::ID id)
     constexpr const char SEARCH[] = "bestmove";
 
     std::string str = Pipes::Read(id, false);
-    auto        sq  = str.find(SEARCH);
-    if (sq == std::string::npos) {
+    auto        idx = str.find(SEARCH);
+    if (idx == std::string::npos) {
         return;
     }
 
-    sq += sizeof(SEARCH);
-    str       = str.substr(sq);
+    idx += sizeof(SEARCH);
+    str       = str.substr(idx);
     u64 space = str.find(' ');
     if (space == std::string::npos) {
         space = 4;
     }
 
-    str = str.substr(0, space);
-    if (str.length() >= 4) {
-        Update(Convert::StrToMove(str, Player()));
+    std::string strMove = str.substr(0, space);
+    Move        move    = Convert::StrToMove(strMove, Player());
+    if (move.IsValid()) {
+        std::println("{} Move: {}", strMove, move.Str());
+        Pickup(move.From());
+        MakeMove(move);
     }
 }
 
@@ -260,14 +263,14 @@ void GameManager::MakeMove(Move move)
 
     // Translate special moves
     if (m_position.Pieces(Player(), KING) & move.From()) {
-        if (std::abs(move.To() - move.From()) == 2) {
+        if (std::abs((i8)move.To() - (i8)move.From()) == 2) {
             move = Move::MakeCastle(move.From(), move.To());
         }
     }
 
     // Special pawn
     if (m_position.Pieces(Player(), PAWN) & move.From()) {
-        if (std::abs(move.To() - move.From()) == 16) {
+        if (std::abs((i8)move.To() - (i8)move.From()) == 16) {
             move = Move::MakeEnPassant(move.From(), move.To());
         }
     }

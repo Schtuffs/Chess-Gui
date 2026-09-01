@@ -473,6 +473,8 @@ void Menu::InGame(Enums::Screen& screen)
         } else {
             gameManager->Update(Move::Make(gameManager->Held(), sq));
         }
+    } else {
+        gameManager->Update();
     }
 
     if (gameManager->InCheckmate() || gameManager->InStalemate()) {
