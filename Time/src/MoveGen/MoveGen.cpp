@@ -105,8 +105,8 @@ void GeneratePawnMoves(const Position& pos, MoveList& list, BitBoard valid)
 
     // Promotions
     if (promoting) {
-        BitBoard b1 = Shift<upEast>(promoting) & enemies;
-        BitBoard b2 = Shift<upWest>(promoting) & enemies;
+        BitBoard b1 = (Shift<upEast>(promoting) & enemies) & ~FILE_1BB;
+        BitBoard b2 = (Shift<upWest>(promoting) & enemies) & ~FILE_8BB;
         BitBoard b3 = Shift<up>(promoting) & empty;
 
         while (b1) {
@@ -139,21 +139,19 @@ void GeneratePawnMoves(const Position& pos, MoveList& list, BitBoard valid)
 template <Colour us, GenType type>
 void GenerateAll(const Position& pos, MoveList& list)
 {
-    (void)pos;
-    (void)list;
     BitBoard valid;
     if constexpr (type == CAPTURES) {
-        valid = BitBoard(pos.Pieces(~us));
+        valid = pos.Pieces(~us);
     } else if constexpr (type == QUIETS) {
-        valid = BitBoard(~pos.Pieces());
+        valid = ~pos.Pieces();
     }
 
     if (pos.Checkers() < 2) {
         GeneratePawnMoves<us, type>(pos, list, valid);
-        GenerateMoves<us, BISHOP>(pos, list, valid);
         GenerateMoves<us, KNIGHT>(pos, list, valid);
-        GenerateMoves<us, QUEEN>(pos, list, valid);
+        GenerateMoves<us, BISHOP>(pos, list, valid);
         GenerateMoves<us, ROOK>(pos, list, valid);
+        GenerateMoves<us, QUEEN>(pos, list, valid);
     }
 
     Square   ksq = pos.Pieces(us, KING).PopLSB();

@@ -153,6 +153,7 @@ bool Position::IsCastleLegal(Square from, Square to) const noexcept
     } else {
         bb = bb >> 1;
         bb |= bb >> 1;
+        bb |= bb >> 1;
     }
 
     // Can't have other pieces there
@@ -297,7 +298,7 @@ std::string Position::Str() const noexcept
 
     // Turn, Moves
     {
-        ret += "\n  Player: ";
+        ret += "  Player: ";
         ret += (Player() == WHITE ? "White" : "Black");
 
         ret += ", Ply: ";
@@ -305,6 +306,12 @@ std::string Position::Str() const noexcept
 
         ret += ", Move: ";
         ret += std::format("{:>3}", std::to_string(m_state->totalMoves));
+    }
+
+    // Fen
+    {
+        ret += "\n  Fen: ";
+        ret += Fen();
     }
 
     return ret;
@@ -438,8 +445,8 @@ void Position::UnmakeMove(Move move) noexcept
     // Unpromote
     if (move.IsPromo()) {
         PieceType pt = move.Promotion();
-        m_bbType[PAWN] |= to;
-        m_bbType[pt] &= ~BitBoard(to);
+        m_bbType[pt] &= ~BitBoard(from);
+        m_bbType[PAWN] |= from;
     }
 
     MovePiece(Move::Make(from, to));
@@ -512,12 +519,12 @@ void Position::ManageEnPassant(Move move) noexcept
 
 void Position::ManagePromotion(Move move) noexcept
 {
-    Square to = move.To();
+    Square sq = move.To();
 
-    m_bbType[PAWN] &= ~BitBoard(to);
+    m_bbType[PAWN] &= ~BitBoard(sq);
 
     PieceType pt = move.Promotion();
-    m_bbType[pt] |= to;
+    m_bbType[pt] |= sq;
 }
 
 void Position::CalculateAttacks() noexcept
